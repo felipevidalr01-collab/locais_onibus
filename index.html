@@ -109,6 +109,13 @@
             box-shadow: inset 2px 0 3px rgba(0,0,0,0.06);
         }
 
+        /* Garante que o QR Code não fique borrado */
+        #qrcode-container img,
+        #qrcode-container canvas {
+            image-rendering: pixelated;
+            display: block;
+        }
+
         /* Otimização para Impressão / PDF */
         @media print {
             body * {
@@ -170,7 +177,7 @@
     <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-            <!-- COLUNA ESQUERDA: Mapa Interativo do Ônibus (7 colunas em telas grandes) -->
+            <!-- COLUNA ESQUERDA: Mapa Interativo do Ônibus -->
             <section class="lg:col-span-6 xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 no-print">
                 <div class="flex items-center justify-between mb-4">
                     <div>
@@ -407,15 +414,15 @@
                         </div>
 
                         <!-- Rodapé com QR Code -->
-                        <div class="px-6 py-5 bg-white flex items-center justify-between gap-4">
-                            <div class="space-y-1">
+                        <div class="px-6 py-5 bg-white flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="space-y-1 text-center sm:text-left">
                                 <span class="text-xs font-bold text-slate-800 block">Validação de Embarque</span>
                                 <p class="text-[11px] text-slate-500 leading-relaxed">
                                     Apresente este comprovante digital ou impresso ao motorista ou coordenador antes de embarcar.
                                 </p>
                             </div>
-                            <!-- Container do QR Code -->
-                            <div id="qrcode-container" class="p-2 bg-white border border-slate-200 rounded-xl shrink-0"></div>
+                            <!-- Container do QR Code com margem branca externa para leitura rápida da câmera -->
+                            <div id="qrcode-container" class="p-3 bg-white border border-slate-200 rounded-xl shrink-0"></div>
                         </div>
                     </div>
 
@@ -454,85 +461,11 @@
          * Lado Direito (Porta): Corredor (par), Janela (ímpar) -> Ex: 04, 03
          */
         const TOTAL_SEATS = 46;
-        const STORAGE_KEY = 'bus_seat_reservations_v1';
+        const STORAGE_KEY = 'bus_seat_reservations_v2';
         const DEFAULT_BOARDING_POINT = 'Embarque Único — Saída Principal';
 
-// ... existing code ... -->
-        /**
-         * Submissão do formulário e geração do comprovante
-         */
-        function setupFormListener() {
-            const form = document.getElementById('reservation-form');
-
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-
-                const nameInput = document.getElementById('passenger-name');
-                const docInput = document.getElementById('passenger-doc');
-                const phoneInput = document.getElementById('passenger-phone');
-
-                const name = nameInput.value.trim();
-
-                if (!selectedSeat) {
-                    showToast('Por favor, selecione uma poltrona livre no mapa do ônibus.', 'error');
-                    return;
-                }
-
-                if (name.length < 3) {
-                    showToast('Por favor, informe o nome completo do passageiro.', 'error');
-                    nameInput.focus();
-                    return;
-                }
-
-                // Gera código único da reserva
-                const randomCode = Math.floor(1000 + Math.random() * 9000);
-                const code = `#BUS-${randomCode}`;
-
-                // Data e hora atual formatada
-                const now = new Date();
-                const formattedDate = now.toLocaleDateString('pt-BR', {
-                    day: '2-digit', month: '2-digit', year: 'numeric'
-                });
-                const formattedTime = now.toLocaleTimeString('pt-BR', {
-                    hour: '2-digit', minute: '2-digit', second: '2-digit'
-                });
-
-                const ticketData = {
-                    code,
-                    seat: formatSeatNum(selectedSeat),
-                    seatRaw: selectedSeat,
-                    position: getSeatPosition(selectedSeat),
-                    name,
-                    doc: docInput.value.trim() || 'Não informado',
-                    phone: phoneInput.value.trim() || 'Não informado',
-                    boarding: DEFAULT_BOARDING_POINT,
-                    datetime: `${formattedDate} às ${formattedTime}`
-                };
-
-                // Marca poltrona como ocupada e salva
-                occupiedSeats.push(selectedSeat);
-                saveOccupiedSeats();
-
-                // Guarda dados atuais para download em PNG
-                currentTicketData = ticketData;
-
-                // Preenche o comprovante na tela
-                renderVoucher(ticketData);
-
-                // Limpa seleção atual e atualiza o mapa
-                selectedSeat = null;
-                updateSelectedBadge();
-                renderBusMap();
-
-                // Alterna visualização para o comprovante
-                document.getElementById('booking-form-card').classList.add('hidden');
-                const voucherSec = document.getElementById('voucher-section');
-                voucherSec.classList.remove('hidden');
-                voucherSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-                showToast('Reserva confirmada! Seu comprovante está pronto.', 'success');
-            });
-        }
+        // Todos os assentos começam livres
+        const DEFAULT_OCCUPIED = [];
 
         // Estado da aplicação
         let occupiedSeats = [];
@@ -725,6 +658,82 @@
         }
 
         /**
+         * Submissão do formulário e geração do comprovante
+         */
+        function setupFormListener() {
+            const form = document.getElementById('reservation-form');
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const nameInput = document.getElementById('passenger-name');
+                const docInput = document.getElementById('passenger-doc');
+                const phoneInput = document.getElementById('passenger-phone');
+
+                const name = nameInput.value.trim();
+
+                if (!selectedSeat) {
+                    showToast('Por favor, selecione uma poltrona livre no mapa do ônibus.', 'error');
+                    return;
+                }
+
+                if (name.length < 3) {
+                    showToast('Por favor, informe o nome completo do passageiro.', 'error');
+                    nameInput.focus();
+                    return;
+                }
+
+                // Gera código único da reserva
+                const randomCode = Math.floor(1000 + Math.random() * 9000);
+                const code = `#BUS-${randomCode}`;
+
+                // Data e hora atual formatada
+                const now = new Date();
+                const formattedDate = now.toLocaleDateString('pt-BR', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+                const formattedTime = now.toLocaleTimeString('pt-BR', {
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+
+                const ticketData = {
+                    code,
+                    seat: formatSeatNum(selectedSeat),
+                    seatRaw: selectedSeat,
+                    position: getSeatPosition(selectedSeat),
+                    name,
+                    doc: docInput.value.trim() || 'Não informado',
+                    phone: phoneInput.value.trim() || 'Não informado',
+                    boarding: DEFAULT_BOARDING_POINT,
+                    datetime: `${formattedDate} às ${formattedTime}`
+                };
+
+                // Marca poltrona como ocupada e salva
+                occupiedSeats.push(selectedSeat);
+                saveOccupiedSeats();
+
+                // Guarda dados atuais para download em PNG
+                currentTicketData = ticketData;
+
+                // Preenche o comprovante na tela
+                renderVoucher(ticketData);
+
+                // Limpa seleção atual e atualiza o mapa
+                selectedSeat = null;
+                updateSelectedBadge();
+                renderBusMap();
+
+                // Alterna visualização para o comprovante
+                document.getElementById('booking-form-card').classList.add('hidden');
+                const voucherSec = document.getElementById('voucher-section');
+                voucherSec.classList.remove('hidden');
+                voucherSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                showToast('Reserva confirmada! Seu comprovante está pronto.', 'success');
+            });
+        }
+
+        /**
          * Preenche os dados no cartão visual do comprovante e gera o QR Code
          */
         function renderVoucher(data) {
@@ -737,27 +746,32 @@
             document.getElementById('voucher-boarding').textContent = data.boarding;
             document.getElementById('voucher-datetime').textContent = data.datetime;
 
-            // Gera QR Code de validação
+            // Gera QR Code otimizado para leitura instantânea por câmera de celular
             const qrContainer = document.getElementById('qrcode-container');
             qrContainer.innerHTML = '';
 
-            const qrPayload = `COMPROVANTE:${data.code}|POLTRONA:${data.seat}|PASSAGEIRO:${data.name}`;
+            const qrPayload = [
+                `BILHETE ${data.code}`,
+                `Poltrona: ${data.seat} (${data.position})`,
+                `Passageiro: ${data.name}`,
+                `Embarque: ${data.boarding}`
+            ].join('\n');
 
             try {
                 if (typeof QRCode !== 'undefined') {
                     new QRCode(qrContainer, {
                         text: qrPayload,
-                        width: 78,
-                        height: 78,
-                        colorDark: '#0f172a',
+                        width: 112,
+                        height: 112,
+                        colorDark: '#000000',
                         colorLight: '#ffffff',
-                        correctLevel: QRCode.CorrectLevel.M
+                        correctLevel: QRCode.CorrectLevel.L
                     });
                 } else {
-                    qrContainer.innerHTML = `<div class="w-[78px] h-[78px] flex items-center justify-center text-[10px] font-mono text-slate-500 text-center">${data.code}</div>`;
+                    qrContainer.innerHTML = `<div class="w-[112px] h-[112px] flex items-center justify-center text-xs font-mono text-slate-500 text-center">${data.code}</div>`;
                 }
             } catch (e) {
-                qrContainer.innerHTML = `<div class="w-[78px] h-[78px] flex items-center justify-center text-[10px] font-mono text-slate-500 text-center">${data.code}</div>`;
+                qrContainer.innerHTML = `<div class="w-[112px] h-[112px] flex items-center justify-center text-xs font-mono text-slate-500 text-center">${data.code}</div>`;
             }
         }
 
@@ -950,23 +964,26 @@
             ctx.fillText('Apresente este comprovante digital ou impresso', cardX + 40, footerY + 52);
             ctx.fillText('ao motorista ou coordenador antes de embarcar.', cardX + 40, footerY + 78);
 
-            // Desenha o QR Code gerado na tela dentro do Canvas
+            // Desenha o QR Code gerado na tela dentro do Canvas sem suavização (nitidez máxima)
             const qrCanvas = document.querySelector('#qrcode-container canvas');
             const qrImg = document.querySelector('#qrcode-container img');
-            const qrSize = 122;
+            const qrSize = 132;
             const qrX = cardX + cardW - 40 - qrSize;
-            const qrY = tearY + 26;
+            const qrY = tearY + 20;
 
-            drawRoundedRect(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 14, '#ffffff');
+            drawRoundedRect(ctx, qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 14, '#ffffff');
             ctx.strokeStyle = '#cbd5e1';
             ctx.lineWidth = 2;
             ctx.stroke();
 
+            ctx.save();
+            ctx.imageSmoothingEnabled = false;
             if (qrCanvas) {
                 ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
             } else if (qrImg && qrImg.complete) {
                 ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
             }
+            ctx.restore();
 
             // Dispara o download do arquivo PNG
             try {
