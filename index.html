@@ -150,6 +150,10 @@
             </div>
 
             <div class="flex items-center gap-2 self-start sm:self-auto">
+                <span id="live-sync-badge" class="hidden inline-flex items-center gap-1.5 text-[11px] font-medium bg-slate-800/80 text-slate-300 px-2.5 py-1.5 rounded-full border border-slate-700" title="Mapa atualizado automaticamente sem recarregar">
+                    <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
+                    <span>Ao vivo</span>
+                </span>
                 <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-slate-800 text-emerald-400 px-3 py-1.5 rounded-full border border-slate-700">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span id="available-counter">46 livres</span>
@@ -395,7 +399,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>
                             </svg>
-                            <span class="text-[11px] font-semibold">Água / Café</span>
+                            <span class="text-[11px] font-semibold">Água / Lanche</span>
                         </div>
                     </div>
                 </div>
@@ -598,7 +602,7 @@
          * SENHA DO PAINEL DO COORDENADOR
          * Altere o valor abaixo para definir a senha desejada (padrão: '1234')
          */
-        const ADMIN_PASSWORD = '1234';
+        const ADMIN_PASSWORD = '2307';
 
         /**
          * INTEGRAÇÃO OPCIONAL COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
@@ -612,18 +616,53 @@
         let seatRecords = {};
         let selectedSeat = null;
         let currentTicketData = null;
+        let isSyncing = false;
 
         /**
          * Inicialização ao carregar a página
          */
         window.addEventListener('DOMContentLoaded', async () => {
             loadOccupiedSeats();
+            renderBusMap();
             await syncFromCloudIfConfigured();
             renderBusMap();
             setupInputMasks();
             setupFormListener();
             setupAdminTrigger();
             checkQRCodeValidationInURL();
+
+            // Sincronização automática silenciosa em tempo real a cada 3 segundos (sem recarregar a página)
+            if (GOOGLE_SHEETS_WEBHOOK_URL) {
+                const liveBadge = document.getElementById('live-sync-badge');
+                if (liveBadge) liveBadge.classList.remove('hidden');
+
+                setInterval(async () => {
+                    if (document.hidden || isSyncing) return;
+                    await syncFromCloudIfConfigured();
+                }, 3000);
+
+                // Atualiza imediatamente quando o usuário volta para a aba do navegador
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) syncFromCloudIfConfigured();
+                });
+            }
+
+            // Sincronização instantânea entre abas no mesmo navegador
+            window.addEventListener('storage', (e) => {
+                if (e.key === STORAGE_KEY || e.key === RECORDS_STORAGE_KEY) {
+                    const prevSelected = selectedSeat;
+                    loadOccupiedSeats();
+                    if (prevSelected && occupiedSeats.includes(prevSelected)) {
+                        selectedSeat = null;
+                        updateSelectedBadge();
+                        showToast(`A poltrona ${formatSeatNum(prevSelected)} acabou de ser reservada por outra pessoa.`, 'error');
+                    }
+                    renderBusMap();
+                    if (!document.getElementById('coordinator-modal').classList.contains('hidden')) {
+                        renderCoordinatorList();
+                    }
+                }
+            });
         });
 
         /**
@@ -659,28 +698,59 @@
         }
 
         /**
-         * Sincronização opcional com Google Sheets
+         * Sincronização em tempo real com Google Sheets (sem recarregar a página)
          */
         async function syncFromCloudIfConfigured() {
-            if (!GOOGLE_SHEETS_WEBHOOK_URL) return;
+            if (!GOOGLE_SHEETS_WEBHOOK_URL) return false;
+            isSyncing = true;
             try {
-                const res = await fetch(GOOGLE_SHEETS_WEBHOOK_URL);
+                const separator = GOOGLE_SHEETS_WEBHOOK_URL.includes('?') ? '&' : '?';
+                const res = await fetch(`${GOOGLE_SHEETS_WEBHOOK_URL}${separator}t=${Date.now()}`, {
+                    method: 'GET',
+                    redirect: 'follow',
+                    cache: 'no-store'
+                });
                 const data = await res.json();
                 if (Array.isArray(data.records)) {
-                    occupiedSeats = [];
-                    seatRecords = {};
+                    const newOccupied = [];
+                    const newRecords = {};
                     data.records.forEach(rec => {
                         const sNum = Number(rec.seatRaw);
                         if (sNum >= 1 && sNum <= TOTAL_SEATS) {
-                            occupiedSeats.push(sNum);
-                            seatRecords[sNum] = rec;
+                            newOccupied.push(sNum);
+                            newRecords[sNum] = rec;
                         }
                     });
+
+                    const changed = JSON.stringify(newOccupied.sort((a, b) => a - b)) !== JSON.stringify([...occupiedSeats].sort((a, b) => a - b))
+                        || JSON.stringify(newRecords) !== JSON.stringify(seatRecords);
+
+                    occupiedSeats = newOccupied;
+                    seatRecords = newRecords;
+
+                    if (selectedSeat && occupiedSeats.includes(selectedSeat)) {
+                        const lostSeat = selectedSeat;
+                        selectedSeat = null;
+                        updateSelectedBadge();
+                        showToast(`Ops! A poltrona ${formatSeatNum(lostSeat)} acabou de ser escolhida por outra pessoa. Selecione outra.`, 'error');
+                    }
+
                     saveOccupiedSeats();
+
+                    if (changed) {
+                        renderBusMap();
+                        if (!document.getElementById('coordinator-modal').classList.contains('hidden')) {
+                            renderCoordinatorList();
+                        }
+                    }
+                    return true;
                 }
             } catch (e) {
                 console.warn('Falha na sincronização com Google Sheets:', e);
+            } finally {
+                isSyncing = false;
             }
+            return false;
         }
 
         async function pushRecordToCloud(action, record) {
@@ -689,7 +759,8 @@
                 await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    redirect: 'follow',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action, record })
                 });
             } catch (e) {
@@ -815,8 +886,9 @@
          */
         function setupFormListener() {
             const form = document.getElementById('reservation-form');
+            const submitBtn = document.getElementById('confirm-btn');
 
-            form.addEventListener('submit', (e) => {
+            form.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
                 const nameInput = document.getElementById('passenger-name');
@@ -844,6 +916,21 @@
                     return;
                 }
 
+                // Checagem instantânea na nuvem antes de gravar para evitar duplo agendamento no mesmo segundo
+                const seatToReserve = selectedSeat;
+                const originalBtnHTML = submitBtn.innerHTML;
+                if (GOOGLE_SHEETS_WEBHOOK_URL) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span>Verificando disponibilidade...</span>';
+                    await syncFromCloudIfConfigured();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHTML;
+
+                    if (occupiedSeats.includes(seatToReserve)) {
+                        return; // O syncFromCloudIfConfigured já limpou e avisou o usuário
+                    }
+                }
+
                 // Verifica se o CPF já possui alguma poltrona reservada
                 const existingSeatForCpf = Object.values(seatRecords).find(rec => {
                     const recDigits = (rec.doc || '').replace(/\D/g, '');
@@ -869,9 +956,9 @@
 
                 const ticketData = {
                     code,
-                    seat: formatSeatNum(selectedSeat),
-                    seatRaw: selectedSeat,
-                    position: getSeatPosition(selectedSeat),
+                    seat: formatSeatNum(seatToReserve),
+                    seatRaw: seatToReserve,
+                    position: getSeatPosition(seatToReserve),
                     name,
                     doc: rawDoc,
                     phone: phoneInput.value.trim() || 'Não informado',
@@ -881,8 +968,8 @@
                     boardedAt: ''
                 };
 
-                occupiedSeats.push(selectedSeat);
-                seatRecords[selectedSeat] = ticketData;
+                occupiedSeats.push(seatToReserve);
+                seatRecords[seatToReserve] = ticketData;
                 saveOccupiedSeats();
                 pushRecordToCloud('RESERVE', ticketData);
 
@@ -1200,6 +1287,7 @@
             occupiedSeats = occupiedSeats.filter(s => s !== seatNum);
             delete seatRecords[seatNum];
             saveOccupiedSeats();
+            pushRecordToCloud('RELEASE', { seatRaw: seatNum });
             renderBusMap();
             renderCoordinatorList();
             showToast(`Poltrona ${formatSeatNum(seatNum)} liberada novamente.`, 'info');
@@ -1661,6 +1749,7 @@
             seatRecords = {};
             selectedSeat = null;
             saveOccupiedSeats();
+            pushRecordToCloud('CLEAR_ALL', {});
             updateSelectedBadge();
             renderBusMap();
             renderCoordinatorList();
