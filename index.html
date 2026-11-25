@@ -1,1801 +1,2832 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expresso Viação — Escolha de Poltronas e Quartos</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter & JetBrains Mono -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <title>Excursão Foz do Iguaçu - Roteiro e Pagamento</title>
+  <script src="https://sdk.mercadopago.com/js/v2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --bg: #e0f2fe;
+      --surface: rgba(255, 255, 255, 0.96);
+      --surface-soft: #f8fafc;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #dbeafe;
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --accent: #0d9488;
+      --green: #16a34a;
+      --green-dark: #15803d;
+      --green-soft: #f0fdf4;
+      --blue-soft: #e0f2fe;
+      --amber-soft: #fffbeb;
+      --amber-border: #fde68a;
+      --amber-text: #92400e;
+      --shadow: 0 14px 34px rgba(3, 105, 161, 0.10);
+    }
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        navy: {
-                            800: '#1e293b',
-                            900: '#0f172a',
-                            950: '#090d16',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
 
-    <style>
-        /* Estilos personalizados para o mapa do ônibus e impressão */
-        body {
-            background-color: #f1f5f9;
-            color: #0f172a;
-        }
+    html,
+    body {
+      overflow-x: hidden;
+    }
 
-        /* Estilo realista de poltrona de ônibus */
-        .seat-btn {
-            position: relative;
-            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+    @keyframes fundoGradienteAnimado {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
 
-        .seat-btn::after {
-            content: '';
-            position: absolute;
-            bottom: 3px;
-            left: 18%;
-            right: 18%;
-            height: 3px;
-            border-radius: 999px;
-            background-color: currentColor;
-            opacity: 0.35;
-        }
+    body {
+      background-color: #e0f2fe;
+      background-image:
+        radial-gradient(rgba(2, 132, 199, 0.10) 1px, transparent 1px),
+        linear-gradient(135deg, #bae6fd 0%, #e0f2fe 30%, #ccfbf1 68%, #dbeafe 100%);
+      background-size: 22px 22px, 240% 240%;
+      animation: fundoGradienteAnimado 18s ease infinite;
+      margin: 0;
+      padding: 12px;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+    }
 
-        .seat-available {
-            background-color: #ffffff;
-            border: 2px solid #10b981;
-            color: #065f46;
-            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.08);
-        }
+    @media (min-width: 900px) {
+      body {
+        padding: 28px 32px;
+      }
+    }
 
-        .seat-available:hover {
-            background-color: #ecfdf5;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.18);
-        }
+    .page-shell {
+      width: 100%;
+      max-width: 1360px;
+      margin: 0 auto;
+    }
 
-        .seat-selected {
-            background-color: #0f172a;
-            border: 2px solid #0f172a;
-            color: #ffffff;
-            transform: scale(1.06);
-            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.28);
-            z-index: 10;
-        }
+    /* Cabeçalho Hero vibrante */
+    .top-header {
+      background: linear-gradient(125deg, #0c4a6e 0%, #0284c7 52%, #0d9488 100%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 18px;
+      padding: 18px 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 16px 36px rgba(12, 74, 110, 0.22);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .seat-occupied {
-            background-color: #e2e8f0;
-            border: 2px solid #cbd5e1;
-            color: #94a3b8;
-            cursor: not-allowed;
-        }
+    .top-header::before {
+      content: "";
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 210px;
+      height: 210px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
 
-        /* Efeito de recorte lateral (picote) do bilhete */
-        .ticket-notch-left, .ticket-notch-right {
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            background-color: #f1f5f9;
-            border-radius: 9999px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 20;
-        }
-        .ticket-notch-left {
-            left: -12px;
-            box-shadow: inset -2px 0 3px rgba(0,0,0,0.06);
-        }
-        .ticket-notch-right {
-            right: -12px;
-            box-shadow: inset 2px 0 3px rgba(0,0,0,0.06);
-        }
+    @media (min-width: 768px) {
+      .top-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        text-align: left;
+        border-radius: 20px;
+        padding: 22px 28px;
+        margin-bottom: 16px;
+      }
+    }
 
-        /* Otimização para Impressão / PDF */
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #printable-voucher-area, #printable-voucher-area * {
-                visibility: visible;
-            }
-            #printable-voucher-area {
-                position: fixed;
-                left: 50%;
-                top: 20px;
-                transform: translateX(-50%);
-                width: 100%;
-                max-width: 440px;
-                box-shadow: none !important;
-                border: 2px solid #cbd5e1 !important;
-            }
-            .no-print {
-                display: none !important;
-            }
-        }
-    </style>
+    .top-header h1 {
+      margin: 0;
+      font-size: clamp(22px, 4.5vw, 31px);
+      color: #ffffff;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .top-header p {
+      margin: 5px 0 0;
+      color: #e0f2fe;
+      font-size: 14.5px;
+      line-height: 1.4;
+    }
+
+    .header-badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      .header-badges {
+        justify-content: flex-end;
+        width: auto;
+        gap: 8px;
+      }
+    }
+
+    .badge {
+      background: rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(6px);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Barra de Contagem Regressiva e Vagas */
+    .status-viagem-bar {
+      background: var(--surface);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(186, 230, 253, 0.9);
+      border-radius: 16px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+    }
+
+    @media (min-width: 820px) {
+      .status-viagem-bar {
+        grid-template-columns: 1.1fr 0.9fr;
+        padding: 16px 24px;
+        margin-bottom: 20px;
+      }
+    }
+
+    .countdown-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    @media (min-width: 820px) {
+      .countdown-wrap {
+        justify-content: flex-start;
+      }
+    }
+
+    .countdown-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .countdown-boxes {
+      display: flex;
+      gap: 6px;
+    }
+
+    .cd-box {
+      background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 1px solid #7dd3fc;
+      border-radius: 10px;
+      padding: 6px 10px;
+      text-align: center;
+      min-width: 54px;
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08);
+    }
+
+    .cd-box strong {
+      display: block;
+      font-size: 16px;
+      color: var(--primary-dark);
+      line-height: 1.1;
+    }
+
+    .cd-box span {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .vagas-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .vagas-topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .vagas-restantes-tag {
+      background: var(--amber-soft);
+      color: var(--amber-text);
+      border: 1px solid var(--amber-border);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+    }
+
+    .vagas-barra-fundo {
+      width: 100%;
+      height: 11px;
+      background: #e0f2fe;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .vagas-barra-preenchida {
+      height: 100%;
+      background: linear-gradient(90deg, #0284c7, #0d9488, #16a34a);
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    @media (min-width: 960px) {
+      .main-grid {
+        grid-template-columns: minmax(0, 1.18fr) minmax(380px, 0.82fr);
+        gap: 24px;
+      }
+    }
+
+    .main-grid.modo-sucesso {
+      grid-template-columns: minmax(0, 480px);
+      justify-content: center;
+      min-height: calc(100vh - 56px);
+      align-content: center;
+    }
+
+    .card-panel {
+      min-width: 0;
+      width: 100%;
+      background: var(--surface);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(186, 230, 253, 0.9);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    @media (min-width: 640px) {
+      .card-panel {
+        border-radius: 20px;
+        padding: 26px;
+      }
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 18px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .bloco-separado {
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Banner Roteiro */
+    .banner-roteiro {
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      border: 1px solid #bae6fd;
+      cursor: zoom-in;
+      background: var(--surface-soft);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .banner-roteiro:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(2, 132, 199, 0.14);
+    }
+
+    .banner-roteiro img {
+      display: block;
+      width: 100%;
+      max-height: 360px;
+      object-fit: cover;
+    }
+
+    .banner-legenda {
+      font-size: 12px;
+      color: var(--primary-dark);
+      text-align: center;
+      padding: 8px 10px;
+      background: #f0f9ff;
+      border-top: 1px solid #bae6fd;
+      font-weight: 600;
+    }
+
+    /* O que está incluso vs não incluso */
+    .incluso-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 600px) {
+      .incluso-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .incluso-card {
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13.5px;
+    }
+
+    .incluso-card.sim {
+      background: var(--green-soft);
+      border: 1px solid #bbf7d0;
+    }
+
+    .incluso-card.nao {
+      background: var(--surface-soft);
+      border: 1px solid #e2e8f0;
+    }
+
+    .incluso-card h4 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .incluso-card.sim h4 {
+      color: var(--green-dark);
+    }
+
+    .incluso-card.nao h4 {
+      color: var(--text);
+    }
+
+    .incluso-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* Alerta Documentação Obrigatória */
+    .doc-alerta {
+      background: var(--amber-soft);
+      border: 1px solid var(--amber-border);
+      border-left: 4px solid #f59e0b;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      font-size: 13.5px;
+      color: var(--amber-text);
+      line-height: 1.5;
+    }
+
+    .doc-alerta strong.titulo-doc {
+      display: block;
+      font-size: 14.5px;
+      margin-bottom: 4px;
+      color: #78350f;
+    }
+
+    /* Programação por Dias */
+    .dias-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+      width: 100%;
+    }
+
+    @media (min-width: 540px) {
+      .dias-tabs {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+      }
+    }
+
+    .dia-tab {
+      min-width: 0;
+      width: 100%;
+      border: 2px solid #e2e8f0;
+      background: var(--surface-soft);
+      color: var(--muted);
+      border-radius: 10px;
+      padding: 8px 4px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      line-height: 1.25;
+    }
+
+    .dia-tab:hover {
+      border-color: #7dd3fc;
+      transform: translateY(-1px);
+    }
+
+    .dia-tab small {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      opacity: 0.85;
+    }
+
+    .dia-tab.active {
+      border-color: var(--primary);
+      background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+      color: var(--primary-dark);
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.12);
+    }
+
+    .dia-destaque {
+      background: linear-gradient(180deg, #f8fafc 0%, #f0f9ff 100%);
+      border: 1px solid #bae6fd;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    @media (min-width: 640px) {
+      .dia-destaque {
+        padding: 16px 18px;
+      }
+    }
+
+    .dia-destaque-topo {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .dia-destaque h3 {
+      margin: 0;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    .dia-data {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      background: #e0f2fe;
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+
+    .atividades-lista {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .atividade-item {
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      background: #ffffff;
+      border: 1px solid #dbeafe;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 13.5px;
+    }
+
+    @media (min-width: 480px) {
+      .atividade-item {
+        grid-template-columns: 94px minmax(0, 1fr);
+        gap: 12px;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+    }
+
+    .atividade-hora {
+      font-weight: 700;
+      color: var(--primary-dark);
+      font-size: 12px;
+      background: #e0f2fe;
+      padding: 4px 6px;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .atividade-desc {
+      min-width: 0;
+    }
+
+    .atividade-desc strong {
+      display: block;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .atividade-desc span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      display: block;
+    }
+
+    .cronograma-completo {
+      margin-top: 6px;
+    }
+
+    .cronograma-completo summary {
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13.5px;
+      color: var(--primary-dark);
+      padding: 8px 0;
+      user-select: none;
+    }
+
+    .todos-dias-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    @media (min-width: 640px) {
+      .todos-dias-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+    }
+
+    .mini-dia-card {
+      min-width: 0;
+      border: 1px solid #e2e8f0;
+      background: var(--surface-soft);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .mini-dia-card h4 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .mini-dia-card ul {
+      margin: 0;
+      padding-left: 16px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* Seção Rota do Percurso */
+    .modo-rota-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .modo-rota-tab {
+      border: 1.5px solid #e2e8f0;
+      background: var(--surface-soft);
+      color: var(--muted);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .modo-rota-tab.active {
+      border-color: var(--primary);
+      background: var(--blue-soft);
+      color: var(--primary-dark);
+    }
+
+    .rota-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .rota-chip {
+      border: 1.5px solid #e2e8f0;
+      background: var(--surface-soft);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .rota-chip:hover {
+      border-color: #7dd3fc;
+      color: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .rota-chip.active {
+      border-color: var(--primary);
+      background: var(--blue-soft);
+      color: var(--primary-dark);
+    }
+
+    .rota-mapa-box {
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #bae6fd;
+      background: var(--surface-soft);
+    }
+
+    .rota-mapa-box iframe {
+      display: block;
+      width: 100%;
+      height: 290px;
+      border: 0;
+    }
+
+    @media (min-width: 640px) {
+      .rota-mapa-box iframe {
+        height: 340px;
+      }
+    }
+
+    .rota-rodape {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #f0f9ff;
+      border-top: 1px solid #bae6fd;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    .btn-mapa-externo {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #0284c7, #0d9488);
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 12.5px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-mapa-externo:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(2, 132, 199, 0.25);
+    }
+
+    #painel-animacao-rota {
+      display: none;
+      margin-bottom: 12px;
+    }
+
+    #mapa-animado {
+      width: 100%;
+      height: 320px;
+      border-radius: 14px;
+      border: 1px solid #bae6fd;
+      background: var(--surface-soft);
+      z-index: 1;
+    }
+
+    @media (min-width: 640px) {
+      #mapa-animado {
+        height: 340px;
+      }
+    }
+
+    .anim-controles {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .anim-botoes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .anim-status {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    /* FAQ */
+    .faq-lista {
+      display: grid;
+      gap: 8px;
+    }
+
+    .faq-item {
+      background: var(--surface-soft);
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+
+    .faq-item summary {
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .faq-item summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .faq-item summary::after {
+      content: "+";
+      font-size: 18px;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .faq-item[open] summary::after {
+      content: "−";
+    }
+
+    .faq-item p {
+      margin: 8px 0 2px;
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Bloco Contato / Organização */
+    .contato-box {
+      background: linear-gradient(135deg, #f0f9ff 0%, #f0fdfa 100%);
+      border: 1px solid #bae6fd;
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+
+    .contato-box strong {
+      color: var(--text);
+      display: block;
+      margin-bottom: 3px;
+      font-size: 14px;
+    }
+
+    .btn-contato-whats {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #16a34a;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 9px 14px;
+      border-radius: 10px;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .btn-contato-whats:hover {
+      background: #15803d;
+      transform: translateY(-1px);
+    }
+
+    /* Modal Imagem */
+    #modal-imagem {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.92);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      cursor: zoom-out;
+    }
+
+    #modal-imagem.aberto {
+      display: flex;
+    }
+
+    #modal-imagem img {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: 95vw;
+      max-height: 88vh;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Formulário e Pagamento */
+    .form-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    @media (min-width: 560px) {
+      .form-grid.two-cols {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    #tela-checkout label.field-label {
+      display: block;
+      width: 100%;
+      font-weight: 600;
+      margin: 12px 0 6px;
+      color: #334155;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    .form-grid label.field-label {
+      margin-top: 0;
+    }
+
+    #tela-checkout input:not([type="radio"]):not([type="checkbox"]) {
+      box-sizing: border-box;
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #ffffff;
+    }
+
+    #tela-checkout input:not([type="radio"]):not([type="checkbox"]):focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.14);
+    }
+
+    /* Protege os inputs internos do Brick do Mercado Pago */
+    #paymentBrick_container input[type="radio"],
+    #paymentBrick_container input[type="checkbox"] {
+      width: auto !important;
+      max-width: none !important;
+      padding: 0 !important;
+      display: inline-block !important;
+      border-radius: 50% !important;
+      box-shadow: none !important;
+    }
+
+    .tickets {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+      width: 100%;
+    }
+
+    .ticket-opt {
+      min-width: 0;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #ffffff;
+    }
+
+    .ticket-opt:hover {
+      border-color: #7dd3fc;
+      transform: translateY(-1px);
+    }
+
+    .ticket-opt strong {
+      display: block;
+      font-size: 14.5px;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+
+    .ticket-opt span {
+      font-size: 13.5px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .ticket-opt.active {
+      border-color: var(--primary);
+      background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
+    }
+
+    .ticket-opt.active strong,
+    .ticket-opt.active span {
+      color: var(--primary-dark);
+    }
+
+    /* =========================================================================
+       MAPA DE 42 POLTRONAS DO ÔNIBUS
+       ========================================================================= */
+    .mapa-onibus-card {
+      margin-top: 12px;
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1.5px solid #cbd5e1;
+      border-radius: 22px;
+      padding: 14px 12px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+
+    .bus-header-bar {
+      text-align: center;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .bus-cabine-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1.5px dashed #cbd5e1;
+    }
+
+    .bus-cabine-box {
+      background: #e2e8f0;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 11.5px;
+      color: #334155;
+      line-height: 1.2;
+    }
+
+    .bus-cabine-box strong {
+      display: block;
+      font-size: 12px;
+      color: #0f172a;
+    }
+
+    .bus-cabine-box span.sub {
+      font-size: 10.5px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .bus-cabine-icone {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .bus-col-labels {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) 22px repeat(2, minmax(0, 1fr));
+      gap: 5px;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #64748b;
+      text-align: center;
+    }
+
+    .bus-linhas {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .bus-fileira {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) 22px repeat(2, minmax(0, 1fr));
+      gap: 5px;
+      align-items: center;
+    }
+
+    .bus-fileira-num {
+      text-align: center;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #94a3b8;
+      user-select: none;
+    }
+
+    .poltrona-btn {
+      width: 100%;
+      height: 36px;
+      border-radius: 10px 10px 7px 7px;
+      border: 2px solid #16a34a;
+      background: #ffffff;
+      color: #15803d;
+      font-weight: 800;
+      font-size: 12.5px;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 0 4px;
+      transition: transform 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
+    }
+
+    .poltrona-btn::after {
+      content: "";
+      width: 62%;
+      height: 3px;
+      border-radius: 999px;
+      background: #86efac;
+      margin-top: 2px;
+    }
+
+    .poltrona-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: #f0fdf4;
+      box-shadow: 0 3px 8px rgba(22, 163, 74, 0.18);
+    }
+
+    .poltrona-btn.selecionada {
+      border-color: #0284c7;
+      background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+    }
+
+    .poltrona-btn.selecionada::after {
+      background: #bae6fd;
+    }
+
+    .poltrona-btn.ocupada,
+    .poltrona-btn:disabled {
+      border-color: #cbd5e1;
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .poltrona-btn.ocupada::after,
+    .poltrona-btn:disabled::after {
+      background: #cbd5e1;
+    }
+
+    .bus-footer-bar {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1.5px dashed #cbd5e1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .bus-footer-box {
+      background: #e2e8f0;
+      border: 1px solid #cbd5e1;
+      border-radius: 11px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .bus-legenda {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .bus-legenda-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legenda-swatch {
+      width: 13px;
+      height: 13px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .legenda-livre {
+      border: 2px solid #16a34a;
+      background: #ffffff;
+    }
+
+    .legenda-selecionada {
+      border: 2px solid #0284c7;
+      background: #0284c7;
+    }
+
+    .legenda-ocupada {
+      border: 2px solid #cbd5e1;
+      background: #e2e8f0;
+    }
+
+    .campos-aluno-box {
+      margin-top: 12px;
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .aviso-ingresso-regra {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--surface-soft);
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      line-height: 1.4;
+    }
+
+    .resumo-selecao-box {
+      margin-top: 12px;
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 13.5px;
+    }
+
+    .resumo-selecao-box strong {
+      color: var(--primary-dark);
+      font-size: 15px;
+    }
+
+    .pay-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 12px 0 14px;
+      width: 100%;
+    }
+
+    .pay-tab {
+      min-width: 0;
+      padding: 11px 8px;
+      border: 2px solid #e2e8f0;
+      background: var(--surface-soft);
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      transition: all 0.2s ease;
+    }
+
+    .pay-tab.active {
+      border-color: var(--green);
+      background: var(--green-soft);
+      color: var(--green-dark);
+    }
+
+    .pay-tab.card-tab.active {
+      border-color: var(--primary);
+      background: var(--blue-soft);
+      color: var(--primary-dark);
+    }
+
+    .pix-box {
+      background: var(--green-soft);
+      border: 1px solid #bbf7d0;
+      border-radius: 14px;
+      padding: 16px 12px;
+      text-align: center;
+      width: 100%;
+    }
+
+    @media (min-width: 640px) {
+      .pix-box {
+        padding: 18px 16px;
+      }
+    }
+
+    .qr-wrapper {
+      background: #ffffff;
+      display: inline-block;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+      margin: 12px auto;
+      line-height: 0;
+      max-width: 100%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    #qrcode-canvas,
+    #qrcode-canvas img {
+      width: 180px;
+      height: 180px;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    .pix-code-box {
+      width: 100%;
+      background: #ffffff;
+      border: 1px dashed var(--green);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #14532d;
+      word-break: break-all;
+      margin-top: 6px;
+      text-align: left;
+      line-height: 1.45;
+    }
+
+    #sec-cartao {
+      width: 100%;
+      min-height: 250px;
+    }
+
+    .card-fee-notice {
+      background: var(--blue-soft);
+      border: 1px solid #bae6fd;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #0369a1;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    #paymentBrick_container {
+      width: 100%;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 13px 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+      text-align: center;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .btn-copy {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+
+    .btn-copy:hover {
+      background: #cbd5e1;
+    }
+
+    .btn-confirm {
+      background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+      color: #ffffff;
+      font-size: 15.5px;
+      box-shadow: 0 8px 18px rgba(22, 163, 74, 0.25);
+    }
+
+    .btn-confirm:hover:not(:disabled) {
+      box-shadow: 0 10px 22px rgba(22, 163, 74, 0.34);
+    }
+
+    .btn-confirm:disabled {
+      background: #94a3b8;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .btn-whats {
+      background: #25d366;
+      color: #ffffff;
+      margin-top: 14px;
+      box-shadow: 0 8px 18px rgba(37, 211, 102, 0.25);
+    }
+
+    .btn-whats:hover {
+      background: #1ebe5d;
+    }
+
+    .aviso-obrigatorio {
+      font-size: 12.5px;
+      color: #b91c1c;
+      font-weight: 600;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    .aviso-lotado {
+      display: none;
+      background: var(--amber-soft);
+      border: 1px solid var(--amber-border);
+      color: var(--amber-text);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      font-size: 13.5px;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    #status-msg {
+      display: none;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 14px;
+      font-size: 13.5px;
+      text-align: center;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    #tela-sucesso {
+      display: none;
+      text-align: center;
+      padding: 12px 6px;
+    }
+
+    .check-circle {
+      width: 72px;
+      height: 72px;
+      background: #dcfce7;
+      color: var(--green);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      margin-bottom: 14px;
+    }
+
+    .status-conferencia-nota {
+      background: var(--amber-soft);
+      border: 1px solid var(--amber-border);
+      color: var(--amber-text);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 14px;
+      text-align: left;
+    }
+
+    .resumo-card {
+      background: var(--surface-soft);
+      border: 1px solid #bae6fd;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: left;
+      margin: 16px 0;
+      font-size: 14px;
+      color: #334155;
+      line-height: 1.75;
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased">
-
-    <!-- Cabeçalho Superior Ajustado para Celular -->
-    <header class="bg-slate-900 text-white shadow-md no-print">
-        <div class="max-w-6xl mx-auto px-4 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <div id="admin-secret-trigger" title="Controle de Embarque" class="bg-emerald-500 text-slate-950 p-2 sm:p-2.5 rounded-xl shadow-inner cursor-pointer select-none shrink-0">
-                    <!-- Ícone de Ônibus SVG -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>
-                    </svg>
-                </div>
-                <div class="min-w-0">
-                    <h1 class="text-base sm:text-xl font-bold tracking-tight leading-tight">Reserva de Assentos e Quartos</h1>
-                    <p class="text-[11px] sm:text-xs text-slate-400">Ônibus Executivo (46 Lugares) • 15 Quartos</p>
-                </div>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-2 sm:pt-0 border-t border-slate-800/80 sm:border-0">
-                <span id="live-sync-badge" class="hidden inline-flex items-center gap-1.5 text-[11px] font-medium bg-slate-800/80 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700" title="Mapa atualizado automaticamente sem recarregar">
-                    <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
-                    <span>Ao vivo</span>
-                </span>
-                <span class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium bg-slate-800 text-emerald-400 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">
-                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span id="available-counter">46 poltronas</span>
-                </span>
-                <span class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium bg-slate-800 text-amber-300 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">
-                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400"></span>
-                    <span id="available-rooms-counter">40 vagas em quartos</span>
-                </span>
-            </div>
-        </div>
+<body>
+  <div class="page-shell">
+    <header class="top-header" id="topo-site">
+      <div>
+        <h1>🚌 Excursão Foz do Iguaçu</h1>
+        <p>12 a 17 de Maio de 2027 • Saída do Palace Hotel (Poços de Caldas - MG).</p>
+      </div>
+      <div class="header-badges">
+        <span class="badge">📅 12 a 17/05/2027</span>
+        <span class="badge">🌎 Brasil • Paraguai • Argentina</span>
+        <span class="badge">⚡ Pix Sem Taxa</span>
+      </div>
     </header>
 
-    <!-- Notificação Toast Flutuante -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
-
-    <!-- MODAL DE VALIDAÇÃO DE EMBARQUE (Exibido ao escanear o QR Code) -->
-    <div id="qr-validation-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200">
-            <div id="val-header" class="bg-slate-900 text-white px-6 py-5 text-center">
-                <div id="val-icon-wrap" class="w-14 h-14 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
-                </div>
-                <span id="val-badge" class="text-[11px] uppercase tracking-widest font-bold bg-black/20 px-3 py-1 rounded-full">Aguardando Coordenador</span>
-                <h2 id="val-title" class="text-xl font-extrabold mt-2">Confirmar Embarque</h2>
-            </div>
-
-            <div class="p-6 space-y-4">
-                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex items-center justify-between">
-                    <div>
-                        <span class="text-[11px] font-bold uppercase text-slate-400 block">Poltrona</span>
-                        <span id="val-seat" class="text-3xl font-black font-mono text-slate-900">00</span>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-[11px] font-bold uppercase text-slate-400 block">Código do Bilhete</span>
-                        <span id="val-code" class="text-sm font-bold font-mono text-slate-800">#BUS-0000</span>
-                    </div>
-                </div>
-
-                <div>
-                    <span class="text-[11px] font-bold uppercase text-slate-400 block">Passageiro(a)</span>
-                    <p id="val-name" class="text-base font-bold text-slate-900">—</p>
-                </div>
-
-                <!-- Formulário de senha para validar check-in via QR Code -->
-                <form id="val-auth-form" class="hidden space-y-3 pt-1">
-                    <div>
-                        <label for="val-password-input" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                            Senha do Coordenador para Confirmar Embarque
-                        </label>
-                        <input type="password" id="val-password-input" autocomplete="off" placeholder="Digite a senha"
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 text-center font-mono text-base tracking-widest focus:outline-none focus:ring-2 focus:ring-slate-900 transition">
-                        <p id="val-password-error" class="hidden text-xs font-semibold text-red-600 mt-1.5 text-center">
-                            Senha incorreta. Apenas o coordenador pode confirmar o embarque.
-                        </p>
-                    </div>
-                    <button type="submit" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer">
-                        Liberar Embarque Agora
-                    </button>
-                </form>
-
-                <p id="val-message" class="text-xs text-slate-600 bg-slate-100 p-3 rounded-xl leading-relaxed">
-                    Apresente este bilhete ao coordenador do ônibus para validar o embarque.
-                </p>
-
-                <div id="val-actions" class="grid grid-cols-2 gap-3 pt-2">
-                    <button type="button" onclick="requestCoordinatorAccess(); closeValidationModal();" class="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition cursor-pointer">
-                        Ver Lista Geral
-                    </button>
-                    <button type="button" onclick="closeValidationModal()" class="py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer">
-                        Fechar
-                    </button>
-                </div>
-            </div>
+    <!-- CONTAGEM REGRESSIVA E VAGAS RESTANTES -->
+    <section class="status-viagem-bar" id="barra-status-viagem" aria-label="Contagem regressiva e vagas">
+      <div class="countdown-wrap">
+        <span class="countdown-label">⏳ Embarque em:</span>
+        <div class="countdown-boxes">
+          <div class="cd-box"><strong id="cd-dias">--</strong><span>Dias</span></div>
+          <div class="cd-box"><strong id="cd-horas">--</strong><span>Horas</span></div>
+          <div class="cd-box"><strong id="cd-min">--</strong><span>Min</span></div>
+          <div class="cd-box"><strong id="cd-seg">--</strong><span>Seg</span></div>
         </div>
-    </div>
+      </div>
 
-    <!-- MODAL DE SENHA DO COORDENADOR -->
-    <div id="admin-password-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-200">
-            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
-                <div>
-                    <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Acesso Restrito</span>
-                    <h2 class="text-base font-bold">Senha do Coordenador</h2>
-                </div>
-                <button type="button" onclick="closePasswordModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800 cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-            </div>
-            <form id="admin-password-form" class="p-6 space-y-4">
-                <div>
-                    <label for="admin-password-input" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                        Digite a senha de acesso
-                    </label>
-                    <input type="password" id="admin-password-input" autocomplete="off" placeholder="••••"
-                        class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 text-center font-mono text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-slate-900 transition">
-                    <p id="admin-password-error" class="hidden text-xs font-semibold text-red-600 mt-2 text-center">
-                        Senha incorreta. Tente novamente.
-                    </p>
-                </div>
-                <div class="grid grid-cols-2 gap-2.5 pt-1">
-                    <button type="button" onclick="closePasswordModal()" class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer">
-                        Entrar
-                    </button>
-                </div>
-            </form>
+      <div class="vagas-wrap">
+        <div class="vagas-topo">
+          <span id="texto-vagas-ocupadas">🎟️ 0 de 42 vagas preenchidas</span>
+          <span class="vagas-restantes-tag" id="tag-vagas-restantes">Restam 42 vagas</span>
         </div>
-    </div>
-
-    <!-- PAINEL DO COORDENADOR (Acesso protegido por senha após 3 cliques no ícone do ônibus ou ?admin=1) -->
-    <div id="coordinator-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[88vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200">
-            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
-                <div>
-                    <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Área Restrita</span>
-                    <h2 class="text-lg font-bold">Controle de Passageiros e Embarque</h2>
-                </div>
-                <button type="button" onclick="closeCoordinatorPanel()" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800 cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-            </div>
-
-            <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 border-b border-slate-200 text-center">
-                <div class="bg-white p-2.5 rounded-xl border border-slate-200">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Reservados</span>
-                    <span id="coord-total-reserved" class="text-xl font-black text-slate-900">0</span>
-                </div>
-                <div class="bg-white p-2.5 rounded-xl border border-slate-200">
-                    <span class="text-[10px] uppercase font-bold text-emerald-600 block">Embarcados (QR)</span>
-                    <span id="coord-total-boarded" class="text-xl font-black text-emerald-600">0</span>
-                </div>
-                <div class="bg-white p-2.5 rounded-xl border border-slate-200">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Livres</span>
-                    <span id="coord-total-free" class="text-xl font-black text-slate-600">46</span>
-                </div>
-            </div>
-
-            <div id="coordinator-list" class="flex-1 overflow-y-auto p-4 space-y-2">
-                <!-- Lista de passageiros renderizada via JS -->
-            </div>
-
-            <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
-                <button type="button" onclick="exportManifestCSV()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer">
-                    Exportar Lista (CSV / Excel)
-                </button>
-                <button type="button" onclick="resetDemoData()" class="px-4 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs transition cursor-pointer">
-                    Zerar Todos os Assentos
-                </button>
-            </div>
+        <div class="vagas-barra-fundo">
+          <div class="vagas-barra-preenchida" id="barra-vagas-fill" style="width: 0%;"></div>
         </div>
-    </div>
+      </div>
+    </section>
 
-    <!-- Conteúdo Principal -->
-    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
-        <!-- TELA DE SELEÇÃO (Mapa do Ônibus + Quartos + Formulário) -->
-        <div id="selection-screen-view" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-            <!-- COLUNA ESQUERDA: Mapa Interativo do Ônibus (1 Andar - 46 Lugares) -->
-            <section class="lg:col-span-6 xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 no-print">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h2 class="text-base sm:text-lg font-bold text-slate-900">1. Escolha sua Poltrona</h2>
-                        <p class="text-xs text-slate-500">Toque em um assento livre (verde) para selecionar</p>
-                    </div>
-                </div>
-
-                <!-- Legenda -->
-                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200/80 mb-5 text-xs font-medium">
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="w-4 h-4 rounded bg-white border-2 border-emerald-500 inline-block"></span>
-                        <span class="text-slate-700">Livre</span>
-                    </div>
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="w-4 h-4 rounded bg-slate-900 border-2 border-slate-900 inline-block"></span>
-                        <span class="text-slate-700">Selecionada</span>
-                    </div>
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="w-4 h-4 rounded bg-slate-200 border-2 border-slate-300 inline-block"></span>
-                        <span class="text-slate-500">Ocupada</span>
-                    </div>
-                </div>
-
-                <!-- Carroceria do Ônibus -->
-                <div class="max-w-[330px] mx-auto bg-slate-100 rounded-t-[44px] rounded-b-3xl border-4 border-slate-300 p-3.5 shadow-inner relative">
-                    
-                    <!-- Para-brisa / Frente -->
-                    <div class="text-center mb-2">
-                        <span class="text-[10px] uppercase tracking-widest font-bold text-slate-400">Frente do Veículo</span>
-                    </div>
-
-                    <!-- Cabine do Motorista e Porta de Entrada -->
-                    <div class="grid grid-cols-2 gap-3 pb-3 mb-3 border-b-2 border-dashed border-slate-300">
-                        <!-- Motorista -->
-                        <div class="bg-slate-200/90 rounded-xl p-2.5 flex items-center gap-2 border border-slate-300">
-                            <div class="w-7 h-7 rounded-full bg-slate-700 text-white flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 14v7"/><path d="M10 12 3.5 9.5"/><path d="M14 12l6.5-2.5"/>
-                                </svg>
-                            </div>
-                            <div class="leading-tight">
-                                <span class="block text-[11px] font-bold text-slate-700">Motorista</span>
-                                <span class="block text-[10px] text-slate-500">Cabine</span>
-                            </div>
-                        </div>
-
-                        <!-- Porta / Escada -->
-                        <div class="bg-slate-200/60 rounded-xl p-2.5 flex items-center justify-end gap-2 border border-slate-300/80">
-                            <div class="text-right leading-tight">
-                                <span class="block text-[11px] font-bold text-slate-600">Entrada</span>
-                                <span class="block text-[10px] text-slate-400">Escada</span>
-                            </div>
-                            <div class="w-7 h-7 rounded-lg bg-slate-300 text-slate-600 flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"/>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Cabeçalho Janela / Corredor -->
-                    <div class="grid grid-cols-5 text-[10px] font-semibold text-slate-400 text-center mb-1.5 px-1">
-                        <span>Janela</span>
-                        <span>Corredor</span>
-                        <span></span>
-                        <span>Corredor</span>
-                        <span>Janela</span>
-                    </div>
-
-                    <!-- Grade de Poltronas (Gerada via JS) -->
-                    <div id="bus-seats-grid" class="flex flex-col gap-2">
-                        <!-- As fileiras serão inseridas aqui -->
-                    </div>
-
-                    <!-- Fundos: Banheiro e Água / Café -->
-                    <div class="grid grid-cols-2 gap-3 pt-3 mt-3 border-t-2 border-dashed border-slate-300">
-                        <div class="bg-slate-200/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-300 text-slate-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 6 6.5 3.5a1.5 1.5 0 0 0-1-.5C4.683 3 4 3.683 4 4.5V17a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><line x1="10" x2="8" y1="5" y2="7"/><line x1="2" x2="22" y1="12" y2="12"/>
-                            </svg>
-                            <span class="text-[11px] font-semibold">Sanitário (WC)</span>
-                        </div>
-                        <div class="bg-slate-200/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-300 text-slate-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>
-                            </svg>
-                            <span class="text-[11px] font-semibold">Água / Lanche</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- COLUNA DIREITA: Escolha de Quarto, Formulário e Comprovante Gerado -->
-            <div class="lg:col-span-6 xl:col-span-7 flex flex-col gap-6">
-
-                <!-- PASSO 2: Escolha de Quarto (10 Triplos + 5 Duplos - Um embaixo do outro no celular) -->
-                <section id="room-selection-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 no-print">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
-                        <div>
-                            <h2 class="text-base sm:text-lg font-bold text-slate-900">2. Escolha seu Quarto</h2>
-                            <p class="text-xs text-slate-500">10 quartos Triplos (3 vagas) e 5 quartos Duplos (2 vagas)</p>
-                        </div>
-                        <div class="flex items-center gap-1.5 text-[11px] font-semibold">
-                            <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">01–10 Triplo</span>
-                            <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200">11–15 Duplo</span>
-                        </div>
-                    </div>
-
-                    <div id="rooms-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
-                        <!-- Cards dos 15 quartos gerados via JS (1 por linha no celular) -->
-                    </div>
-                </section>
-
-                <!-- Cartão do Formulário de Dados do Passageiro -->
-                <section id="booking-form-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 no-print">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
-                        <div>
-                            <h2 class="text-base sm:text-lg font-bold text-slate-900">3. Dados do Passageiro</h2>
-                            <p class="text-xs text-slate-500">Preencha seus dados para emitir o comprovante completo</p>
-                        </div>
-
-                        <!-- Badges dinâmicos do assento e quarto selecionados -->
-                        <div class="flex flex-wrap items-center gap-2">
-                            <div id="selected-seat-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold">
-                                <span>Poltrona: —</span>
-                            </div>
-                            <div id="selected-room-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold">
-                                <span>Quarto: —</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <form id="reservation-form" class="space-y-4" novalidate>
-                        <div>
-                            <label for="passenger-name" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                                Nome Completo <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" id="passenger-name" required placeholder="Ex: Mariana Oliveira Santos"
-                                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="passenger-doc" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                                    CPF <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="passenger-doc" required maxlength="18" placeholder="000.000.000-00"
-                                    class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
-                            </div>
-
-                            <div>
-                                <label for="passenger-phone" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                                    Telefone / WhatsApp <span class="text-slate-400 font-normal">(Opcional)</span>
-                                </label>
-                                <input type="tel" id="passenger-phone" maxlength="15" placeholder="(11) 99999-9999"
-                                    class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
-                            </div>
-                        </div>
-
-                        <div class="pt-2">
-                            <button type="submit" id="confirm-btn"
-                                class="w-full py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-                                </svg>
-                                Confirmar Assento e Quarto
-                            </button>
-                        </div>
-                    </form>
-                </section>
-
-            </div>
+    <main class="main-grid" id="grade-principal">
+      <!-- COLUNA ESQUERDA: BANNER + INCLUSO + DOCS + DIAS + ROTA + FAQ + CONTATO -->
+      <section class="card-panel coluna-programacao" id="coluna-programacao" aria-label="Programação da Viagem">
+        <div class="banner-roteiro" onclick="abrirModalImagem()">
+          <img src="/roteiro-banner.jpg.png" alt="Roteiro da Viagem - Excursão Foz do Iguaçu (12 a 17 de Maio de 2027)" />
+          <div class="banner-legenda">🔍 Toque na imagem para ampliar o pôster do roteiro</div>
         </div>
 
-        <!-- TELA EXCLUSIVA DE CHECKOUT / CARTÃO DE EMBARQUE (Oculta até confirmar) -->
-        <section id="voucher-section" class="hidden max-w-lg mx-auto animate-fade-in">
-            <!-- Barra Superior do Checkout -->
-            <div class="flex items-center justify-between gap-3 mb-4 no-print">
-                <button type="button" onclick="startNewReservation()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm transition cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                        <path d="m15 18-6-6 6-6"/>
-                    </svg>
-                    Voltar / Nova Reserva
-                </button>
-                <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    Reserva Concluída
-                </span>
+        <!-- O QUE ESTÁ INCLUSO VS NÃO INCLUSO -->
+        <div class="incluso-grid">
+          <div class="incluso-card sim">
+            <h4>✅ O que está incluso</h4>
+            <ul>
+              <li>Transporte executivo ida e volta (Poços ↔ Foz)</li>
+              <li>Hospedagem no hotel em Foz do Iguaçu (Rua Xavier da Silva, 1000)</li>
+              <li>Café da manhã no hotel</li>
+              <li>Translados locais previstos no roteiro</li>
+              <li>Ingressos das atrações (Cataratas, Marco, etc.)</li>
+            </ul>
+          </div>
+          <div class="incluso-card nao">
+            <h4>❌ O que não está incluso</h4>
+            <ul>
+              <li>Almoços, jantares e lanches na estrada</li>
+              <li>Despesas pessoais e compras no Paraguai/Argentina</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- DOCUMENTAÇÃO OBRIGATÓRIA NA FRONTEIRA -->
+        <div class="doc-alerta">
+          <strong class="titulo-doc">🛂 Atenção à Documentação Obrigatória (Paraguai e Argentina)</strong>
+          Para cruzar a fronteira, é obrigatório portar <strong>RG original em bom estado com menos de 10 anos de emissão</strong> ou <strong>Passaporte válido</strong>. <strong>CNH e documentos digitais (e-Título/RG digital) não são aceitos</strong> na imigração argentina.
+        </div>
+
+        <div class="section-title">
+          <span>📅 Dias e Programação (12 a 17 de Maio)</span>
+        </div>
+
+        <div class="dias-tabs" id="dias-tabs" role="tablist"></div>
+
+        <div class="dia-destaque" id="dia-destaque"></div>
+
+        <details class="cronograma-completo" open>
+          <summary>Ver todos os 6 dias lado a lado</summary>
+          <div class="todos-dias-grid" id="todos-dias-grid"></div>
+        </details>
+
+        <!-- ROTA DO PERCURSO -->
+        <div class="bloco-separado">
+          <div class="section-title">
+            <span>🗺️ Rota e Deslocamentos da Viagem</span>
+          </div>
+
+          <div class="modo-rota-tabs" role="tablist">
+            <button type="button" class="modo-rota-tab active" id="aba-trechos" onclick="alternarModoRota('trechos')">
+              📍 Trechos no Mapa
+            </button>
+            <button type="button" class="modo-rota-tab" id="aba-animacao" onclick="alternarModoRota('animacao')">
+              🎬 Animação do Trajeto
+            </button>
+          </div>
+
+          <!-- MODO 1: 7 TRECHOS NO GOOGLE MAPS -->
+          <div id="painel-trechos-rota">
+            <div class="rota-chips" id="rota-chips">
+              <button type="button" class="rota-chip active" onclick="selecionarTrechoRota(0)">🚌 Ida: Poços → Foz</button>
+              <button type="button" class="rota-chip" onclick="selecionarTrechoRota(1)">⚡ Visita Técnica: Itaipu</button>
+              <button type="button" class="rota-chip" onclick="selecionarTrechoRota(2)">🌅 Marco das 3 Fronteiras</button>
+              <button type="button" class="rota-chip" onclick="selecionarTrechoRota(3)">🛍️ Compras no Paraguai</button>
+              <button type="button" class="rota-chip" onclick="selecionarTrechoRota(4)">🍷 Noite na Argentina</button>
+              <button type="button" class="rota-chip" onclick="selecionarTrechoRota(5)">🌊 Cataratas do Iguaçu</button>
+              <button type="button" class="rota-chip" onclick="selecionarTrechoRota(6)">🏠 Volta: Foz → Poços</button>
             </div>
 
-            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-5 flex items-center gap-3 no-print">
-                <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
+            <div class="rota-mapa-box">
+              <iframe
+                id="iframe-rota"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                src="https://maps.google.com/maps?saddr=Palace+Hotel,+Praca+Pedro+Sanches,+Pocos+de+Caldas+-+MG&daddr=Rua+Xavier+da+Silva,+1000+-+Centro,+Foz+do+Iguacu+-+PR&output=embed"
+                title="Mapa da rota da excursão">
+              </iframe>
+              <div class="rota-rodape">
+                <span id="rota-descricao"><strong>🚌 Ida para o Paraná (12/05):</strong> Embarque no Palace Hotel (Poços de Caldas) direto para o hotel na Rua Xavier da Silva, 1000 (Foz do Iguaçu).</span>
+                <a
+                  id="link-rota-externa"
+                  class="btn-mapa-externo"
+                  href="https://www.google.com/maps/dir/Palace+Hotel,+Pra%C3%A7a+Pedro+Sanches,+s%2Fn+-+Centro,+Po%C3%A7os+de+Caldas+-+MG,+37701-002/Rua+Xavier+da+Silva,+1000+-+Centro,+Foz+do+Igua%C3%A7u+-+PR,+85851-180/Itaipu+Binacional+-+Barreira+de+Controle,+Av.+Tancredo+Neves,+6731+-+Itaipu+Binacional,+Foz+do+Igua%C3%A7u+-+PR,+85867-318/Marco+das+Tr%C3%AAs+Fronteiras,+Ac.+Tr%C3%AAs+Fronteiras+-+Foz+do+Igua%C3%A7u,+PR/Cidade+do+Leste,+Paraguai/Puerto+Iguaz%C3%BA,+Misiones,+Argentina/Cataratas+do+Igua%C3%A7u/Palace+Hotel,+Pra%C3%A7a+Pedro+Sanches,+s%2Fn+-+Centro,+Po%C3%A7os+de+Caldas+-+MG,+37701-002/"
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  🧭 Abrir roteiro completo no Maps
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- MODO 2: ANIMAÇÃO DO TRAJETO -->
+          <div id="painel-animacao-rota">
+            <div class="anim-controles">
+              <div class="anim-botoes">
+                <button type="button" class="rota-chip active" id="btn-animar-rota" onclick="alternarAnimacaoRota()">
+                  ▶️ Traçar trajeto
+                </button>
+                <button type="button" class="rota-chip" onclick="reiniciarAnimacaoRota()">
+                  🔄 Reiniciar
+                </button>
+              </div>
+              <span class="anim-status" id="status-animacao">Clique em "Traçar trajeto" para animar o percurso</span>
+            </div>
+            <div id="mapa-animado"></div>
+          </div>
+        </div>
+
+        <!-- PERGUNTAS FREQUENTES (FAQ) -->
+        <div class="bloco-separado">
+          <div class="section-title">
+            <span>❓ Perguntas Frequentes (FAQ)</span>
+          </div>
+          <div class="faq-lista">
+            <details class="faq-item">
+              <summary>Qual a cota de compras no Paraguai?</summary>
+              <p>A cota terrestre de isenção alfandegária é de <strong>US$ 500 por pessoa</strong>. Produtos para uso pessoal (como roupas e itens já em uso) não entram na cota, mas eletrônicos na caixa contam no limite.</p>
+            </details>
+            <details class="faq-item">
+              <summary>Como funciona a meia-entrada nas atrações?</summary>
+              <p>Estudantes regularmente matriculados têm direito a desconto/meia-entrada em diversas atrações apresentando a <strong>CIE (Carteira de Identificação Estudantil)</strong> ou comprovante de matrícula atualizado com documento com foto.</p>
+            </details>
+            <details class="faq-item">
+              <summary>Como são definidas as poltronas do ônibus?</summary>
+              <p>Você pode escolher diretamente uma poltrona disponível no mapa de 42 lugares durante a inscrição, priorizando que amigos e casais viajem juntos.</p>
+            </details>
+            <details class="faq-item">
+              <summary>E se eu precisar cancelar ou passar minha vaga?</summary>
+              <p>Caso não possa ir, você pode transferir sua vaga para outra pessoa sem custo informando os dados do novo passageiro à organização antes da emissão das listas de embarque e hospedagem. Em caso de cancelamento e tenha parcelado, o valor devolvido será descontado da taxa de parcelamento.</p>
+            </details>
+          </div>
+        </div>
+
+        <!-- DÚVIDAS E GRUPO DA EXCURSÃO -->
+        <div class="bloco-separado">
+          <div class="contato-box">
+            <div>
+              <strong>💬 Grupo oficial da excursão no WhatsApp</strong>
+              Entre no grupo para tirar dúvidas sobre documentação, roteiro e pagamento, acompanhar avisos importantes e combinar detalhes com o pessoal.
+            </div>
+            <a
+              class="btn-contato-whats"
+              href="https://chat.whatsapp.com/BIZoEfi7MW5EOFkX0PT2Oa"
+              target="_blank"
+              rel="noopener noreferrer">
+              📲 Entrar no grupo do WhatsApp
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUNA DIREITA: INSCRIÇÃO E PAGAMENTO -->
+      <section class="card-panel coluna-pagamento" id="coluna-pagamento" aria-label="Inscrição e Pagamento">
+        <div id="tela-checkout">
+          <div class="section-title">
+            <span>✍️ Dados e Pagamento</span>
+          </div>
+
+          <div class="aviso-lotado" id="aviso-vagas-esgotadas">
+            🛑 Todas as 42 poltronas foram preenchidas! Entre em contato com a organização pelo WhatsApp para entrar na lista de espera.
+          </div>
+
+          <div id="formulario-inscricao-corpo">
+            <div class="form-grid">
+              <div>
+                <label class="field-label" for="nome">Nome Completo do Passageiro</label>
+                <input type="text" id="nome" placeholder="Ex: João da Silva" oninput="ativarTravaSaida()" required />
+              </div>
+
+              <div class="form-grid two-cols">
+                <div>
+                  <label class="field-label" for="cpf">CPF</label>
+                  <input type="text" id="cpf" inputmode="numeric" maxlength="14" placeholder="Ex: 123.456.789-00" oninput="formatarCampoCPF(this)" required />
                 </div>
                 <div>
-                    <h3 class="text-sm font-bold text-emerald-950">Checkout finalizado com sucesso!</h3>
-                    <p class="text-xs text-emerald-800">Seu cartão de embarque está pronto. Salve a imagem PNG ou imprima para apresentar no embarque.</p>
+                  <label class="field-label" for="whatsapp">WhatsApp (com DDD)</label>
+                  <input type="tel" id="whatsapp" inputmode="numeric" maxlength="15" placeholder="Ex: (35) 99999-9999" oninput="formatarCampoWhatsApp(this)" required />
                 </div>
+              </div>
+
+              <div>
+                <label class="field-label" for="email">E-mail (para receber os ingressos)</label>
+                <input type="email" id="email" placeholder="Ex: joao@email.com" oninput="ativarTravaSaida()" required />
+              </div>
             </div>
 
-            <!-- Cartão Visual do Bilhete / Comprovante -->
-            <div id="printable-voucher-area" class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden max-w-md mx-auto">
-                <!-- Topo Azul Marinho do Bilhete -->
-                <div class="bg-slate-900 text-white px-6 py-5 flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Comprovante de Viagem</span>
-                        <h4 class="text-lg font-extrabold tracking-tight">Cartão de Embarque</h4>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-[10px] text-slate-400 block">CÓDIGO</span>
-                        <span id="voucher-code" class="font-mono text-sm font-bold text-white bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">#BUS-0000</span>
-                    </div>
-                </div>
-
-                <!-- Destaque Principal da Poltrona e Quarto -->
-                <div class="px-6 py-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
-                    <div>
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Poltrona Reservada</span>
-                        <div class="flex items-baseline gap-2 mt-0.5">
-                            <span id="voucher-seat-number" class="text-4xl font-black text-slate-900 font-mono">00</span>
-                            <span id="voucher-seat-position" class="text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Janela</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Quarto / Hospedagem</span>
-                        <span id="voucher-room-name" class="text-lg font-black text-slate-900 font-mono block">Quarto 00</span>
-                        <span id="voucher-room-type" class="text-xs font-semibold text-indigo-700 block">Triplo (3 lugares)</span>
-                    </div>
-                </div>
-
-                <!-- Dados do Passageiro -->
-                <div class="px-6 py-5 space-y-3.5 text-sm">
-                    <div>
-                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Passageiro(a)</span>
-                        <p id="voucher-name" class="font-bold text-slate-900 text-base break-words">—</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Documento</span>
-                            <p id="voucher-doc" class="font-medium text-slate-800 font-mono text-xs sm:text-sm">Não informado</p>
-                        </div>
-                        <div>
-                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Telefone</span>
-                            <p id="voucher-phone" class="font-medium text-slate-800 text-xs sm:text-sm">Não informado</p>
-                        </div>
-                    </div>
-
-                    <div>
-                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Local de Embarque</span>
-                        <p id="voucher-boarding" class="font-semibold text-slate-800">—</p>
-                    </div>
-
-                    <div>
-                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Data e Hora da Emissão</span>
-                        <p id="voucher-datetime" class="font-mono text-xs text-slate-600">—</p>
-                    </div>
-                </div>
-
-                <!-- Linha Picotada com Recortes Laterais -->
-                <div class="relative flex items-center justify-center my-1">
-                    <div class="ticket-notch-left"></div>
-                    <div class="w-full border-t-2 border-dashed border-slate-200 mx-4"></div>
-                    <div class="ticket-notch-right"></div>
-                </div>
-
-                <!-- Rodapé com QR Code -->
-                <div class="px-6 py-5 bg-white flex items-center justify-between gap-4">
-                    <div class="space-y-1">
-                        <span class="text-xs font-bold text-slate-800 block">Validação de Embarque</span>
-                        <p class="text-[11px] text-slate-500 leading-relaxed">
-                            Apresente este cartão de embarque digital ou impresso ao coordenador antes de entrar no ônibus.
-                        </p>
-                    </div>
-                    <!-- Container do QR Code -->
-                    <div id="qrcode-container" class="p-2 bg-white border border-slate-200 rounded-xl shrink-0"></div>
-                </div>
+            <label class="field-label">Selecione o Tipo de Ingresso</label>
+            <div class="tickets">
+              <div class="ticket-opt active" id="opt-aluno" onclick="mudarIngresso('Aluno')">
+                <strong>🎓 Aluno</strong>
+                <span id="label-preco-aluno">R$ 1.450,00</span>
+              </div>
+              <div class="ticket-opt" id="opt-externo" onclick="mudarIngresso('Externo')">
+                <strong>👤 Externo</strong>
+                <span id="label-preco-externo">R$ 1.595,00</span>
+              </div>
             </div>
 
-            <!-- Botões de Download, Impressão e Nova Reserva -->
-            <div class="max-w-md mx-auto mt-5 space-y-3 no-print">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button type="button" onclick="downloadVoucherPNG()"
-                        class="py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
-                        </svg>
-                        Baixar Cartão (PNG)
-                    </button>
+            <!-- MAPA DE 42 POLTRONAS DO ÔNIBUS -->
+            <label class="field-label">Escolha sua Poltrona (42 lugares)</label>
+            <div class="mapa-onibus-card" role="group" aria-label="Mapa de 42 poltronas do ônibus">
+              <div class="bus-header-bar">Frente do Veículo</div>
 
-                    <button type="button" onclick="window.print()"
-                        class="py-3.5 px-4 rounded-xl bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-800 font-bold text-sm border border-slate-300 shadow-sm flex items-center justify-center gap-2 transition cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>
-                        </svg>
-                        Imprimir / Salvar PDF
-                    </button>
+              <div class="bus-cabine-row">
+                <div class="bus-cabine-box">
+                  <div>
+                    <strong>Motorista</strong>
+                    <span class="sub">Cabine</span>
+                  </div>
+                  <span class="bus-cabine-icone" aria-hidden="true">🛞</span>
                 </div>
+                <div class="bus-cabine-box">
+                  <div>
+                    <strong>Entrada</strong>
+                    <span class="sub">Escada</span>
+                  </div>
+                  <span class="bus-cabine-icone" aria-hidden="true">🚪</span>
+                </div>
+              </div>
 
-                <button type="button" onclick="startNewReservation()"
-                    class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer">
-                    Fazer Outra Reserva
-                </button>
+              <div class="bus-col-labels" aria-hidden="true">
+                <span>Janela</span>
+                <span>Corredor</span>
+                <span></span>
+                <span>Corredor</span>
+                <span>Janela</span>
+              </div>
+
+              <div class="bus-linhas" id="mapa-poltronas-container"></div>
+
+              <div class="bus-footer-bar">
+                <div class="bus-footer-box">
+                  <span aria-hidden="true">🚻</span>
+                  <span>Sanitário (WC)</span>
+                </div>
+                <div class="bus-footer-box">
+                  <span aria-hidden="true">☕</span>
+                  <span>Água / Lanche</span>
+                </div>
+              </div>
+
+              <div class="bus-legenda">
+                <span class="bus-legenda-item"><span class="legenda-swatch legenda-livre"></span> Livre</span>
+                <span class="bus-legenda-item"><span class="legenda-swatch legenda-selecionada"></span> Selecionada</span>
+                <span class="bus-legenda-item"><span class="legenda-swatch legenda-ocupada"></span> Ocupada</span>
+              </div>
             </div>
-        </section>
+
+            <!-- CAMPOS EXTRAS PARA ALUNO (CURSO E FACULDADE) -->
+            <div id="campos-aluno-box" class="campos-aluno-box">
+              <div class="form-grid two-cols">
+                <div>
+                  <label class="field-label" for="curso">Curso</label>
+                  <input type="text" id="curso" placeholder="Ex: Engenharia Elétrica" oninput="ativarTravaSaida()" required />
+                </div>
+                <div>
+                  <label class="field-label" for="faculdade">Faculdade / Instituição</label>
+                  <input type="text" id="faculdade" placeholder="Ex: PUC Minas" oninput="ativarTravaSaida()" required />
+                </div>
+              </div>
+            </div>
+
+            <div class="aviso-ingresso-regra" id="aviso-ingresso-regra">
+              ℹ️ A categoria <strong>Aluno</strong> é destinada a estudantes com comprovante de matrícula ou carteirinha estudantil.
+            </div>
+
+            <div class="resumo-selecao-box">
+              <span id="resumo-ingresso-label">Ingresso: <strong>Aluno</strong> • Poltrona: <strong>01</strong></span>
+              <strong id="resumo-valor-label">R$ 1.450,00</strong>
+            </div>
+
+            <div class="pay-tabs">
+              <div class="pay-tab active" id="tab-pix" onclick="trocarMetodo('pix')">⚡ Pix (Sem Taxa)</div>
+              <div class="pay-tab card-tab" id="tab-cartao" onclick="trocarMetodo('cartao')">💳 Cartão de Crédito</div>
+            </div>
+
+            <!-- SEÇÃO PIX QR CODE E COPIA E COLA -->
+            <div id="sec-pix" class="pix-box">
+              <p style="margin: 0; font-size: 14px; color: #166534; line-height: 1.4;">
+                Escaneie o QR Code ou copie o código Pix no valor de <strong id="valor-pix-texto">R$ 1.450,00</strong>:
+              </p>
+
+              <div class="qr-wrapper">
+                <div id="qrcode-canvas"></div>
+              </div>
+
+              <div style="font-size: 12px; color: #166534; font-weight: 700;">Pix Copia e Cola:</div>
+              <div class="pix-code-box" id="pix-copia-cola"></div>
+
+              <button type="button" class="btn btn-copy" onclick="copiarPix()">📋 Copiar Código Pix</button>
+              <button type="button" class="btn btn-confirm" id="btn-ja-fiz-pix" onclick="confirmarPixDireto()">✅ Já fiz o Pix</button>
+
+              <div class="aviso-obrigatorio">⚠️ Após pagar no app do banco, clique em "Já fiz o Pix" para concluir sua inscrição.</div>
+            </div>
+
+            <!-- SEÇÃO CARTÃO MERCADO PAGO -->
+            <div id="sec-cartao" style="display: none;">
+              <div class="card-fee-notice" id="aviso-valor-cartao">
+                Valor no cartão (1x à vista): <strong id="valor-cartao-texto">R$ 1.525,99</strong> (inclui tarifa de 4,98% da operadora).
+              </div>
+              <div id="loading-cartao" style="text-align: center; padding: 20px; color: #475569; font-size: 14px;">
+                ⏳ Carregando formulário do cartão...
+              </div>
+              <div id="paymentBrick_container"></div>
+            </div>
+          </div>
+
+          <div id="status-msg"></div>
+        </div>
+
+        <!-- TELA DE INSCRIÇÃO REALIZADA COM SUCESSO -->
+        <div id="tela-sucesso">
+          <div class="check-circle">✓</div>
+          <h2 style="color: #15803d; margin: 0 0 8px;">Sua inscrição foi realizada com sucesso!</h2>
+          <p style="color: #475569; font-size: 14px; margin-top: 0;">
+            Seus dados já foram registrados na nossa lista oficial da excursão.
+          </p>
+
+          <div class="status-conferencia-nota" id="nota-conferencia-pagamento"></div>
+
+          <div class="resumo-card" id="resumo-inscricao"></div>
+
+          <button type="button" class="btn btn-whats" onclick="enviarComprovanteOpcional()">
+            📲 Enviar comprovante no WhatsApp (Opcional)
+          </button>
+        </div>
+      </section>
     </main>
+  </div>
 
-    <!-- Canvas oculto utilizado para renderizar o comprovante em alta resolução (PNG) -->
-    <canvas id="export-canvas" class="hidden"></canvas>
+  <!-- MODAL PARA AMPLIAR ROTEIRO -->
+  <div id="modal-imagem" onclick="fecharModalImagem()">
+    <img src="/roteiro-banner.jpg.png" alt="Roteiro da Viagem Ampliado" />
+  </div>
 
-    <script>
-        /**
-         * CONFIGURAÇÃO DO ÔNIBUS (1 ANDAR - 46 LUGARES EXECUTIVO SEMILEITO)
-         * Disposição 2x2:
-         * Lado Esquerdo (Motorista): Janela (ímpar), Corredor (par) -> Ex: 01, 02
-         * Lado Direito (Porta): Corredor (par), Janela (ímpar) -> Ex: 04, 03
-         */
-        const TOTAL_SEATS = 46;
-        const STORAGE_KEY = 'bus_3d_seat_reservations_v1';
-        const RECORDS_STORAGE_KEY = 'bus_3d_seat_records_v1';
-        const DEFAULT_BOARDING_POINT = 'Embarque Único — Saída Principal';
+  <script>
+    // =========================================================================
+    // CONFIGURAÇÃO DE VAGAS (42 POLTRONAS) E DATA DO EMBARQUE
+    // =========================================================================
+    const DATA_EMBARQUE = new Date("2027-05-12T18:00:00-03:00").getTime();
+    const VAGAS_TOTAL = 42;
+    const VAGAS_OCUPADAS = 0;
 
-        /**
-         * CONFIGURAÇÃO DOS QUARTOS (10 TRIPLOS + 5 DUPLOS = 15 QUARTOS / 40 VAGAS)
-         */
-        const ROOMS_CONFIG = [
-            ...Array.from({ length: 10 }, (_, i) => ({
-                id: i + 1,
-                label: `Quarto ${String(i + 1).padStart(2, '0')}`,
-                type: 'Triplo',
-                capacity: 3
-            })),
-            ...Array.from({ length: 5 }, (_, i) => ({
-                id: i + 11,
-                label: `Quarto ${String(i + 11).padStart(2, '0')}`,
-                type: 'Duplo',
-                capacity: 2
-            }))
-        ];
-        const TOTAL_ROOM_BEDS = ROOMS_CONFIG.reduce((sum, r) => sum + r.capacity, 0);
+    // Layout exato de 42 poltronas:
+    // Fileiras 1 a 10: 4 poltronas cada (01 a 40)
+    // Fileira 11: apenas 2 poltronas (41 e 42)
+    const FILEIRAS_42_POLTRONAS = [
+      { fila: 1,  esqJanela: 1,  esqCorredor: 2,  dirCorredor: 4,  dirJanela: 3  },
+      { fila: 2,  esqJanela: 5,  esqCorredor: 6,  dirCorredor: 8,  dirJanela: 7  },
+      { fila: 3,  esqJanela: 9,  esqCorredor: 10, dirCorredor: 12, dirJanela: 11 },
+      { fila: 4,  esqJanela: 13, esqCorredor: 14, dirCorredor: 16, dirJanela: 15 },
+      { fila: 5,  esqJanela: 17, esqCorredor: 18, dirCorredor: 20, dirJanela: 19 },
+      { fila: 6,  esqJanela: 21, esqCorredor: 22, dirCorredor: 24, dirJanela: 23 },
+      { fila: 7,  esqJanela: 25, esqCorredor: 26, dirCorredor: 28, dirJanela: 27 },
+      { fila: 8,  esqJanela: 29, esqCorredor: 30, dirCorredor: 32, dirJanela: 31 },
+      { fila: 9,  esqJanela: 33, esqCorredor: 34, dirCorredor: 36, dirJanela: 35 },
+      { fila: 10, esqJanela: 37, esqCorredor: 38, dirCorredor: 40, dirJanela: 39 },
+      { fila: 11, esqJanela: 41, esqCorredor: 42, dirCorredor: null, dirJanela: null }
+    ];
 
-        /**
-         * SENHA DO PAINEL DO COORDENADOR
-         */
-        const ADMIN_PASSWORD = '2307';
+    let poltronasOcupadasSet = new Set();
+    let poltronaSelecionada = 1;
 
-        /**
-         * INTEGRAÇÃO OPCIONAL COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
-         */
-        const GOOGLE_SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwWE_wGxR7UGrnPHO7sGJa-huIU8GURD7-4Gd7GWYKUAWI69kh9JUcR0k4aC5z_paKv/exec';
+    // =========================================================================
+    // PROGRAMAÇÃO POR DIAS (12 A 17 DE MAIO DE 2027)
+    // =========================================================================
+    const PROGRAMACAO_DIAS = [
+      {
+        tab: "Dia 1",
+        dataCurta: "12/05",
+        titulo: "Dia 1 (12/05) — Saída de MG",
+        resumoTopo: "12 de Maio",
+        itens: [
+          { hora: "18:00", nome: "Saída de MG (Palace Hotel)", desc: "Embarque na Praça Pedro Sanches (Poços de Caldas - MG) rumo a Foz do Iguaçu (PR)." }
+        ]
+      },
+      {
+        tab: "Dia 2",
+        dataCurta: "13/05",
+        titulo: "Dia 2 (13/05) — Chegada no PR",
+        resumoTopo: "13 de Maio",
+        itens: [
+          { hora: "12:00", nome: "Chegada no PR", desc: "Chegada prevista em Foz do Iguaçu no hotel (Rua Xavier da Silva, 1000)." },
+          { hora: "Tarde", nome: "Check-in no hotel", desc: "Acomodação dos passageiros no hotel na Rua Xavier da Silva, 1000." },
+          { hora: "Tarde / Noite", nome: "Tarde e noite livre", desc: "Tempo livre para descanso, passeios opcionais e jantar." }
+        ]
+      },
+      {
+        tab: "Dia 3",
+        dataCurta: "14/05",
+        titulo: "Dia 3 (14/05) — Itaipu e Marco das 3 Fronteiras",
+        resumoTopo: "14 de Maio",
+        itens: [
+          { hora: "09:30", nome: "Visita técnica à Itaipu", desc: "Visita técnica à Usina Hidrelétrica de Itaipu (Barreira de Controle)." },
+          { hora: "17:30", nome: "Marco das 3 Fronteiras", desc: "Encontro de Brasil, Paraguai e Argentina com pôr do sol e apresentações." }
+        ]
+      },
+      {
+        tab: "Dia 4",
+        dataCurta: "15/05",
+        titulo: "Dia 4 (15/05) — Paraguai e Argentina",
+        resumoTopo: "15 de Maio",
+        itens: [
+          { hora: "07:30", nome: "Paraguai", desc: "Saída para compras e passeio em Ciudad del Este." },
+          { hora: "17:30", nome: "Argentina", desc: "Saída para Puerto Iguazú (feirinha, gastronomia e passeio noturno)." }
+        ]
+      },
+      {
+        tab: "Dia 5",
+        dataCurta: "16/05",
+        titulo: "Dia 5 (16/05) — Cataratas do Iguaçu e Retorno",
+        resumoTopo: "16 de Maio",
+        itens: [
+          { hora: "08:30", nome: "Cataratas do Iguaçu", desc: "Visita ao Parque Nacional do Iguaçu." },
+          { hora: "12:00", nome: "Saída do PR", desc: "Embarque de retorno para Poços de Caldas (MG)." }
+        ]
+      },
+      {
+        tab: "Dia 6",
+        dataCurta: "17/05",
+        titulo: "Dia 6 (17/05) — Chegada em MG",
+        resumoTopo: "17 de Maio",
+        itens: [
+          { hora: "06:00", nome: "Chegada em MG (Palace Hotel)", desc: "Previsão de desembarque em Poços de Caldas e encerramento da excursão." }
+        ]
+      }
+    ];
 
-        // Estado da aplicação
-        let occupiedSeats = [];
-        let seatRecords = {};
-        let selectedSeat = null;
-        let selectedRoomId = null;
-        let currentTicketData = null;
-        let isSyncing = false;
+    // =========================================================================
+    // TRECHOS DO MAPA DA ROTA
+    // =========================================================================
+    const TRECHOS_ROTA = [
+      {
+        embed: "https://maps.google.com/maps?saddr=Palace+Hotel,+Praca+Pedro+Sanches,+Pocos+de+Caldas+-+MG&daddr=Rua+Xavier+da+Silva,+1000+-+Centro,+Foz+do+Iguacu+-+PR&output=embed",
+        texto: "<strong>🚌 Ida para o Paraná (12/05):</strong> Embarque no Palace Hotel (Poços de Caldas) direto para o hotel na Rua Xavier da Silva, 1000 (Foz do Iguaçu)."
+      },
+      {
+        embed: "https://maps.google.com/maps?saddr=Rua+Xavier+da+Silva,+1000+-+Centro,+Foz+do+Iguacu+-+PR&daddr=Itaipu+Binacional+-+Barreira+de+Controle,+Av.+Tancredo+Neves,+6731,+Foz+do+Iguacu+-+PR&output=embed",
+        texto: "<strong>⚡ Visita Técnica à Itaipu (14/05 às 09:30):</strong> Saída do hotel (Rua Xavier da Silva, 1000) rumo à Usina Hidrelétrica de Itaipu."
+      },
+      {
+        embed: "https://maps.google.com/maps?saddr=Rua+Xavier+da+Silva,+1000+-+Centro,+Foz+do+Iguacu+-+PR&daddr=Marco+das+Tres+Fronteiras,+Ac.+Tres+Fronteiras+-+Foz+do+Iguacu+-+PR&output=embed",
+        texto: "<strong>🌅 Encontro das Águas (14/05 às 17:30):</strong> Do hotel (Rua Xavier da Silva, 1000) até o Marco das Três Fronteiras."
+      },
+      {
+        embed: "https://maps.google.com/maps?saddr=Rua+Xavier+da+Silva,+1000+-+Centro,+Foz+do+Iguacu+-+PR&daddr=Ciudad+del+Este,+Paraguai&output=embed",
+        texto: "<strong>🛍️ Compras no Paraguai (15/05 às 07:30):</strong> Travessia do hotel (Rua Xavier da Silva, 1000) até Ciudad del Este."
+      },
+      {
+        embed: "https://maps.google.com/maps?saddr=Rua+Xavier+da+Silva,+1000+-+Centro,+Foz+do+Iguacu+-+PR&daddr=Puerto+Iguazu,+Misiones,+Argentina&output=embed",
+        texto: "<strong>🍷 Noite na Argentina (15/05 às 17:30):</strong> Do hotel (Rua Xavier da Silva, 1000) até Puerto Iguazú (feirinha e gastronomia)."
+      },
+      {
+        embed: "https://maps.google.com/maps?saddr=Rua+Xavier+da+Silva,+1000+-+Centro,+Foz+do+Iguacu+-+PR&daddr=Cataratas+do+Iguacu,+PR&output=embed",
+        texto: "<strong>🌊 Cataratas do Iguaçu (16/05 às 08:30):</strong> Saída do hotel (Rua Xavier da Silva, 1000) para o Parque Nacional do Iguaçu."
+      },
+      {
+        embed: "https://maps.google.com/maps?saddr=Cataratas+do+Iguacu,+PR&daddr=Palace+Hotel,+Praca+Pedro+Sanches,+Pocos+de+Caldas+-+MG&output=embed",
+        texto: "<strong>🏠 Retorno para Minas Gerais (16/05 às 12:00):</strong> Saída das Cataratas do Iguaçu de volta ao Palace Hotel em Poços de Caldas."
+      }
+    ];
 
-        /**
-         * Inicialização ao carregar a página
-         */
-        window.addEventListener('DOMContentLoaded', async () => {
-            loadOccupiedSeats();
-            renderBusMap();
-            await syncFromCloudIfConfigured();
-            renderBusMap();
-            setupInputMasks();
-            setupFormListener();
-            setupAdminTrigger();
-            checkQRCodeValidationInURL();
+    // =========================================================================
+    // PONTOS PARA ANIMAÇÃO DO TRAJETO (COM RETORNO AO HOTEL ENTRE PASSEIOS)
+    // =========================================================================
+    const COORD_PALACE = [-21.786638, -46.5686297];
+    const COORD_HOTEL = [-25.545342, -54.581836];
 
-            // Sincronização automática silenciosa em tempo real a cada 3 segundos (sem recarregar a página)
-            if (GOOGLE_SHEETS_WEBHOOK_URL) {
-                const liveBadge = document.getElementById('live-sync-badge');
-                if (liveBadge) liveBadge.classList.remove('hidden');
+    const PONTOS_EXCURSAO = [
+      { nome: "Palace Hotel (Poços de Caldas - MG)", coords: COORD_PALACE, local: false },
+      { nome: "Hotel (Rua Xavier da Silva, 1000 - Foz do Iguaçu)", coords: COORD_HOTEL, local: true },
+      { nome: "Itaipu Binacional", coords: [-25.4469457, -54.5851416], local: true },
+      { nome: "Hotel - Rua Xavier da Silva, 1000 (Retorno)", coords: COORD_HOTEL, local: true },
+      { nome: "Marco das 3 Fronteiras", coords: [-25.5901977, -54.5902289], local: true },
+      { nome: "Hotel - Rua Xavier da Silva, 1000 (Retorno)", coords: COORD_HOTEL, local: true },
+      { nome: "Ciudad del Este (Paraguai)", coords: [-25.4987076, -54.6636526], local: true },
+      { nome: "Hotel - Rua Xavier da Silva, 1000 (Retorno)", coords: COORD_HOTEL, local: true },
+      { nome: "Puerto Iguazú (Argentina)", coords: [-25.5965209, -54.5750309], local: true },
+      { nome: "Hotel - Rua Xavier da Silva, 1000 (Retorno)", coords: COORD_HOTEL, local: true },
+      { nome: "Cataratas do Iguaçu", coords: [-25.690864, -54.4408161], local: false },
+      { nome: "Palace Hotel (Poços de Caldas - MG)", coords: COORD_PALACE, local: false }
+    ];
 
-                setInterval(async () => {
-                    if (document.hidden || isSyncing) return;
-                    await syncFromCloudIfConfigured();
-                }, 3000);
+    // =========================================================================
+    // CONFIGURAÇÃO CENTRAL DE PREÇOS, TARIFA DO CARTÃO E PIX
+    // =========================================================================
+    const PRECO_ALUNO = 1450;     // Valor líquido no Pix
+    const PRECO_EXTERNO = 1595;   // Valor líquido no Pix
+    const TAXA_CARTAO_MP = 0.0498;   // 4,98% de tarifa base do Mercado Pago
 
-                // Atualiza imediatamente quando o usuário volta para a aba do navegador
-                document.addEventListener('visibilitychange', () => {
-                    if (!document.hidden) syncFromCloudIfConfigured();
-                });
-            }
+    const PIX_CHAVE = "13659263621";
+    const PIX_NOME = "FELIPE VIDAL RAMOS";
+    const PIX_CIDADE = "POCOS DE CALDAS";
+    const PUBLIC_KEY = "COLE_SUA_PUBLIC_KEY_AQUI".trim();
+    // =========================================================================
 
-            // Sincronização instantânea entre abas no mesmo navegador
-            window.addEventListener('storage', (e) => {
-                if (e.key === STORAGE_KEY || e.key === RECORDS_STORAGE_KEY) {
-                    const prevSelected = selectedSeat;
-                    const prevRoomId = selectedRoomId;
-                    loadOccupiedSeats();
-                    if (prevSelected && occupiedSeats.includes(prevSelected)) {
-                        selectedSeat = null;
-                        updateSelectedBadge();
-                        showToast(`A poltrona ${formatSeatNum(prevSelected)} acabou de ser reservada por outra pessoa.`, 'error');
-                    }
-                    if (prevRoomId && isRoomFull(prevRoomId)) {
-                        const lostRoom = getRoomById(prevRoomId);
-                        selectedRoomId = null;
-                        updateSelectedRoomBadge();
-                        showToast(`O ${lostRoom ? lostRoom.label : 'quarto escolhido'} acabou de lotar.`, 'error');
-                    }
-                    renderBusMap();
-                    if (!document.getElementById('coordinator-modal').classList.contains('hidden')) {
-                        renderCoordinatorList();
-                    }
-                }
-            });
+    let diaSelecionadoIdx = 0;
+    let tipoIngresso = "Aluno";
+    let metodoAtual = "pix";
+    let valorAtual = PRECO_ALUNO;
+    let codigoPixAtual = "";
+    let brickController = null;
+    let brickInicializado = false;
+
+    let bloquearSaida = false;
+    let inscricaoConcluida = false;
+
+    let mapaAnim = null;
+    let linhaTracada = null;
+    let marcadorOnibus = null;
+    let animTimer = null;
+    let animRodando = false;
+    let segIdx = 0;
+    let passo = 0;
+    const PASSOS_POR_TRECHO = 35;
+
+    function formatarPoltrona(num) {
+      return num ? String(num).padStart(2, "0") : "—";
+    }
+
+    function garantirPoltronaValida() {
+      if (poltronaSelecionada && !poltronasOcupadasSet.has(poltronaSelecionada) && poltronaSelecionada >= 1 && poltronaSelecionada <= VAGAS_TOTAL) {
+        return;
+      }
+      poltronaSelecionada = null;
+      for (let i = 1; i <= VAGAS_TOTAL; i++) {
+        if (!poltronasOcupadasSet.has(i)) {
+          poltronaSelecionada = i;
+          break;
+        }
+      }
+    }
+
+    function renderizarMapaPoltronas() {
+      const container = document.getElementById("mapa-poltronas-container");
+      if (!container) return;
+
+      garantirPoltronaValida();
+
+      const renderBotao = (num) => {
+        if (!num || num > VAGAS_TOTAL) {
+          return `<div style="height: 36px; visibility: hidden;" aria-hidden="true"></div>`;
+        }
+        const ocupada = poltronasOcupadasSet.has(num);
+        const selecionada = !ocupada && poltronaSelecionada === num;
+        const classes = [
+          "poltrona-btn",
+          ocupada ? "ocupada" : "",
+          selecionada ? "selecionada" : ""
+        ].filter(Boolean).join(" ");
+
+        return `
+          <button
+            type="button"
+            class="${classes}"
+            ${ocupada ? "disabled aria-disabled='true'" : ""}
+            aria-pressed="${selecionada}"
+            aria-label="Poltrona ${formatarPoltrona(num)}${ocupada ? " ocupada" : selecionada ? " selecionada" : " livre"}"
+            onclick="selecionarPoltrona(${num})">
+            ${formatarPoltrona(num)}
+          </button>
+        `;
+      };
+
+      container.innerHTML = FILEIRAS_42_POLTRONAS
+        .filter((f) => f.fila <= 11)
+        .map((f) => `
+          <div class="bus-fileira">
+            ${renderBotao(f.esqJanela)}
+            ${renderBotao(f.esqCorredor)}
+            <span class="bus-fileira-num" aria-hidden="true">${f.fila}</span>
+            ${renderBotao(f.dirCorredor)}
+            ${renderBotao(f.dirJanela)}
+          </div>
+        `).join("");
+
+      atualizarResumoSelecao();
+    }
+
+    function selecionarPoltrona(num) {
+      if (poltronasOcupadasSet.has(num) || num > VAGAS_TOTAL) return;
+      ativarTravaSaida();
+      poltronaSelecionada = num;
+      renderizarMapaPoltronas();
+    }
+
+    function atualizarResumoSelecao() {
+      const basePix = tipoIngresso === "Aluno" ? PRECO_ALUNO : PRECO_EXTERNO;
+      const baseCartao = calcularValorCartao(basePix);
+      const valorResumoExibido = metodoAtual === "cartao" ? baseCartao : basePix;
+      const textoPoltrona = poltronaSelecionada ? formatarPoltrona(poltronaSelecionada) : "Nenhuma";
+
+      const resumoEl = document.getElementById("resumo-ingresso-label");
+      const valorEl = document.getElementById("resumo-valor-label");
+      if (resumoEl) {
+        resumoEl.innerHTML = `Ingresso: <strong>${tipoIngresso}</strong> (${metodoAtual === "cartao" ? "Cartão" : "Pix"}) • Poltrona: <strong>${textoPoltrona}</strong>`;
+      }
+      if (valorEl) {
+        valorEl.innerText = formatarMoeda(valorResumoExibido);
+      }
+    }
+
+    function formatarCampoCPF(input) {
+      ativarTravaSaida();
+      let digitos = input.value.replace(/\D/g, "").slice(0, 11);
+
+      if (digitos.length > 9) {
+        input.value = digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
+      } else if (digitos.length > 6) {
+        input.value = digitos.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
+      } else if (digitos.length > 3) {
+        input.value = digitos.replace(/(\d{3})(\d{1,3})/, "$1.$2");
+      } else {
+        input.value = digitos;
+      }
+    }
+
+    function formatarCampoWhatsApp(input) {
+      ativarTravaSaida();
+      let digitos = input.value.replace(/\D/g, "").slice(0, 11);
+
+      if (digitos.length > 10) {
+        input.value = digitos.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+      } else if (digitos.length > 6) {
+        input.value = digitos.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+      } else if (digitos.length > 2) {
+        input.value = digitos.replace(/(\d{2})(\d{0,5})/, "($1) $2");
+      } else if (digitos.length > 0) {
+        input.value = "(" + digitos;
+      } else {
+        input.value = "";
+      }
+    }
+
+    function atualizarEstadoLotacao(ocupadas, total) {
+      const esgotado = ocupadas >= total;
+      document.getElementById("aviso-vagas-esgotadas").style.display = esgotado ? "block" : "none";
+      document.getElementById("formulario-inscricao-corpo").style.display = esgotado ? "none" : "block";
+    }
+
+    function renderizarVagas(ocupadas, total = VAGAS_TOTAL, listaOcupadas = null) {
+      const limTotal = VAGAS_TOTAL;
+      const limOcupadas = Math.max(0, Math.min(limTotal, Number(ocupadas) || 0));
+      const restantes = Math.max(0, limTotal - limOcupadas);
+      const percentual = Math.min(100, Math.round((limOcupadas / limTotal) * 100));
+
+      poltronasOcupadasSet = new Set();
+      if (Array.isArray(listaOcupadas)) {
+        listaOcupadas.forEach((p) => {
+          const n = Number(p);
+          if (Number.isInteger(n) && n >= 1 && n <= limTotal) {
+            poltronasOcupadasSet.add(n);
+          }
+        });
+      } else if (limOcupadas > 0) {
+        for (let i = 1; i <= limOcupadas; i++) {
+          poltronasOcupadasSet.add(i);
+        }
+      }
+
+      document.getElementById("texto-vagas-ocupadas").innerText = `🎟️ ${limOcupadas} de ${limTotal} vagas preenchidas`;
+      document.getElementById("tag-vagas-restantes").innerText = restantes === 0 ? "Esgotadas" : (restantes === 1 ? "Resta 1 vaga" : `Restam ${restantes} vagas`);
+      document.getElementById("barra-vagas-fill").style.width = `${percentual}%`;
+      atualizarEstadoLotacao(limOcupadas, limTotal);
+      renderizarMapaPoltronas();
+    }
+
+    async function buscarVagasAutomaticas() {
+      try {
+        const res = await fetch("/api/vagas?t=" + Date.now(), { cache: "no-store" });
+        if (!res.ok) {
+          renderizarVagas(VAGAS_OCUPADAS, VAGAS_TOTAL);
+          return;
+        }
+        const data = await res.json();
+        const listaPoltronas = Array.isArray(data.poltronasOcupadas)
+          ? data.poltronasOcupadas
+          : (Array.isArray(data.ocupadasLista) ? data.ocupadasLista : null);
+        const ocupadas = listaPoltronas
+          ? listaPoltronas.filter((n) => Number(n) >= 1 && Number(n) <= VAGAS_TOTAL).length
+          : Number(data.ocupadas ?? data.preenchidas ?? VAGAS_OCUPADAS);
+        renderizarVagas(ocupadas, VAGAS_TOTAL, listaPoltronas);
+      } catch (err) {
+        renderizarVagas(VAGAS_OCUPADAS, VAGAS_TOTAL);
+      }
+    }
+
+    function atualizarStatusViagem() {
+      buscarVagasAutomaticas();
+
+      const tick = () => {
+        const diff = Math.max(0, DATA_EMBARQUE - Date.now());
+        const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const min = Math.floor((diff / (1000 * 60)) % 60);
+        const seg = Math.floor((diff / 1000) % 60);
+
+        document.getElementById("cd-dias").innerText = String(dias).padStart(2, "0");
+        document.getElementById("cd-horas").innerText = String(horas).padStart(2, "0");
+        document.getElementById("cd-min").innerText = String(min).padStart(2, "0");
+        document.getElementById("cd-seg").innerText = String(seg).padStart(2, "0");
+      };
+
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    function selecionarTrechoRota(idx) {
+      const trecho = TRECHOS_ROTA[idx];
+      if (!trecho) return;
+      document.getElementById("iframe-rota").src = trecho.embed;
+      document.getElementById("rota-descricao").innerHTML = trecho.texto;
+      document.querySelectorAll("#rota-chips .rota-chip").forEach((chip, i) => {
+        chip.classList.toggle("active", i === idx);
+      });
+    }
+
+    function alternarModoRota(modo) {
+      const isAnimacao = modo === "animacao";
+      document.getElementById("aba-trechos").classList.toggle("active", !isAnimacao);
+      document.getElementById("aba-animacao").classList.toggle("active", isAnimacao);
+      document.getElementById("painel-trechos-rota").style.display = isAnimacao ? "none" : "block";
+      document.getElementById("painel-animacao-rota").style.display = isAnimacao ? "block" : "none";
+
+      if (isAnimacao) {
+        iniciarMapaAnimado();
+        setTimeout(() => mapaAnim && mapaAnim.invalidateSize(), 60);
+      } else if (animRodando) {
+        clearInterval(animTimer);
+        animRodando = false;
+        document.getElementById("btn-animar-rota").textContent = "▶️ Continuar traçado";
+      }
+    }
+
+    function iniciarMapaAnimado() {
+      if (mapaAnim || typeof L === "undefined") return;
+
+      mapaAnim = L.map("mapa-animado").setView(PONTOS_EXCURSAO[0].coords, 6);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap"
+      }).addTo(mapaAnim);
+
+      const paradasUnicas = [
+        { nome: "Palace Hotel (Poços de Caldas - MG)", coords: COORD_PALACE },
+        { nome: "Hotel (Rua Xavier da Silva, 1000 - Foz do Iguaçu)", coords: COORD_HOTEL },
+        { nome: "Itaipu Binacional", coords: [-25.4469457, -54.5851416] },
+        { nome: "Marco das 3 Fronteiras", coords: [-25.5901977, -54.5902289] },
+        { nome: "Ciudad del Este (Paraguai)", coords: [-25.4987076, -54.6636526] },
+        { nome: "Puerto Iguazú (Argentina)", coords: [-25.5965209, -54.5750309] },
+        { nome: "Cataratas do Iguaçu", coords: [-25.690864, -54.4408161] }
+      ];
+
+      paradasUnicas.forEach((p, i) => {
+        L.circleMarker(p.coords, {
+          radius: 6,
+          color: "#0369a1",
+          fillColor: "#0284c7",
+          fillOpacity: 0.9
+        })
+          .addTo(mapaAnim)
+          .bindPopup(`<strong>${i + 1}.</strong> ${p.nome}`);
+      });
+
+      const iconeBus = L.divIcon({
+        html: '<div style="font-size:22px;transform:translate(-6px,-10px);">🚌</div>',
+        className: "",
+        iconSize: [24, 24]
+      });
+
+      linhaTracada = L.polyline([PONTOS_EXCURSAO[0].coords], { color: "#0284c7", weight: 4 }).addTo(mapaAnim);
+      marcadorOnibus = L.marker(PONTOS_EXCURSAO[0].coords, { icon: iconeBus }).addTo(mapaAnim);
+    }
+
+    function reiniciarAnimacaoRota() {
+      iniciarMapaAnimado();
+      if (animTimer) {
+        clearInterval(animTimer);
+        animTimer = null;
+      }
+      animRodando = false;
+      segIdx = 0;
+      passo = 0;
+
+      if (linhaTracada) {
+        linhaTracada.setLatLngs([PONTOS_EXCURSAO[0].coords]);
+      }
+      if (marcadorOnibus) {
+        marcadorOnibus.setLatLng(PONTOS_EXCURSAO[0].coords);
+      }
+      if (mapaAnim) {
+        mapaAnim.setView(PONTOS_EXCURSAO[0].coords, 6, { animate: true });
+      }
+
+      document.getElementById("btn-animar-rota").textContent = "▶️ Traçar trajeto";
+      document.getElementById("status-animacao").textContent = "Trajeto reiniciado. Clique em \"Traçar trajeto\" para iniciar.";
+    }
+
+    function alternarAnimacaoRota() {
+      iniciarMapaAnimado();
+      const btn = document.getElementById("btn-animar-rota");
+
+      if (animRodando) {
+        clearInterval(animTimer);
+        animRodando = false;
+        btn.textContent = "▶️ Continuar traçado";
+        return;
+      }
+
+      if (segIdx >= PONTOS_EXCURSAO.length - 1) {
+        segIdx = 0;
+        passo = 0;
+        linhaTracada.setLatLngs([PONTOS_EXCURSAO[0].coords]);
+      }
+
+      animRodando = true;
+      btn.textContent = "⏸️ Pausar";
+
+      animTimer = setInterval(() => {
+        const origem = PONTOS_EXCURSAO[segIdx];
+        const destino = PONTOS_EXCURSAO[segIdx + 1];
+
+        if (passo === 0) {
+          if (origem.local && destino.local) {
+            mapaAnim.setView(COORD_HOTEL, 11, { animate: true });
+          } else {
+            mapaAnim.fitBounds([origem.coords, destino.coords], { padding: [35, 35], maxZoom: 11 });
+          }
+        }
+
+        passo++;
+
+        const t = passo / PASSOS_POR_TRECHO;
+        const lat = origem.coords[0] + (destino.coords[0] - origem.coords[0]) * t;
+        const lng = origem.coords[1] + (destino.coords[1] - origem.coords[1]) * t;
+        const atual = [lat, lng];
+
+        marcadorOnibus.setLatLng(atual);
+        const pts = linhaTracada.getLatLngs();
+        pts.push(atual);
+        linhaTracada.setLatLngs(pts);
+
+        document.getElementById("status-animacao").textContent =
+          `Traçando: ${origem.nome} → ${destino.nome}`;
+
+        if (passo >= PASSOS_POR_TRECHO) {
+          passo = 0;
+          segIdx++;
+          if (segIdx >= PONTOS_EXCURSAO.length - 1) {
+            clearInterval(animTimer);
+            animRodando = false;
+            btn.textContent = "🔁 Repetir trajeto";
+            document.getElementById("status-animacao").textContent = "Roteiro completo traçado!";
+            mapaAnim.fitBounds([COORD_PALACE, COORD_HOTEL], { padding: [30, 30] });
+          }
+        }
+      }, 45);
+    }
+
+    function renderizarProgramacao() {
+      const tabsContainer = document.getElementById("dias-tabs");
+      const destaqueContainer = document.getElementById("dia-destaque");
+      const todosContainer = document.getElementById("todos-dias-grid");
+
+      tabsContainer.innerHTML = PROGRAMACAO_DIAS.map((dia, idx) => `
+        <button type="button" class="dia-tab ${idx === diaSelecionadoIdx ? "active" : ""}" onclick="selecionarDia(${idx})">
+          ${dia.tab}
+          <small>${dia.dataCurta}</small>
+        </button>
+      `).join("");
+
+      const atual = PROGRAMACAO_DIAS[diaSelecionadoIdx] || PROGRAMACAO_DIAS[0];
+      destaqueContainer.innerHTML = `
+        <div class="dia-destaque-topo">
+          <h3>${atual.titulo}</h3>
+          <span class="dia-data">${atual.resumoTopo}</span>
+        </div>
+        <ul class="atividades-lista">
+          ${atual.itens.map(item => `
+            <li class="atividade-item">
+              <span class="atividade-hora">${item.hora}</span>
+              <div class="atividade-desc">
+                <strong>${item.nome}</strong>
+                <span>${item.desc}</span>
+              </div>
+            </li>
+          `).join("")}
+        </ul>
+      `;
+
+      todosContainer.innerHTML = PROGRAMACAO_DIAS.map(dia => `
+        <div class="mini-dia-card">
+          <h4>${dia.titulo}</h4>
+          <ul>
+            ${dia.itens.map(item => `<li><strong>${item.hora}:</strong> ${item.nome}</li>`).join("")}
+          </ul>
+        </div>
+      `).join("");
+    }
+
+    function selecionarDia(idx) {
+      diaSelecionadoIdx = idx;
+      renderizarProgramacao();
+    }
+
+    function obterDadosPassageiro() {
+      const isAluno = tipoIngresso === "Aluno";
+      return {
+        nome: document.getElementById("nome").value.trim(),
+        cpf: document.getElementById("cpf").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        whatsapp: document.getElementById("whatsapp").value.trim(),
+        poltrona: poltronaSelecionada,
+        curso: isAluno ? document.getElementById("curso").value.trim() : "",
+        faculdade: isAluno ? document.getElementById("faculdade").value.trim() : ""
+      };
+    }
+
+    function validarDadosPassageiro(dados) {
+      if (!dados.nome || !dados.cpf || !dados.email || !dados.whatsapp) {
+        mostrarStatus("⚠️ Preencha Nome Completo, CPF, E-mail e WhatsApp antes de concluir.", "#fef2f2", "#b91c1c");
+        return false;
+      }
+      if (!dados.poltrona || dados.poltrona > VAGAS_TOTAL || poltronasOcupadasSet.has(dados.poltrona)) {
+        mostrarStatus("⚠️ Selecione uma poltrona disponível no mapa de 42 lugares.", "#fef2f2", "#b91c1c");
+        return false;
+      }
+      if (tipoIngresso === "Aluno" && (!dados.curso || !dados.faculdade)) {
+        mostrarStatus("⚠️ Preencha o Curso e a Faculdade para a opção Aluno.", "#fef2f2", "#b91c1c");
+        return false;
+      }
+      if (dados.cpf.replace(/\D/g, "").length !== 11) {
+        mostrarStatus("⚠️ Digite os 11 números do CPF corretamente.", "#fef2f2", "#b91c1c");
+        return false;
+      }
+      if (dados.whatsapp.replace(/\D/g, "").length < 10) {
+        mostrarStatus("⚠️ Digite o WhatsApp com DDD (10 ou 11 números).", "#fef2f2", "#b91c1c");
+        return false;
+      }
+      return true;
+    }
+
+    function abrirModalImagem() {
+      const imgBanner = document.querySelector(".banner-roteiro img");
+      const imgModal = document.querySelector("#modal-imagem img");
+      if (imgBanner && imgModal) {
+        imgModal.src = imgBanner.currentSrc || imgBanner.src;
+      }
+      document.getElementById("modal-imagem").classList.add("aberto");
+    }
+
+    function fecharModalImagem() {
+      document.getElementById("modal-imagem").classList.remove("aberto");
+    }
+
+    function calcularValorCartao(valorLiquido) {
+      return Number((valorLiquido / (1 - TAXA_CARTAO_MP)).toFixed(2));
+    }
+
+    function formatarMoeda(valor) {
+      return `R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function ativarTravaSaida() {
+      if (!inscricaoConcluida) bloquearSaida = true;
+    }
+
+    window.addEventListener("beforeunload", function (e) {
+      if (bloquearSaida && !inscricaoConcluida) {
+        e.preventDefault();
+        e.returnValue = "Você ainda não clicou em 'Já fiz o Pix' para finalizar sua inscrição.";
+        return e.returnValue;
+      }
+    });
+
+    function gerarPayloadPix(chave, nome, cidade, valor, txid = "EXCURSAOFOZ") {
+      const formatField = (id, val) => id + String(val.length).padStart(2, "0") + val;
+      const merchantAccount = formatField("00", "br.gov.bcb.pix") + formatField("01", chave);
+      const valorStr = valor.toFixed(2);
+      const additionalData = formatField("05", txid);
+
+      let payload =
+        formatField("00", "01") +
+        formatField("26", merchantAccount) +
+        formatField("52", "0000") +
+        formatField("53", "986") +
+        formatField("54", valorStr) +
+        formatField("58", "BR") +
+        formatField("59", nome.substring(0, 25)) +
+        formatField("60", cidade.substring(0, 15)) +
+        formatField("62", additionalData) +
+        "6304";
+
+      let crc = 0xFFFF;
+      for (let i = 0; i < payload.length; i++) {
+        crc ^= payload.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+          crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+        }
+      }
+      const crcHex = (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, "0");
+      return payload + crcHex;
+    }
+
+    async function atualizarTelaValores() {
+      const basePix = tipoIngresso === "Aluno" ? PRECO_ALUNO : PRECO_EXTERNO;
+      const baseCartao = calcularValorCartao(basePix);
+      valorAtual = basePix;
+
+      const precoAlunoExibido = metodoAtual === "cartao" ? calcularValorCartao(PRECO_ALUNO) : PRECO_ALUNO;
+      const precoExternoExibido = metodoAtual === "cartao" ? calcularValorCartao(PRECO_EXTERNO) : PRECO_EXTERNO;
+
+      document.getElementById("label-preco-aluno").innerText = formatarMoeda(precoAlunoExibido);
+      document.getElementById("label-preco-externo").innerText = formatarMoeda(precoExternoExibido);
+      document.getElementById("valor-pix-texto").innerText = formatarMoeda(basePix);
+      document.getElementById("valor-cartao-texto").innerText = formatarMoeda(baseCartao);
+      atualizarResumoSelecao();
+
+      codigoPixAtual = gerarPayloadPix(PIX_CHAVE, PIX_NOME, PIX_CIDADE, basePix);
+      document.getElementById("pix-copia-cola").innerText = codigoPixAtual;
+
+      const container = document.getElementById("qrcode-canvas");
+      container.innerHTML = "";
+
+      if (typeof QRCode !== "undefined") {
+        new QRCode(container, {
+          text: codigoPixAtual,
+          width: 180,
+          height: 180,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } else {
+        const img = document.createElement("img");
+        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(codigoPixAtual)}`;
+        img.alt = "QR Code Pix";
+        container.appendChild(img);
+      }
+
+      if (metodoAtual === "cartao" && brickInicializado) {
+        if (brickController) {
+          await brickController.unmount();
+        }
+        brickInicializado = false;
+        inicializarCartaoMercadoPago();
+      }
+    }
+
+    function mostrarStatus(texto, bg, cor) {
+      const el = document.getElementById("status-msg");
+      el.style.display = "block";
+      el.style.background = bg;
+      el.style.color = cor;
+      el.innerHTML = texto;
+    }
+
+    function mudarIngresso(tipo) {
+      tipoIngresso = tipo;
+      const isAluno = tipo === "Aluno";
+      document.getElementById("opt-aluno").classList.toggle("active", isAluno);
+      document.getElementById("opt-externo").classList.toggle("active", !isAluno);
+      document.getElementById("campos-aluno-box").style.display = isAluno ? "block" : "none";
+      document.getElementById("aviso-ingresso-regra").style.display = isAluno ? "block" : "none";
+      document.getElementById("curso").required = isAluno;
+      document.getElementById("faculdade").required = isAluno;
+      atualizarTelaValores();
+    }
+
+    function trocarMetodo(metodo) {
+      metodoAtual = metodo;
+      document.getElementById("tab-pix").classList.toggle("active", metodo === "pix");
+      document.getElementById("tab-cartao").classList.toggle("active", metodo === "cartao");
+      document.getElementById("sec-pix").style.display = metodo === "pix" ? "block" : "none";
+      document.getElementById("sec-cartao").style.display = metodo === "cartao" ? "block" : "none";
+      document.getElementById("status-msg").style.display = "none";
+      atualizarTelaValores();
+
+      if (metodo === "cartao" && !brickInicializado) {
+        setTimeout(inicializarCartaoMercadoPago, 50);
+      }
+    }
+
+    function copiarPix() {
+      ativarTravaSaida();
+      navigator.clipboard.writeText(codigoPixAtual);
+      mostrarStatus("📋 Código Pix copiado! Pague no app do seu banco e depois clique em <strong>'Já fiz o Pix'</strong>.", "#f0fdf4", "#15803d");
+    }
+
+    function exibirTelaSucesso(dados, metodoTexto, valorCobrado, isPixConferencia = false) {
+      inscricaoConcluida = true;
+      bloquearSaida = false;
+
+      const notaEl = document.getElementById("nota-conferencia-pagamento");
+      if (isPixConferencia) {
+        notaEl.innerHTML = "⏳ <strong>Pix em conferência:</strong> seu registro entrou na planilha e a vaga entra na contagem oficial assim que o pagamento for validado.";
+      } else {
+        notaEl.innerHTML = "✅ <strong>Pagamento confirmado:</strong> sua inscrição foi registrada com status confirmado.";
+      }
+
+      const infoAcademicaHtml = tipoIngresso === "Aluno"
+        ? `<strong>Curso:</strong> ${dados.curso}<br><strong>Faculdade:</strong> ${dados.faculdade}<br>`
+        : "";
+
+      document.getElementById("resumo-inscricao").innerHTML = `
+        <strong>Passageiro:</strong> ${dados.nome}<br>
+        <strong>CPF:</strong> ${dados.cpf}<br>
+        <strong>E-mail:</strong> ${dados.email}<br>
+        <strong>WhatsApp:</strong> ${dados.whatsapp}<br>
+        <strong>Poltrona:</strong> ${formatarPoltrona(dados.poltrona)} (de ${VAGAS_TOTAL})<br>
+        <strong>Ingresso:</strong> ${tipoIngresso}<br>
+        ${infoAcademicaHtml}
+        <strong>Valor:</strong> ${formatarMoeda(valorCobrado)}<br>
+        <strong>Forma:</strong> ${metodoTexto}
+      `;
+
+      document.getElementById("topo-site").style.display = "none";
+      document.getElementById("barra-status-viagem").style.display = "none";
+      document.getElementById("coluna-programacao").style.display = "none";
+      document.getElementById("grade-principal").classList.add("modo-sucesso");
+      document.getElementById("tela-checkout").style.display = "none";
+      document.getElementById("tela-sucesso").style.display = "block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function confirmarPixDireto() {
+      const dados = obterDadosPassageiro();
+      if (!validarDadosPassageiro(dados)) return;
+
+      const btn = document.getElementById("btn-ja-fiz-pix");
+      btn.disabled = true;
+      btn.innerText = "⏳ Confirmando inscrição...";
+      mostrarStatus("⏳ Salvando sua inscrição na planilha...", "#ebf8ff", "#2b6cb0");
+
+      try {
+        const res = await fetch("/api/registrar-pix", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome: dados.nome,
+            cpf: dados.cpf,
+            email: dados.email,
+            whatsapp: dados.whatsapp,
+            poltrona: dados.poltrona,
+            ingresso: tipoIngresso,
+            curso: dados.curso,
+            faculdade: dados.faculdade,
+            valor: valorAtual
+          })
         });
 
-        /**
-         * Carrega assentos ocupados e registros detalhados do localStorage
-         */
-        function loadOccupiedSeats() {
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                const savedRecords = localStorage.getItem(RECORDS_STORAGE_KEY);
-                occupiedSeats = saved ? JSON.parse(saved) : [];
-                seatRecords = savedRecords ? JSON.parse(savedRecords) : {};
-            } catch (e) {
-                occupiedSeats = [];
-                seatRecords = {};
-            }
+        if (!res.ok) throw new Error("Falha ao salvar");
+
+        exibirTelaSucesso(dados, "Pix Direto (Em conferência)", valorAtual, true);
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerText = "✅ Já fiz o Pix";
+        mostrarStatus("❌ Erro ao registrar. Verifique sua conexão e clique novamente em 'Já fiz o Pix'.", "#fef2f2", "#b91c1c");
+      }
+    }
+
+    function enviarComprovanteOpcional() {
+      const dados = obterDadosPassageiro();
+      const infoAcademicaWhats = tipoIngresso === "Aluno"
+        ? `*Curso:* ${dados.curso}\n*Faculdade:* ${dados.faculdade}\n`
+        : "";
+      const msgWhats = encodeURIComponent(
+        `Olá! Acabei de concluir minha inscrição e pagar o Pix da Excursão Foz do Iguaçu.\n\n` +
+        `*Nome:* ${dados.nome}\n` +
+        `*CPF:* ${dados.cpf}\n` +
+        `*E-mail:* ${dados.email}\n` +
+        `*WhatsApp:* ${dados.whatsapp}\n` +
+        `*Poltrona:* ${formatarPoltrona(dados.poltrona)}\n` +
+        `*Ingresso:* ${tipoIngresso} (${formatarMoeda(valorAtual)})\n` +
+        infoAcademicaWhats +
+        `\nSegue o comprovante:`
+      );
+      window.open(`https://wa.me/5535998707773?text=${msgWhats}`, "_blank");
+    }
+
+    async function inicializarCartaoMercadoPago() {
+      const loadingEl = document.getElementById("loading-cartao");
+      loadingEl.style.display = "block";
+      loadingEl.innerHTML = "⏳ Carregando formulário do cartão...";
+
+      try {
+        const cfgRes = await fetch("/api/config?t=" + Date.now());
+        const textoBruto = await cfgRes.text();
+
+        let cfg = {};
+        try {
+          cfg = JSON.parse(textoBruto);
+        } catch (errJson) {
+          loadingEl.innerHTML = `❌ O servidor não devolveu um JSON válido. Resposta: <br><small>${textoBruto.substring(0, 150)}</small>`;
+          return;
         }
 
-        /**
-         * Salva lista de assentos e registros no localStorage
-         */
-        function saveOccupiedSeats() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(occupiedSeats));
-                localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify(seatRecords));
-            } catch (e) {
-                console.warn('Não foi possível salvar no localStorage:', e);
-            }
+        const chaveFinal = cfg.publicKey || cfg.PUBLIC_KEY || cfg.public_key || PUBLIC_KEY;
+
+        if (!chaveFinal || chaveFinal.includes("COLE_SUA")) {
+          loadingEl.innerHTML = `⚠️ Chave não encontrada. O servidor respondeu: <br><code>${textoBruto}</code>`;
+          return;
         }
 
-        /**
-         * Sincronização em nuvem (Google Sheets)
-         */
-        async function syncFromCloudIfConfigured() {
-            if (!GOOGLE_SHEETS_WEBHOOK_URL) return;
-            isSyncing = true;
-            try {
-                const sep = GOOGLE_SHEETS_WEBHOOK_URL.includes('?') ? '&' : '?';
-                const res = await fetch(`${GOOGLE_SHEETS_WEBHOOK_URL}${sep}t=${Date.now()}`, {
-                    method: 'GET',
-                    redirect: 'follow',
-                    cache: 'no-store'
-                });
-                if (!res.ok) return;
-                const data = await res.json();
-                if (Array.isArray(data.records)) {
-                    const prevSelected = selectedSeat;
-                    const prevRoomId = selectedRoomId;
-                    const remoteRecords = {};
-                    const remoteSeats = [];
+        if (typeof MercadoPago === "undefined") {
+          loadingEl.innerHTML = "❌ O script do Mercado Pago não carregou.";
+          return;
+        }
 
-                    data.records.forEach(r => {
-                        const seatNum = Number(r.seatRaw || r.seat);
-                        if (seatNum >= 1 && seatNum <= TOTAL_SEATS) {
-                            remoteSeats.push(seatNum);
-                            remoteRecords[seatNum] = {
-                                ...r,
-                                seatRaw: seatNum,
-                                seat: formatSeatNum(seatNum),
-                                roomId: r.roomId ? Number(r.roomId) : null
-                            };
-                        }
-                    });
+        brickInicializado = true;
+        const mp = new MercadoPago(chaveFinal.trim(), { locale: "pt-BR" });
+        const bricksBuilder = mp.bricks();
+        const valorInicialCartao = calcularValorCartao(valorAtual);
 
-                    const changed =
-                        JSON.stringify([...occupiedSeats].sort()) !== JSON.stringify([...remoteSeats].sort()) ||
-                        JSON.stringify(seatRecords) !== JSON.stringify(remoteRecords);
+        brickController = await bricksBuilder.create("payment", "paymentBrick_container", {
+          initialization: { amount: valorInicialCartao },
+          customization: {
+            paymentMethods: { creditCard: "all", maxInstallments: 12 }
+          },
+          callbacks: {
+            onReady: () => {
+              loadingEl.style.display = "none";
+            },
+            onSubmit: ({ formData }) => {
+              const dados = obterDadosPassageiro();
+              if (!validarDadosPassageiro(dados)) {
+                return Promise.reject();
+              }
 
-                    occupiedSeats = remoteSeats;
-                    seatRecords = remoteRecords;
-                    saveOccupiedSeats();
+              mostrarStatus("⏳ Processando pagamento no cartão...", "#ebf8ff", "#2b6cb0");
+              const valorCobradoCartao = calcularValorCartao(valorAtual);
 
-                    if (prevSelected && occupiedSeats.includes(prevSelected)) {
-                        selectedSeat = null;
-                        updateSelectedBadge();
-                        showToast(`A poltrona ${formatSeatNum(prevSelected)} acabou de ser reservada por outra pessoa.`, 'error');
-                    }
-
-                    if (prevRoomId && isRoomFull(prevRoomId)) {
-                        const lostRoom = getRoomById(prevRoomId);
-                        selectedRoomId = null;
-                        updateSelectedRoomBadge();
-                        showToast(`O ${lostRoom ? lostRoom.label : 'quarto escolhido'} acabou de lotar.`, 'error');
-                    }
-
-                    if (changed) {
-                        renderBusMap();
-                        if (!document.getElementById('coordinator-modal').classList.contains('hidden')) {
-                            renderCoordinatorList();
-                        }
-                    }
+              const payload = {
+                ...formData,
+                transaction_amount: valorCobradoCartao,
+                description: `Excursao Foz - ${tipoIngresso} - Poltrona ${formatarPoltrona(dados.poltrona)} - ${dados.nome}`,
+                nome: dados.nome,
+                cpf: dados.cpf,
+                email: dados.email,
+                whatsapp: dados.whatsapp,
+                poltrona: dados.poltrona,
+                tipoIngresso: tipoIngresso,
+                curso: dados.curso,
+                faculdade: dados.faculdade,
+                metadata: {
+                  nome: dados.nome,
+                  cpf: dados.cpf,
+                  email: dados.email,
+                  whatsapp: dados.whatsapp,
+                  poltrona: dados.poltrona,
+                  ingresso: tipoIngresso,
+                  curso: dados.curso,
+                  faculdade: dados.faculdade
+                },
+                payer: {
+                  ...(formData.payer || {}),
+                  email: dados.email,
+                  first_name: dados.nome.split(" ")[0],
+                  last_name: dados.nome.split(" ").slice(1).join(" ") || "Passageiro"
                 }
-            } catch (err) {
-                console.warn('Sincronização em nuvem indisponível no momento.');
-            } finally {
-                isSyncing = false;
-            }
-        }
+              };
 
-        async function pushRecordToCloud(action, record) {
-            if (!GOOGLE_SHEETS_WEBHOOK_URL) return { ok: true };
-            try {
-                const res = await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
-                    method: 'POST',
-                    redirect: 'follow',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action, record })
-                });
-                if (res.ok) {
-                    const text = await res.text();
-                    try {
-                        const json = JSON.parse(text);
-                        return { ok: true, status: json.status || 'OK', error: json.error || '' };
-                    } catch (_) {
-                        return { ok: true, status: 'OK' };
-                    }
-                }
-            } catch (err) {
-                console.warn('Falha ao enviar registro para nuvem:', err);
-            }
-            return { ok: false, status: 'NETWORK_ERROR' };
-        }
-
-        /**
-         * Formata número do assento com dois dígitos (ex: 1 -> "01")
-         */
-        function formatSeatNum(num) {
-            return String(num).padStart(2, '0');
-        }
-
-        /**
-         * Retorna posição do assento (Janela ou Corredor)
-         */
-        function getSeatPosition(num) {
-            return num % 2 !== 0 ? 'Janela' : 'Corredor';
-        }
-
-        /**
-         * Auxiliares dos Quartos
-         */
-        function getRoomById(roomId) {
-            return ROOMS_CONFIG.find(r => r.id === Number(roomId)) || null;
-        }
-
-        function getRoomOccupants(roomId) {
-            return Object.values(seatRecords).filter(r => Number(r.roomId) === Number(roomId));
-        }
-
-        function isRoomFull(roomId) {
-            const room = getRoomById(roomId);
-            if (!room) return true;
-            return getRoomOccupants(roomId).length >= room.capacity;
-        }
-
-        /**
-         * Atualiza os contadores de poltronas e vagas de quartos no topo
-         */
-        function updateAvailableCounter() {
-            const freeSeats = TOTAL_SEATS - occupiedSeats.length;
-            const seatCounterEl = document.getElementById('available-counter');
-            if (seatCounterEl) {
-                seatCounterEl.textContent = `${freeSeats} ${freeSeats === 1 ? 'poltrona' : 'poltronas'}`;
-            }
-
-            const totalOccupiedBeds = Object.values(seatRecords).filter(r => r.roomId).length;
-            const freeBeds = Math.max(0, TOTAL_ROOM_BEDS - totalOccupiedBeds);
-            const roomCounterEl = document.getElementById('available-rooms-counter');
-            if (roomCounterEl) {
-                roomCounterEl.textContent = `${freeBeds} ${freeBeds === 1 ? 'vaga em quarto' : 'vagas em quartos'}`;
-            }
-        }
-
-        /**
-         * Renderiza todas as 46 poltronas do ônibus (2x2) e os 15 quartos
-         */
-        function renderBusMap() {
-            const grid = document.getElementById('bus-seats-grid');
-            if (grid) {
-                grid.innerHTML = '';
-
-                // 11 fileiras completas (01 a 44) + 1 fileira final com 2 poltronas (45, 46)
-                const totalRows = Math.ceil(TOTAL_SEATS / 4);
-
-                for (let row = 0; row < totalRows; row++) {
-                    const base = row * 4;
-                    const leftWindow = base + 1;
-                    const leftAisle = base + 2;
-                    const rightWindow = base + 3;
-                    const rightAisle = base + 4;
-
-                    const rowEl = document.createElement('div');
-                    rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
-
-                    rowEl.appendChild(createSeatButton(leftWindow));
-                    rowEl.appendChild(createSeatButton(leftAisle));
-
-                    // Corredor central
-                    const aisleEl = document.createElement('div');
-                    aisleEl.className = 'flex items-center justify-center text-[10px] font-mono text-slate-300 select-none';
-                    aisleEl.textContent = `${row + 1}`;
-                    rowEl.appendChild(aisleEl);
-
-                    rowEl.appendChild(rightAisle <= TOTAL_SEATS ? createSeatButton(rightAisle) : createEmptySpacer());
-                    rowEl.appendChild(rightWindow <= TOTAL_SEATS ? createSeatButton(rightWindow) : createEmptySpacer());
-
-                    grid.appendChild(rowEl);
-                }
-            }
-
-            renderRoomsGrid();
-            updateAvailableCounter();
-        }
-
-        /**
-         * Cria o elemento visual de cada poltrona
-         */
-        function createSeatButton(seatNumber) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.dataset.seat = seatNumber;
-
-            const isOccupied = occupiedSeats.includes(seatNumber);
-            const isSelected = selectedSeat === seatNumber;
-            const formatted = formatSeatNum(seatNumber);
-            const position = getSeatPosition(seatNumber);
-
-            let stateClass = 'seat-available';
-            if (isOccupied) {
-                stateClass = 'seat-occupied';
-            } else if (isSelected) {
-                stateClass = 'seat-selected';
-            }
-
-            btn.className = `seat-btn ${stateClass} h-11 rounded-xl flex flex-col items-center justify-center font-mono text-xs sm:text-sm font-bold leading-none`;
-            btn.innerHTML = `<span>${formatted}</span>`;
-            btn.title = isOccupied
-                ? `Poltrona ${formatted} (${position}) — Ocupada`
-                : `Poltrona ${formatted} (${position}) — Livre`;
-            btn.setAttribute('aria-label', btn.title);
-
-            if (isOccupied) {
-                btn.disabled = true;
-            } else {
-                btn.addEventListener('click', () => handleSeatClick(seatNumber));
-            }
-
-            return btn;
-        }
-
-        function createEmptySpacer() {
-            const div = document.createElement('div');
-            div.className = 'h-11';
-            return div;
-        }
-
-        /**
-         * Renderiza os 15 quartos (10 Triplos e 5 Duplos - 1 por linha no celular)
-         */
-        function renderRoomsGrid() {
-            const roomsGrid = document.getElementById('rooms-grid');
-            if (!roomsGrid) return;
-            roomsGrid.innerHTML = '';
-
-            ROOMS_CONFIG.forEach(room => {
-                const occupants = getRoomOccupants(room.id);
-                const freeSpots = room.capacity - occupants.length;
-                const full = freeSpots <= 0;
-                const isSelected = selectedRoomId === room.id;
-
-                const card = document.createElement('button');
-                card.type = 'button';
-                card.disabled = full;
-
-                if (full) {
-                    card.className = 'w-full text-left p-3.5 rounded-xl border-2 border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed flex flex-col justify-between gap-2';
-                } else if (isSelected) {
-                    card.className = 'w-full text-left p-3.5 rounded-xl border-2 border-slate-900 bg-slate-900 text-white shadow-md flex flex-col justify-between gap-2 cursor-pointer transition';
-                } else {
-                    card.className = 'w-full text-left p-3.5 rounded-xl border-2 border-slate-200 hover:border-emerald-500 bg-white hover:bg-emerald-50/40 text-slate-800 flex flex-col justify-between gap-2 cursor-pointer transition';
-                }
-
-                // Indicador visual de camas ocupadas/livres
-                let bedsDots = '';
-                for (let b = 0; b < room.capacity; b++) {
-                    const filled = b < occupants.length;
-                    if (isSelected) {
-                        bedsDots += `<span class="w-2.5 h-2.5 rounded-full ${filled ? 'bg-amber-400' : 'bg-emerald-400'}"></span>`;
+              return new Promise((resolve, reject) => {
+                fetch("/api/pagar", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(payload)
+                })
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (data.status === "approved") {
+                      exibirTelaSucesso(dados, "Cartão de Crédito (Aprovado)", valorCobradoCartao, false);
+                      resolve();
                     } else {
-                        bedsDots += `<span class="w-2.5 h-2.5 rounded-full ${filled ? 'bg-slate-400' : 'bg-emerald-500'}"></span>`;
+                      mostrarStatus(`⚠️ Pagamento não aprovado (${data.status_detail || data.message || "verifique os dados"}).`, "#fef2f2", "#b91c1c");
+                      reject();
                     }
-                }
-
-                const badgeClass = room.type === 'Triplo'
-                    ? (isSelected ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-50 text-emerald-700')
-                    : (isSelected ? 'bg-indigo-500/30 text-indigo-200' : 'bg-indigo-50 text-indigo-700');
-
-                const namesList = occupants.length > 0
-                    ? occupants.map(o => o.name.split(' ')[0]).join(', ')
-                    : 'Quarto vazio';
-
-                card.innerHTML = `
-                    <div class="flex items-center justify-between gap-2 w-full">
-                        <span class="font-bold text-sm">${room.label}</span>
-                        <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${badgeClass}">${room.type}</span>
-                    </div>
-                    <div class="flex items-center justify-between w-full">
-                        <div class="flex items-center gap-1.5">${bedsDots}</div>
-                        <span class="text-xs font-semibold ${full ? 'text-red-500' : (isSelected ? 'text-emerald-300' : 'text-emerald-700')}">
-                            ${full ? 'Lotado' : `${freeSpots} ${freeSpots === 1 ? 'vaga' : 'vagas'}`}
-                        </span>
-                    </div>
-                    <p class="text-xs truncate w-full ${isSelected ? 'text-slate-300' : 'text-slate-500'}" title="${namesList}">
-                        ${namesList}
-                    </p>
-                `;
-
-                if (!full) {
-                    card.addEventListener('click', () => handleRoomClick(room.id));
-                }
-
-                roomsGrid.appendChild(card);
-            });
-        }
-
-        /**
-         * Trata o clique do usuário em um assento livre
-         */
-        function handleSeatClick(seatNumber) {
-            if (occupiedSeats.includes(seatNumber)) {
-                showToast(`A poltrona ${formatSeatNum(seatNumber)} já está ocupada.`, 'error');
-                return;
+                  })
+                  .catch(() => {
+                    mostrarStatus("❌ Erro de comunicação com o servidor.", "#fef2f2", "#b91c1c");
+                    reject();
+                  });
+              });
+            },
+            onError: (error) => {
+              brickInicializado = false;
+              loadingEl.style.display = "block";
+              loadingEl.innerHTML = `❌ Erro Mercado Pago: ${error?.message || JSON.stringify(error)}`;
             }
-
-            selectedSeat = selectedSeat === seatNumber ? null : seatNumber;
-            renderBusMap();
-            updateSelectedBadge();
-        }
-
-        /**
-         * Trata o clique do usuário em um quarto com vagas
-         */
-        function handleRoomClick(roomId) {
-            if (isRoomFull(roomId)) {
-                showToast('Este quarto já está com todas as vagas preenchidas.', 'error');
-                return;
-            }
-
-            selectedRoomId = selectedRoomId === roomId ? null : roomId;
-            renderRoomsGrid();
-            updateSelectedRoomBadge();
-        }
-
-        /**
-         * Atualiza o indicador visual do assento selecionado no formulário
-         */
-        function updateSelectedBadge() {
-            const badge = document.getElementById('selected-seat-badge');
-            if (!badge) return;
-
-            if (!selectedSeat) {
-                badge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold';
-                badge.innerHTML = '<span>Poltrona: —</span>';
-                return;
-            }
-
-            const formatted = formatSeatNum(selectedSeat);
-            const pos = getSeatPosition(selectedSeat);
-            badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold shadow-sm';
-            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Poltrona ${formatted} (${pos})</span>`;
-        }
-
-        /**
-         * Atualiza o indicador visual do quarto selecionado no formulário
-         */
-        function updateSelectedRoomBadge() {
-            const badge = document.getElementById('selected-room-badge');
-            if (!badge) return;
-
-            if (!selectedRoomId) {
-                badge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold';
-                badge.innerHTML = '<span>Quarto: —</span>';
-                return;
-            }
-
-            const room = getRoomById(selectedRoomId);
-            badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-950 text-white text-xs font-bold shadow-sm';
-            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>${room.label} (${room.type})</span>`;
-        }
-
-        /**
-         * Processa a confirmação da reserva e gera o comprovante
-         */
-        function setupFormListener() {
-            const form = document.getElementById('reservation-form');
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-
-                if (!selectedSeat) {
-                    showToast('Por favor, selecione uma poltrona livre no mapa do ônibus antes de confirmar.', 'error');
-                    return;
-                }
-
-                if (!selectedRoomId) {
-                    showToast('Por favor, selecione um quarto disponível no Passo 2 antes de confirmar.', 'error');
-                    document.getElementById('room-selection-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    return;
-                }
-
-                const nameInput = document.getElementById('passenger-name');
-                const docInput = document.getElementById('passenger-doc');
-                const phoneInput = document.getElementById('passenger-phone');
-                const submitBtn = document.getElementById('confirm-btn');
-
-                const name = nameInput.value.trim();
-                const doc = docInput.value.trim();
-                const phone = phoneInput.value.trim() || 'Não informado';
-                const boarding = DEFAULT_BOARDING_POINT;
-
-                if (!name || name.length < 3) {
-                    showToast('Informe o nome completo do passageiro.', 'error');
-                    nameInput.focus();
-                    return;
-                }
-
-                const normalizedCpf = doc.replace(/\D/g, '');
-                if (normalizedCpf.length !== 11) {
-                    showToast('Informe um CPF válido com 11 dígitos.', 'error');
-                    docInput.focus();
-                    return;
-                }
-
-                // Checagem instantânea na nuvem antes de gravar para evitar duplo agendamento no mesmo segundo
-                const seatToReserve = selectedSeat;
-                const roomToReserveId = selectedRoomId;
-                const originalBtnHTML = submitBtn.innerHTML;
-                if (GOOGLE_SHEETS_WEBHOOK_URL) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span>Verificando poltrona e quarto...</span>';
-                    await syncFromCloudIfConfigured();
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnHTML;
-
-                    if (occupiedSeats.includes(seatToReserve) || isRoomFull(roomToReserveId)) {
-                        return;
-                    }
-                }
-
-                // Verifica se o CPF já possui alguma poltrona reservada
-                const existingReservation = Object.values(seatRecords).find(record => {
-                    const recordCpf = String(record.doc || '').replace(/\D/g, '');
-                    return recordCpf && recordCpf === normalizedCpf;
-                });
-
-                if (existingReservation) {
-                    showToast(
-                        `Este CPF já possui reserva na Poltrona ${existingReservation.seat} (${existingReservation.name}). Cada CPF pode reservar apenas 1 lugar.`,
-                        'error'
-                    );
-                    docInput.focus();
-                    return;
-                }
-
-                if (occupiedSeats.includes(selectedSeat)) {
-                    showToast('Ops! Essa poltrona acabou de ser ocupada. Escolha outra.', 'error');
-                    selectedSeat = null;
-                    renderBusMap();
-                    updateSelectedBadge();
-                    return;
-                }
-
-                if (isRoomFull(selectedRoomId)) {
-                    showToast('Ops! Esse quarto acabou de lotar. Escolha outro quarto.', 'error');
-                    selectedRoomId = null;
-                    renderRoomsGrid();
-                    updateSelectedRoomBadge();
-                    return;
-                }
-
-                // Gera dados únicos do bilhete
-                const now = new Date();
-                const formattedDate = now.toLocaleDateString('pt-BR');
-                const formattedTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                const randomCode = 'BUS-' + Math.floor(1000 + Math.random() * 9000);
-                const selectedRoom = getRoomById(selectedRoomId);
-
-                const ticketData = {
-                    code: randomCode,
-                    seat: formatSeatNum(selectedSeat),
-                    seatRaw: selectedSeat,
-                    position: getSeatPosition(selectedSeat),
-                    roomId: selectedRoom.id,
-                    roomLabel: selectedRoom.label,
-                    roomType: `${selectedRoom.type} (${selectedRoom.capacity} lugares)`,
-                    name,
-                    doc,
-                    phone,
-                    boarding,
-                    datetime: `${formattedDate} às ${formattedTime}`,
-                    boarded: false,
-                    boardedAt: ''
-                };
-
-                // Ocupa a poltrona e salva registro detalhado
-                occupiedSeats.push(selectedSeat);
-                seatRecords[selectedSeat] = ticketData;
-                saveOccupiedSeats();
-
-                // Envia para nuvem (se Google Sheets estiver configurado)
-                const cloudRes = await pushRecordToCloud('RESERVE', ticketData);
-                if (cloudRes && cloudRes.status === 'SEAT_CONFLICT') {
-                    showToast('Esta poltrona acabou de ser reservada por outro passageiro. Escolha outra.', 'error');
-                    await syncFromCloudIfConfigured();
-                    selectedSeat = null;
-                    updateSelectedBadge();
-                    renderBusMap();
-                    return;
-                }
-                if (cloudRes && cloudRes.status === 'ROOM_FULL') {
-                    showToast('Este quarto acabou de preencher a última vaga. Escolha outro quarto.', 'error');
-                    await syncFromCloudIfConfigured();
-                    selectedRoomId = null;
-                    updateSelectedRoomBadge();
-                    renderBusMap();
-                    return;
-                }
-
-                // Limpa seleção atual e atualiza mapa
-                selectedSeat = null;
-                selectedRoomId = null;
-                updateSelectedBadge();
-                updateSelectedRoomBadge();
-                renderBusMap();
-
-                // Exibe comprovante
-                currentTicketData = ticketData;
-                renderVoucher(ticketData);
-                showToast(`Poltrona ${ticketData.seat} e ${ticketData.roomLabel} reservados!`, 'success');
-            });
-        }
-
-        /**
-         * Preenche o cartão visual do comprovante e gera o QR Code
-         */
-        function renderVoucher(data) {
-            document.getElementById('voucher-code').textContent = `#${data.code}`;
-            document.getElementById('voucher-seat-number').textContent = data.seat;
-            document.getElementById('voucher-seat-position').textContent = data.position;
-            document.getElementById('voucher-room-name').textContent = data.roomLabel || 'Sem quarto';
-            document.getElementById('voucher-room-type').textContent = data.roomType || '';
-            document.getElementById('voucher-name').textContent = data.name;
-            document.getElementById('voucher-doc').textContent = data.doc;
-            document.getElementById('voucher-phone').textContent = data.phone;
-            document.getElementById('voucher-boarding').textContent = data.boarding;
-            document.getElementById('voucher-datetime').textContent = data.datetime;
-
-            const qrContainer = document.getElementById('qrcode-container');
-            qrContainer.innerHTML = '';
-
-            // Monta link inteligente de check-in para validação direta pela câmera do celular
-            const qrPayload = buildValidationURL(data);
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=4&data=${encodeURIComponent(qrPayload)}`;
-
-            const img = document.createElement('img');
-            img.src = qrUrl;
-            img.alt = `QR Code bilhete ${data.code}`;
-            img.className = 'w-24 h-24 sm:w-28 sm:h-28 object-contain rounded';
-            img.crossOrigin = 'anonymous';
-            img.onerror = function () {
-                this.onerror = null;
-                this.src = `https://placehold.co/112x112/0f172a/ffffff?text=${data.code}`;
-            };
-            qrContainer.appendChild(img);
-
-            // Alterna para a tela exclusiva de Checkout com o Cartão de Embarque
-            document.getElementById('selection-screen-view').classList.add('hidden');
-            const voucherSection = document.getElementById('voucher-section');
-            voucherSection.classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        /**
-         * Prepara o formulário para uma nova reserva e retorna à tela de seleção
-         */
-        function startNewReservation() {
-            document.getElementById('reservation-form').reset();
-            document.getElementById('voucher-section').classList.add('hidden');
-            document.getElementById('selection-screen-view').classList.remove('hidden');
-            selectedSeat = null;
-            selectedRoomId = null;
-            updateSelectedBadge();
-            updateSelectedRoomBadge();
-            renderBusMap();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        /**
-         * Máscaras automáticas para CPF e Telefone
-         */
-        function setupInputMasks() {
-            const docInput = document.getElementById('passenger-doc');
-            const phoneInput = document.getElementById('passenger-phone');
-
-            if (docInput) {
-                docInput.addEventListener('input', (e) => {
-                    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
-                    if (v.length > 9) {
-                        v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
-                    } else if (v.length > 6) {
-                        v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
-                    } else if (v.length > 3) {
-                        v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
-                    }
-                    e.target.value = v;
-                });
-            }
-
-            if (phoneInput) {
-                phoneInput.addEventListener('input', (e) => {
-                    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
-                    if (v.length > 10) {
-                        v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                    } else if (v.length > 6) {
-                        v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-                    } else if (v.length > 2) {
-                        v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
-                    }
-                    e.target.value = v;
-                });
-            }
-        }
-
-        /**
-         * Monta o link de check-in que será codificado no QR Code
-         */
-        function buildValidationURL(data) {
-            const currentUrl = window.location.href.split('?')[0];
-            if (currentUrl.startsWith('http://') || currentUrl.startsWith('https://')) {
-                const params = new URLSearchParams({
-                    validar: data.code,
-                    p: data.seat,
-                    n: data.name,
-                    q: data.roomLabel || ''
-                });
-                return `${currentUrl}?${params.toString()}`;
-            }
-            return `BILHETE:${data.code}|POLTRONA:${data.seat}|QUARTO:${data.roomLabel || ''}|PASSAGEIRO:${data.name}`;
-        }
-
-        /**
-         * Verifica se a página foi aberta através da leitura de um QR Code (?validar=...)
-         */
-        function checkQRCodeValidationInURL() {
-            const params = new URLSearchParams(window.location.search);
-            const ticketCode = params.get('validar');
-            if (!ticketCode) return;
-
-            const seatParam = params.get('p') || '00';
-            const nameParam = params.get('n') || 'Passageiro';
-            const seatNum = parseInt(seatParam, 10);
-            const record = seatRecords[seatNum];
-
-            const modal = document.getElementById('qr-validation-modal');
-            const valHeader = document.getElementById('val-header');
-            const valBadge = document.getElementById('val-badge');
-            const valTitle = document.getElementById('val-title');
-            const valMessage = document.getElementById('val-message');
-            const authForm = document.getElementById('val-auth-form');
-
-            document.getElementById('val-seat').textContent = formatSeatNum(seatNum || seatParam);
-            document.getElementById('val-code').textContent = `#${ticketCode}`;
-            document.getElementById('val-name').textContent = record ? record.name : nameParam;
-
-            modal.classList.remove('hidden');
-
-            if (record && record.boarded) {
-                valHeader.className = 'bg-amber-600 text-white px-6 py-5 text-center';
-                valBadge.textContent = 'Bilhete Já Validado';
-                valTitle.textContent = 'Embarque Já Confirmado';
-                valMessage.textContent = `Este QR Code já teve embarque confirmado às ${record.boardedAt}.`;
-                authForm.classList.add('hidden');
-                return;
-            }
-
-            const isCoordAuthenticated = sessionStorage.getItem('coord_auth_ok') === '1';
-            if (isCoordAuthenticated) {
-                confirmCheckinRecord(seatNum, ticketCode, nameParam);
-            } else {
-                authForm.classList.remove('hidden');
-                authForm.onsubmit = (e) => {
-                    e.preventDefault();
-                    const passInput = document.getElementById('val-password-input');
-                    const errEl = document.getElementById('val-password-error');
-                    if (passInput.value === ADMIN_PASSWORD) {
-                        sessionStorage.setItem('coord_auth_ok', '1');
-                        errEl.classList.add('hidden');
-                        authForm.classList.add('hidden');
-                        confirmCheckinRecord(seatNum, ticketCode, nameParam);
-                    } else {
-                        errEl.classList.remove('hidden');
-                        passInput.focus();
-                    }
-                };
-            }
-        }
-
-        async function confirmCheckinRecord(seatNum, ticketCode, fallbackName) {
-            const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            if (seatRecords[seatNum]) {
-                seatRecords[seatNum].boarded = true;
-                seatRecords[seatNum].boardedAt = nowTime;
-                saveOccupiedSeats();
-                await pushRecordToCloud('CHECKIN', seatRecords[seatNum]);
-            }
-
-            const valHeader = document.getElementById('val-header');
-            const valBadge = document.getElementById('val-badge');
-            const valTitle = document.getElementById('val-title');
-            const valMessage = document.getElementById('val-message');
-
-            valHeader.className = 'bg-emerald-600 text-white px-6 py-5 text-center';
-            valBadge.textContent = 'Check-in Realizado';
-            valTitle.textContent = 'Embarque Liberado!';
-            valMessage.textContent = `Presença confirmada às ${nowTime} para ${seatRecords[seatNum] ? seatRecords[seatNum].name : fallbackName}.`;
-            showToast(`Embarque da poltrona ${formatSeatNum(seatNum)} confirmado!`, 'success');
-        }
-
-        function closeValidationModal() {
-            document.getElementById('qr-validation-modal').classList.add('hidden');
-            const cleanUrl = window.location.href.split('?')[0];
-            window.history.replaceState({}, document.title, cleanUrl);
-        }
-
-        /**
-         * Acesso secreto ao Painel do Coordenador (3 cliques no ícone do ônibus ou ?admin=1)
-         */
-        function setupAdminTrigger() {
-            const trigger = document.getElementById('admin-secret-trigger');
-            let clickCount = 0;
-            let clickTimer = null;
-
-            if (trigger) {
-                trigger.addEventListener('click', () => {
-                    clickCount++;
-                    clearTimeout(clickTimer);
-                    clickTimer = setTimeout(() => { clickCount = 0; }, 1200);
-                    if (clickCount >= 3) {
-                        clickCount = 0;
-                        requestCoordinatorAccess();
-                    }
-                });
-            }
-
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('admin') === '1') {
-                requestCoordinatorAccess();
-            }
-
-            const passForm = document.getElementById('admin-password-form');
-            if (passForm) {
-                passForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const input = document.getElementById('admin-password-input');
-                    const errorEl = document.getElementById('admin-password-error');
-                    if (input.value === ADMIN_PASSWORD) {
-                        sessionStorage.setItem('coord_auth_ok', '1');
-                        errorEl.classList.add('hidden');
-                        input.value = '';
-                        closePasswordModal();
-                        openCoordinatorPanel();
-                    } else {
-                        errorEl.classList.remove('hidden');
-                        input.focus();
-                    }
-                });
-            }
-        }
-
-        function requestCoordinatorAccess() {
-            if (sessionStorage.getItem('coord_auth_ok') === '1') {
-                openCoordinatorPanel();
-                return;
-            }
-            const modal = document.getElementById('admin-password-modal');
-            const input = document.getElementById('admin-password-input');
-            document.getElementById('admin-password-error').classList.add('hidden');
-            input.value = '';
-            modal.classList.remove('hidden');
-            setTimeout(() => input.focus(), 80);
-        }
-
-        function closePasswordModal() {
-            document.getElementById('admin-password-modal').classList.add('hidden');
-        }
-
-        function openCoordinatorPanel() {
-            renderCoordinatorList();
-            document.getElementById('coordinator-modal').classList.remove('hidden');
-        }
-
-        function closeCoordinatorPanel() {
-            document.getElementById('coordinator-modal').classList.add('hidden');
-        }
-
-        function renderCoordinatorList() {
-            const listEl = document.getElementById('coordinator-list');
-            const records = Object.values(seatRecords).sort((a, b) => a.seatRaw - b.seatRaw);
-            const boardedCount = records.filter(r => r.boarded).length;
-
-            document.getElementById('coord-total-reserved').textContent = records.length;
-            document.getElementById('coord-total-boarded').textContent = boardedCount;
-            document.getElementById('coord-total-free').textContent = TOTAL_SEATS - records.length;
-
-            if (records.length === 0) {
-                listEl.innerHTML = '<p class="text-center text-xs text-slate-400 py-8">Nenhuma reserva realizada até o momento.</p>';
-                return;
-            }
-
-            listEl.innerHTML = '';
-            records.forEach(r => {
-                const item = document.createElement('div');
-                item.className = 'p-3 rounded-2xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2';
-                item.innerHTML = `
-                    <div class="flex items-start gap-3">
-                        <span class="px-2.5 py-1.5 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs shrink-0">${r.seat}</span>
-                        <div>
-                            <p class="text-xs sm:text-sm font-bold text-slate-900">${r.name}</p>
-                            <p class="text-[11px] text-slate-500 font-mono">CPF: ${r.doc} • ${r.roomLabel || 'Sem quarto'} • #${r.code}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 self-end sm:self-center">
-                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${r.boarded ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
-                            ${r.boarded ? `Embarcado (${r.boardedAt})` : 'Aguardando'}
-                        </span>
-                        ${!r.boarded ? `
-                            <button type="button" onclick="manualCheckinSeat(${r.seatRaw})" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[11px] border border-emerald-200 cursor-pointer">
-                                Check-in Manual
-                            </button>
-                        ` : ''}
-                        <button type="button" onclick="releaseSingleSeat(${r.seatRaw})" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[11px] border border-red-200 cursor-pointer">
-                            Liberar
-                        </button>
-                    </div>
-                `;
-                listEl.appendChild(item);
-            });
-        }
-
-        /**
-         * Realiza check-in manual pelo painel do coordenador caso o passageiro não apresente o QR Code
-         */
-        async function manualCheckinSeat(seatNum) {
-            const record = seatRecords[seatNum];
-            if (!record) return;
-
-            const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            isSyncing = true;
-            try {
-                record.boarded = true;
-                record.boardedAt = nowTime;
-                saveOccupiedSeats();
-                renderCoordinatorList();
-                await pushRecordToCloud('CHECKIN', record);
-                showToast(`Check-in manual confirmado para a poltrona ${formatSeatNum(seatNum)} às ${nowTime}.`, 'success');
-            } finally {
-                isSyncing = false;
-            }
-        }
-
-        async function releaseSingleSeat(seatNum) {
-            const record = seatRecords[seatNum];
-            isSyncing = true;
-            try {
-                occupiedSeats = occupiedSeats.filter(s => s !== seatNum);
-                delete seatRecords[seatNum];
-                saveOccupiedSeats();
-                renderBusMap();
-                renderCoordinatorList();
-                if (record) {
-                    await pushRecordToCloud('RELEASE', record);
-                }
-                showToast(`Poltrona ${formatSeatNum(seatNum)} e vaga do quarto liberadas.`, 'info');
-            } finally {
-                isSyncing = false;
-            }
-        }
-
-        async function resetDemoData() {
-            isSyncing = true;
-            try {
-                occupiedSeats = [];
-                seatRecords = {};
-                selectedSeat = null;
-                selectedRoomId = null;
-                saveOccupiedSeats();
-                updateSelectedBadge();
-                updateSelectedRoomBadge();
-                renderBusMap();
-                renderCoordinatorList();
-                await pushRecordToCloud('CLEAR_ALL', {});
-                showToast('Todos os assentos e quartos foram zerados.', 'info');
-            } finally {
-                isSyncing = false;
-            }
-        }
-
-        function exportManifestCSV() {
-            const records = Object.values(seatRecords).sort((a, b) => a.seatRaw - b.seatRaw);
-            const headers = ['Poltrona', 'Posicao', 'Quarto', 'TipoQuarto', 'Codigo', 'Nome', 'CPF', 'Telefone', 'Embarcado', 'HoraCheckin'];
-            const lines = [headers.join(';')];
-
-            records.forEach(r => {
-                lines.push([
-                    r.seat,
-                    r.position,
-                    r.roomLabel || '',
-                    r.roomType || '',
-                    r.code,
-                    `"${r.name}"`,
-                    r.doc,
-                    r.phone,
-                    r.boarded ? 'SIM' : 'NAO',
-                    r.boardedAt || ''
-                ].join(';'));
-            });
-
-            const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `lista-embarque-quartos-${new Date().toISOString().slice(0, 10)}.csv`;
-            link.click();
-            URL.revokeObjectURL(url);
-        }
-
-        /**
-         * Gera e baixa o Cartão de Embarque em alta resolução (PNG)
-         */
-        function downloadVoucherPNG() {
-            if (!currentTicketData) return;
-
-            const canvas = document.getElementById('export-canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 720;
-            canvas.height = 960;
-
-            // Fundo branco
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Cabeçalho escuro
-            ctx.fillStyle = '#0f172a';
-            ctx.fillRect(0, 0, canvas.width, 150);
-
-            ctx.fillStyle = '#34d399';
-            ctx.font = 'bold 18px Inter, sans-serif';
-            ctx.fillText('COMPROVANTE DE VIAGEM', 48, 56);
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 34px Inter, sans-serif';
-            ctx.fillText('Cartão de Embarque', 48, 104);
-
-            ctx.fillStyle = '#cbd5e1';
-            ctx.font = 'bold 22px monospace';
-            ctx.textAlign = 'right';
-            ctx.fillText(`#${currentTicketData.code}`, canvas.width - 48, 92);
-            ctx.textAlign = 'left';
-
-            // Faixa de destaque Poltrona & Quarto
-            ctx.fillStyle = '#f8fafc';
-            ctx.fillRect(0, 150, canvas.width, 165);
-
-            ctx.fillStyle = '#64748b';
-            ctx.font = 'bold 16px Inter, sans-serif';
-            ctx.fillText('POLTRONA RESERVADA', 48, 195);
-
-            ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 68px monospace';
-            ctx.fillText(`${currentTicketData.seat} (${currentTicketData.position})`, 48, 268);
-
-            ctx.fillStyle = '#64748b';
-            ctx.font = 'bold 16px Inter, sans-serif';
-            ctx.textAlign = 'right';
-            ctx.fillText('QUARTO / HOSPEDAGEM', canvas.width - 48, 195);
-
-            ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 30px monospace';
-            ctx.fillText(currentTicketData.roomLabel || 'Sem quarto', canvas.width - 48, 240);
-
-            ctx.fillStyle = '#4338ca';
-            ctx.font = 'bold 18px Inter, sans-serif';
-            ctx.fillText(currentTicketData.roomType || '', canvas.width - 48, 272);
-            ctx.textAlign = 'left';
-
-            // Dados do passageiro
-            const fields = [
-                { label: 'PASSAGEIRO(A)', value: currentTicketData.name, y: 380 },
-                { label: 'DOCUMENTO (CPF)', value: currentTicketData.doc, y: 470 },
-                { label: 'TELEFONE', value: currentTicketData.phone, y: 560 },
-                { label: 'LOCAL DE EMBARQUE', value: currentTicketData.boarding, y: 650 },
-                { label: 'DATA E HORA DA EMISSÃO', value: currentTicketData.datetime, y: 740 }
-            ];
-
-            fields.forEach(f => {
-                ctx.fillStyle = '#94a3b8';
-                ctx.font = 'bold 15px Inter, sans-serif';
-                ctx.fillText(f.label, 48, f.y);
-
-                ctx.fillStyle = '#0f172a';
-                ctx.font = 'bold 24px Inter, sans-serif';
-                ctx.fillText(String(f.value).slice(0, 44), 48, f.y + 34);
-            });
-
-            // Rodapé
-            ctx.strokeStyle = '#cbd5e1';
-            ctx.setLineDash([10, 8]);
-            ctx.beginPath();
-            ctx.moveTo(48, 815);
-            ctx.lineTo(canvas.width - 48, 815);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            ctx.fillStyle = '#475569';
-            ctx.font = '18px Inter, sans-serif';
-            ctx.fillText('Apresente este cartão ao coordenador no embarque.', 48, 875);
-
-            const qrImg = document.querySelector('#qrcode-container img');
-            const triggerDownload = () => {
-                const link = document.createElement('a');
-                link.download = `cartao-embarque-${currentTicketData.seat}-${currentTicketData.code}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                showToast('Cartão de embarque salvo em PNG!', 'success');
-            };
-
-            if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) {
-                try {
-                    ctx.drawImage(qrImg, canvas.width - 168, 830, 115, 115);
-                } catch (e) {
-                    // Ignora tainted canvas caso o servidor externo bloqueie CORS
-                }
-            }
-            triggerDownload();
-        }
-
-        /**
-         * Exibe notificações toast na tela
-         */
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-
-            const toast = document.createElement('div');
-            const bgColors = {
-                success: 'bg-emerald-900 text-white border-emerald-700',
-                error: 'bg-red-900 text-white border-red-700',
-                info: 'bg-slate-900 text-white border-slate-700'
-            };
-
-            toast.className = `${bgColors[type] || bgColors.info} pointer-events-auto border px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-medium flex items-center justify-between gap-3 transition-all`;
-            toast.innerHTML = `<span>${message}</span>`;
-
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 250);
-            }, 4200);
-        }
-    </script>
+          }
+        });
+      } catch (e) {
+        brickInicializado = false;
+        loadingEl.style.display = "block";
+        loadingEl.innerHTML = `❌ Erro na requisição: ${e.message}`;
+      }
+    }
+
+    renderizarMapaPoltronas();
+    atualizarStatusViagem();
+    renderizarProgramacao();
+    atualizarTelaValores();
+  </script>
 </body>
 </html>
