@@ -310,7 +310,8 @@
 
     <!-- Conteúdo Principal -->
     <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- TELA DE SELEÇÃO (Mapa do Ônibus + Quartos + Formulário) -->
+        <div id="selection-screen-view" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
             <!-- COLUNA ESQUERDA: Mapa Interativo do Ônibus (1 Andar - 46 Lugares) -->
             <section class="lg:col-span-6 xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 no-print">
@@ -400,7 +401,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>
                             </svg>
-                            <span class="text-[11px] font-semibold">Água / Lanche</span>
+                            <span class="text-[11px] font-semibold">Água / Café</span>
                         </div>
                     </div>
                 </div>
@@ -485,126 +486,142 @@
                     </form>
                 </section>
 
-                <!-- ÁREA DO COMPROVANTE GERADO (Oculta até confirmar) -->
-                <section id="voucher-section" class="hidden animate-fade-in">
-                    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-4 flex items-center justify-between gap-3 no-print">
-                        <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                    <polyline points="20 6 9 17 4 12"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-bold text-emerald-950">Reserva confirmada com sucesso!</h3>
-                                <p class="text-xs text-emerald-800">Baixe a imagem abaixo para guardar ou apresentar no embarque.</p>
-                            </div>
-                        </div>
-                        <button type="button" onclick="startNewReservation()" class="text-xs font-semibold text-emerald-800 hover:text-emerald-950 underline shrink-0">
-                            Nova reserva
-                        </button>
-                    </div>
-
-                    <!-- Cartão Visual do Bilhete / Comprovante -->
-                    <div id="printable-voucher-area" class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden max-w-md mx-auto">
-                        <!-- Topo Azul Marinho do Bilhete -->
-                        <div class="bg-slate-900 text-white px-6 py-5 flex items-center justify-between">
-                            <div>
-                                <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Comprovante de Viagem</span>
-                                <h4 class="text-lg font-extrabold tracking-tight">Bilhete de Embarque</h4>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-[10px] text-slate-400 block">CÓDIGO</span>
-                                <span id="voucher-code" class="font-mono text-sm font-bold text-white bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">#BUS-0000</span>
-                            </div>
-                        </div>
-
-                        <!-- Destaque Principal da Poltrona e Quarto -->
-                        <div class="px-6 py-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
-                            <div>
-                                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Poltrona Reservada</span>
-                                <div class="flex items-baseline gap-2 mt-0.5">
-                                    <span id="voucher-seat-number" class="text-4xl font-black text-slate-900 font-mono">00</span>
-                                    <span id="voucher-seat-position" class="text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Janela</span>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Quarto / Hospedagem</span>
-                                <span id="voucher-room-name" class="text-lg font-black text-slate-900 font-mono block">Quarto 00</span>
-                                <span id="voucher-room-type" class="text-xs font-semibold text-indigo-700 block">Triplo (3 lugares)</span>
-                            </div>
-                        </div>
-
-                        <!-- Dados do Passageiro -->
-                        <div class="px-6 py-5 space-y-3.5 text-sm">
-                            <div>
-                                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Passageiro(a)</span>
-                                <p id="voucher-name" class="font-bold text-slate-900 text-base break-words">—</p>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Documento</span>
-                                    <p id="voucher-doc" class="font-medium text-slate-800 font-mono text-xs sm:text-sm">Não informado</p>
-                                </div>
-                                <div>
-                                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Telefone</span>
-                                    <p id="voucher-phone" class="font-medium text-slate-800 text-xs sm:text-sm">Não informado</p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Local de Embarque</span>
-                                <p id="voucher-boarding" class="font-semibold text-slate-800">—</p>
-                            </div>
-
-                            <div>
-                                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Data e Hora da Emissão</span>
-                                <p id="voucher-datetime" class="font-mono text-xs text-slate-600">—</p>
-                            </div>
-                        </div>
-
-                        <!-- Linha Picotada com Recortes Laterais -->
-                        <div class="relative flex items-center justify-center my-1">
-                            <div class="ticket-notch-left"></div>
-                            <div class="w-full border-t-2 border-dashed border-slate-200 mx-4"></div>
-                            <div class="ticket-notch-right"></div>
-                        </div>
-
-                        <!-- Rodapé com QR Code -->
-                        <div class="px-6 py-5 bg-white flex items-center justify-between gap-4">
-                            <div class="space-y-1">
-                                <span class="text-xs font-bold text-slate-800 block">Validação de Embarque</span>
-                                <p class="text-[11px] text-slate-500 leading-relaxed">
-                                    Apresente este comprovante digital ou impresso ao motorista ou coordenador antes de embarcar.
-                                </p>
-                            </div>
-                            <!-- Container do QR Code -->
-                            <div id="qrcode-container" class="p-2 bg-white border border-slate-200 rounded-xl shrink-0"></div>
-                        </div>
-                    </div>
-
-                    <!-- Botões de Download e Impressão -->
-                    <div class="max-w-md mx-auto mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 no-print">
-                        <button type="button" onclick="downloadVoucherPNG()"
-                            class="py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
-                            </svg>
-                            Baixar Imagem (PNG)
-                        </button>
-
-                        <button type="button" onclick="window.print()"
-                            class="py-3.5 px-4 rounded-xl bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-800 font-bold text-sm border border-slate-300 shadow-sm flex items-center justify-center gap-2 transition cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>
-                            </svg>
-                            Imprimir / Salvar PDF
-                        </button>
-                    </div>
-                </section>
-
             </div>
         </div>
+
+        <!-- TELA EXCLUSIVA DE CHECKOUT / CARTÃO DE EMBARQUE (Oculta até confirmar) -->
+        <section id="voucher-section" class="hidden max-w-lg mx-auto animate-fade-in">
+            <!-- Barra Superior do Checkout -->
+            <div class="flex items-center justify-between gap-3 mb-4 no-print">
+                <button type="button" onclick="startNewReservation()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm transition cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="m15 18-6-6 6-6"/>
+                    </svg>
+                    Voltar / Nova Reserva
+                </button>
+                <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Reserva Concluída
+                </span>
+            </div>
+
+            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-5 flex items-center gap-3 no-print">
+                <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-emerald-950">Checkout finalizado com sucesso!</h3>
+                    <p class="text-xs text-emerald-800">Seu cartão de embarque está pronto. Salve a imagem PNG ou imprima para apresentar no embarque.</p>
+                </div>
+            </div>
+
+            <!-- Cartão Visual do Bilhete / Comprovante -->
+            <div id="printable-voucher-area" class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden max-w-md mx-auto">
+                <!-- Topo Azul Marinho do Bilhete -->
+                <div class="bg-slate-900 text-white px-6 py-5 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Comprovante de Viagem</span>
+                        <h4 class="text-lg font-extrabold tracking-tight">Cartão de Embarque</h4>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] text-slate-400 block">CÓDIGO</span>
+                        <span id="voucher-code" class="font-mono text-sm font-bold text-white bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">#BUS-0000</span>
+                    </div>
+                </div>
+
+                <!-- Destaque Principal da Poltrona e Quarto -->
+                <div class="px-6 py-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Poltrona Reservada</span>
+                        <div class="flex items-baseline gap-2 mt-0.5">
+                            <span id="voucher-seat-number" class="text-4xl font-black text-slate-900 font-mono">00</span>
+                            <span id="voucher-seat-position" class="text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Janela</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Quarto / Hospedagem</span>
+                        <span id="voucher-room-name" class="text-lg font-black text-slate-900 font-mono block">Quarto 00</span>
+                        <span id="voucher-room-type" class="text-xs font-semibold text-indigo-700 block">Triplo (3 lugares)</span>
+                    </div>
+                </div>
+
+                <!-- Dados do Passageiro -->
+                <div class="px-6 py-5 space-y-3.5 text-sm">
+                    <div>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Passageiro(a)</span>
+                        <p id="voucher-name" class="font-bold text-slate-900 text-base break-words">—</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Documento</span>
+                            <p id="voucher-doc" class="font-medium text-slate-800 font-mono text-xs sm:text-sm">Não informado</p>
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Telefone</span>
+                            <p id="voucher-phone" class="font-medium text-slate-800 text-xs sm:text-sm">Não informado</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Local de Embarque</span>
+                        <p id="voucher-boarding" class="font-semibold text-slate-800">—</p>
+                    </div>
+
+                    <div>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Data e Hora da Emissão</span>
+                        <p id="voucher-datetime" class="font-mono text-xs text-slate-600">—</p>
+                    </div>
+                </div>
+
+                <!-- Linha Picotada com Recortes Laterais -->
+                <div class="relative flex items-center justify-center my-1">
+                    <div class="ticket-notch-left"></div>
+                    <div class="w-full border-t-2 border-dashed border-slate-200 mx-4"></div>
+                    <div class="ticket-notch-right"></div>
+                </div>
+
+                <!-- Rodapé com QR Code -->
+                <div class="px-6 py-5 bg-white flex items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-slate-800 block">Validação de Embarque</span>
+                        <p class="text-[11px] text-slate-500 leading-relaxed">
+                            Apresente este cartão de embarque digital ou impresso ao coordenador antes de entrar no ônibus.
+                        </p>
+                    </div>
+                    <!-- Container do QR Code -->
+                    <div id="qrcode-container" class="p-2 bg-white border border-slate-200 rounded-xl shrink-0"></div>
+                </div>
+            </div>
+
+            <!-- Botões de Download, Impressão e Nova Reserva -->
+            <div class="max-w-md mx-auto mt-5 space-y-3 no-print">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button type="button" onclick="downloadVoucherPNG()"
+                        class="py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
+                        </svg>
+                        Baixar Cartão (PNG)
+                    </button>
+
+                    <button type="button" onclick="window.print()"
+                        class="py-3.5 px-4 rounded-xl bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-800 font-bold text-sm border border-slate-300 shadow-sm flex items-center justify-center gap-2 transition cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>
+                        </svg>
+                        Imprimir / Salvar PDF
+                    </button>
+                </div>
+
+                <button type="button" onclick="startNewReservation()"
+                    class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer">
+                    Fazer Outra Reserva
+                </button>
+            </div>
+        </section>
     </main>
 
     <!-- Canvas oculto utilizado para renderizar o comprovante em alta resolução (PNG) -->
@@ -645,14 +662,14 @@
          * SENHA DO PAINEL DO COORDENADOR
          * Altere o valor abaixo para definir a senha desejada (padrão: '1234')
          */
-        const ADMIN_PASSWORD = '2307';
+        const ADMIN_PASSWORD = '1234';
 
         /**
          * INTEGRAÇÃO OPCIONAL COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
          * Cole abaixo a URL do seu Web App do Google Apps Script para sincronizar
          * reservas de assentos e quartos em tempo real entre todos os aparelhos.
          */
-        const GOOGLE_SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwWE_wGxR7UGrnPHO7sGJa-huIU8GURD7-4Gd7GWYKUAWI69kh9JUcR0k4aC5z_paKv/exec';
+        const GOOGLE_SHEETS_WEBHOOK_URL = '';
 
         // Estado da aplicação
         let occupiedSeats = [];
@@ -1281,17 +1298,20 @@
             };
             qrContainer.appendChild(img);
 
+            // Alterna para a tela exclusiva de Checkout com o Cartão de Embarque
+            document.getElementById('selection-screen-view').classList.add('hidden');
             const voucherSection = document.getElementById('voucher-section');
             voucherSection.classList.remove('hidden');
-            voucherSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         /**
-         * Prepara o formulário para uma nova reserva
+         * Prepara o formulário para uma nova reserva e retorna à tela de seleção
          */
         function startNewReservation() {
             document.getElementById('reservation-form').reset();
             document.getElementById('voucher-section').classList.add('hidden');
+            document.getElementById('selection-screen-view').classList.remove('hidden');
             selectedSeat = null;
             selectedRoomId = null;
             updateSelectedBadge();
@@ -1301,251 +1321,198 @@
         }
 
         /**
-         * Limpa todas as reservas e deixa todas as 46 poltronas e 15 quartos livres
-         */
-        function resetDemoData() {
-            occupiedSeats = [];
-            seatRecords = {};
-            selectedSeat = null;
-            selectedRoomId = null;
-            saveOccupiedSeats();
-            pushRecordToCloud('CLEAR_ALL', {});
-            updateSelectedBadge();
-            updateSelectedRoomBadge();
-            renderBusMap();
-            renderCoordinatorList();
-            startNewReservation();
-            showToast('Mapa limpo! Todas as 46 poltronas e 15 quartos estão livres.', 'info');
-        }
-
-        /**
-         * Máscaras leves para CPF e telefone
+         * Máscaras automáticas para CPF e Telefone
          */
         function setupInputMasks() {
             const docInput = document.getElementById('passenger-doc');
             const phoneInput = document.getElementById('passenger-phone');
 
-            docInput.addEventListener('input', (e) => {
-                let digits = e.target.value.replace(/\D/g, '');
-                if (digits.length <= 11) {
-                    digits = digits.replace(/(\d{3})(\d)/, '$1.$2');
-                    digits = digits.replace(/(\d{3})(\d)/, '$1.$2');
-                    digits = digits.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-                    e.target.value = digits;
-                }
-            });
+            if (docInput) {
+                docInput.addEventListener('input', (e) => {
+                    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+                    if (v.length > 9) {
+                        v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+                    } else if (v.length > 6) {
+                        v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+                    } else if (v.length > 3) {
+                        v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+                    }
+                    e.target.value = v;
+                });
+            }
 
-            phoneInput.addEventListener('input', (e) => {
-                let digits = e.target.value.replace(/\D/g, '').slice(0, 11);
-                if (digits.length > 6) {
-                    digits = digits.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
-                } else if (digits.length > 2) {
-                    digits = digits.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-                } else if (digits.length > 0) {
-                    digits = digits.replace(/^(\d*)/, '($1');
-                }
-                e.target.value = digits;
-            });
+            if (phoneInput) {
+                phoneInput.addEventListener('input', (e) => {
+                    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+                    if (v.length > 10) {
+                        v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                    } else if (v.length > 6) {
+                        v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+                    } else if (v.length > 2) {
+                        v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+                    }
+                    e.target.value = v;
+                });
+            }
         }
 
         /**
-         * Constrói a URL que será embutida no QR Code para leitura via câmera
+         * Monta o link de check-in que será codificado no QR Code
          */
         function buildValidationURL(data) {
-            const baseUrl = window.location.origin && window.location.origin !== 'null'
-                ? `${window.location.origin}${window.location.pathname}`
-                : 'https://embarque.local/';
-            const params = new URLSearchParams({
-                validar: data.code,
-                p: data.seat,
-                q: data.roomLabel || '',
-                n: data.name
-            });
-            return `${baseUrl}?${params.toString()}`;
+            const currentUrl = window.location.href.split('?')[0];
+            if (currentUrl.startsWith('http://') || currentUrl.startsWith('https://')) {
+                const params = new URLSearchParams({
+                    validar: data.code,
+                    p: data.seat,
+                    n: data.name,
+                    q: data.roomLabel || ''
+                });
+                return `${currentUrl}?${params.toString()}`;
+            }
+            return `BILHETE:${data.code}|POLTRONA:${data.seat}|QUARTO:${data.roomLabel || ''}|PASSAGEIRO:${data.name}`;
         }
 
         /**
-         * Verifica se a página foi aberta através da leitura do QR Code (?validar=...)
+         * Verifica se a página foi aberta através da leitura de um QR Code (?validar=...)
          */
         function checkQRCodeValidationInURL() {
             const params = new URLSearchParams(window.location.search);
-
-            if (params.get('admin') === '1') {
-                requestCoordinatorAccess();
-            }
-
             const ticketCode = params.get('validar');
             if (!ticketCode) return;
 
             const seatParam = params.get('p') || '00';
-            const roomParam = params.get('q') || '';
             const nameParam = params.get('n') || 'Passageiro';
             const seatNum = parseInt(seatParam, 10);
-
             const record = seatRecords[seatNum];
-            const modal = document.getElementById('qr-validation-modal');
-            const header = document.getElementById('val-header');
-            const badge = document.getElementById('val-badge');
-            const title = document.getElementById('val-title');
-            const msg = document.getElementById('val-message');
-            const authForm = document.getElementById('val-auth-form');
-            const actionsDiv = document.getElementById('val-actions');
 
-            document.getElementById('val-seat').textContent = formatSeatNum(seatNum);
+            const modal = document.getElementById('qr-validation-modal');
+            const valHeader = document.getElementById('val-header');
+            const valBadge = document.getElementById('val-badge');
+            const valTitle = document.getElementById('val-title');
+            const valMessage = document.getElementById('val-message');
+            const authForm = document.getElementById('val-auth-form');
+
+            document.getElementById('val-seat').textContent = formatSeatNum(seatNum || seatParam);
             document.getElementById('val-code').textContent = `#${ticketCode}`;
-            document.getElementById('val-name').textContent = record
-                ? `${record.name}${record.roomLabel ? ` • ${record.roomLabel}` : ''}`
-                : `${nameParam}${roomParam ? ` • ${roomParam}` : ''}`;
+            document.getElementById('val-name').textContent = record ? record.name : nameParam;
+
+            modal.classList.remove('hidden');
 
             if (record && record.boarded) {
-                header.className = 'bg-amber-500 text-slate-950 px-6 py-5 text-center';
-                badge.textContent = 'Atenção • Já Validado';
-                title.textContent = 'Bilhete Já Utilizado';
-                msg.textContent = `Este QR Code já realizou check-in anteriormente às ${record.boardedAt}. Confira o documento do passageiro.`;
+                valHeader.className = 'bg-amber-600 text-white px-6 py-5 text-center';
+                valBadge.textContent = 'Bilhete Já Validado';
+                valTitle.textContent = 'Embarque Já Confirmado';
+                valMessage.textContent = `Este QR Code já teve embarque confirmado às ${record.boardedAt}.`;
                 authForm.classList.add('hidden');
-                actionsDiv.classList.remove('hidden');
-            } else if (isCoordinatorAuthenticated()) {
-                completeQRCheckin(seatNum, ticketCode, nameParam);
+                return;
+            }
+
+            const isCoordAuthenticated = sessionStorage.getItem('coord_auth_ok') === '1';
+            if (isCoordAuthenticated) {
+                confirmCheckinRecord(seatNum, ticketCode, nameParam);
             } else {
-                header.className = 'bg-slate-900 text-white px-6 py-5 text-center';
-                badge.textContent = 'Acesso Restrito ao Coordenador';
-                title.textContent = 'Validar Embarque';
-                msg.textContent = 'Apenas o coordenador pode confirmar a entrada no ônibus. Digite a senha abaixo para registrar o embarque.';
                 authForm.classList.remove('hidden');
-                actionsDiv.classList.add('hidden');
-
-                const passInput = document.getElementById('val-password-input');
-                const passError = document.getElementById('val-password-error');
-                passInput.value = '';
-                passError.classList.add('hidden');
-
                 authForm.onsubmit = (e) => {
                     e.preventDefault();
+                    const passInput = document.getElementById('val-password-input');
+                    const errEl = document.getElementById('val-password-error');
                     if (passInput.value === ADMIN_PASSWORD) {
-                        sessionStorage.setItem('coordinator_authenticated', '1');
-                        completeQRCheckin(seatNum, ticketCode, nameParam);
+                        sessionStorage.setItem('coord_auth_ok', '1');
+                        errEl.classList.add('hidden');
+                        authForm.classList.add('hidden');
+                        confirmCheckinRecord(seatNum, ticketCode, nameParam);
                     } else {
-                        passError.classList.remove('hidden');
-                        passInput.value = '';
+                        errEl.classList.remove('hidden');
                         passInput.focus();
                     }
                 };
             }
-
-            modal.classList.remove('hidden');
-
-            if (window.history && window.history.replaceState) {
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
         }
 
-        function completeQRCheckin(seatNum, ticketCode, nameParam) {
-            const header = document.getElementById('val-header');
-            const badge = document.getElementById('val-badge');
-            const title = document.getElementById('val-title');
-            const msg = document.getElementById('val-message');
-            const authForm = document.getElementById('val-auth-form');
-            const actionsDiv = document.getElementById('val-actions');
-
+        async function confirmCheckinRecord(seatNum, ticketCode, fallbackName) {
             const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            const record = seatRecords[seatNum];
-
-            if (record) {
-                record.boarded = true;
-                record.boardedAt = nowTime;
-                seatRecords[seatNum] = record;
+            if (seatRecords[seatNum]) {
+                seatRecords[seatNum].boarded = true;
+                seatRecords[seatNum].boardedAt = nowTime;
                 saveOccupiedSeats();
-                pushRecordToCloud('CHECKIN', record);
-            } else if (seatNum >= 1 && seatNum <= TOTAL_SEATS) {
-                if (!occupiedSeats.includes(seatNum)) {
-                    occupiedSeats.push(seatNum);
-                }
-                seatRecords[seatNum] = {
-                    code: ticketCode,
-                    seat: formatSeatNum(seatNum),
-                    seatRaw: seatNum,
-                    position: getSeatPosition(seatNum),
-                    name: nameParam,
-                    doc: 'Via QR Code',
-                    phone: 'Não informado',
-                    boarding: DEFAULT_BOARDING_POINT,
-                    datetime: nowTime,
-                    boarded: true,
-                    boardedAt: nowTime
-                };
-                saveOccupiedSeats();
-                renderBusMap();
+                await pushRecordToCloud('CHECKIN', seatRecords[seatNum]);
             }
 
-            header.className = 'bg-emerald-600 text-white px-6 py-5 text-center';
-            badge.textContent = 'Check-in Confirmado';
-            title.textContent = 'Embarque Liberado!';
-            msg.textContent = `Presença registrada às ${nowTime}. Poltrona ${formatSeatNum(seatNum)} confirmada a bordo.`;
-            authForm.classList.add('hidden');
-            actionsDiv.classList.remove('hidden');
+            const valHeader = document.getElementById('val-header');
+            const valBadge = document.getElementById('val-badge');
+            const valTitle = document.getElementById('val-title');
+            const valMessage = document.getElementById('val-message');
+
+            valHeader.className = 'bg-emerald-600 text-white px-6 py-5 text-center';
+            valBadge.textContent = 'Check-in Realizado';
+            valTitle.textContent = 'Embarque Liberado!';
+            valMessage.textContent = `Presença confirmada às ${nowTime} para ${seatRecords[seatNum] ? seatRecords[seatNum].name : fallbackName}.`;
+            showToast(`Embarque da poltrona ${formatSeatNum(seatNum)} confirmado!`, 'success');
         }
 
         function closeValidationModal() {
             document.getElementById('qr-validation-modal').classList.add('hidden');
+            const cleanUrl = window.location.href.split('?')[0];
+            window.history.replaceState({}, document.title, cleanUrl);
         }
 
         /**
-         * Gatilho discreto (3 cliques rápidos no ícone do ônibus no topo) + Autenticação por Senha
+         * Acesso secreto ao Painel do Coordenador (3 cliques no ícone do ônibus ou ?admin=1)
          */
         function setupAdminTrigger() {
             const trigger = document.getElementById('admin-secret-trigger');
-            const passForm = document.getElementById('admin-password-form');
-            let clicks = 0;
-            let timer = null;
+            let clickCount = 0;
+            let clickTimer = null;
 
             if (trigger) {
                 trigger.addEventListener('click', () => {
-                    clicks++;
-                    clearTimeout(timer);
-                    timer = setTimeout(() => { clicks = 0; }, 800);
-                    if (clicks >= 3) {
-                        clicks = 0;
+                    clickCount++;
+                    clearTimeout(clickTimer);
+                    clickTimer = setTimeout(() => { clickCount = 0; }, 1200);
+                    if (clickCount >= 3) {
+                        clickCount = 0;
                         requestCoordinatorAccess();
                     }
                 });
             }
 
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('admin') === '1') {
+                requestCoordinatorAccess();
+            }
+
+            const passForm = document.getElementById('admin-password-form');
             if (passForm) {
                 passForm.addEventListener('submit', (e) => {
                     e.preventDefault();
                     const input = document.getElementById('admin-password-input');
                     const errorEl = document.getElementById('admin-password-error');
                     if (input.value === ADMIN_PASSWORD) {
-                        sessionStorage.setItem('coordinator_authenticated', '1');
+                        sessionStorage.setItem('coord_auth_ok', '1');
                         errorEl.classList.add('hidden');
                         input.value = '';
                         closePasswordModal();
                         openCoordinatorPanel();
                     } else {
                         errorEl.classList.remove('hidden');
-                        input.value = '';
                         input.focus();
                     }
                 });
             }
         }
 
-        function isCoordinatorAuthenticated() {
-            return sessionStorage.getItem('coordinator_authenticated') === '1';
-        }
-
         function requestCoordinatorAccess() {
-            if (isCoordinatorAuthenticated()) {
+            if (sessionStorage.getItem('coord_auth_ok') === '1') {
                 openCoordinatorPanel();
                 return;
             }
             const modal = document.getElementById('admin-password-modal');
             const input = document.getElementById('admin-password-input');
-            const errorEl = document.getElementById('admin-password-error');
-            errorEl.classList.add('hidden');
+            document.getElementById('admin-password-error').classList.add('hidden');
             input.value = '';
             modal.classList.remove('hidden');
-            setTimeout(() => input.focus(), 50);
+            setTimeout(() => input.focus(), 80);
         }
 
         function closePasswordModal() {
@@ -1566,321 +1533,228 @@
             const records = Object.values(seatRecords).sort((a, b) => a.seatRaw - b.seatRaw);
             const boardedCount = records.filter(r => r.boarded).length;
 
-            document.getElementById('coord-total-reserved').textContent = occupiedSeats.length;
+            document.getElementById('coord-total-reserved').textContent = records.length;
             document.getElementById('coord-total-boarded').textContent = boardedCount;
-            document.getElementById('coord-total-free').textContent = TOTAL_SEATS - occupiedSeats.length;
+            document.getElementById('coord-total-free').textContent = TOTAL_SEATS - records.length;
 
-            if (occupiedSeats.length === 0) {
-                listEl.innerHTML = `<p class="text-center text-sm text-slate-400 py-8">Nenhuma poltrona reservada ainda.</p>`;
+            if (records.length === 0) {
+                listEl.innerHTML = '<p class="text-center text-xs text-slate-400 py-8">Nenhuma reserva realizada até o momento.</p>';
                 return;
             }
 
             listEl.innerHTML = '';
-            const allSeats = [...occupiedSeats].sort((a, b) => a - b);
-
-            allSeats.forEach(seatNum => {
-                const rec = seatRecords[seatNum] || {
-                    seat: formatSeatNum(seatNum),
-                    seatRaw: seatNum,
-                    position: getSeatPosition(seatNum),
-                    roomLabel: 'Sem quarto',
-                    name: 'Reserva Anterior',
-                    code: '—',
-                    boarded: false
-                };
-
-                const row = document.createElement('div');
-                row.className = 'flex items-center justify-between gap-3 p-3 rounded-2xl border border-slate-200 bg-white';
-                row.innerHTML = `
-                    <div class="flex items-center gap-3 min-w-0">
-                        <span class="w-10 h-10 rounded-xl bg-slate-900 text-white font-mono font-bold text-sm flex items-center justify-center shrink-0">
-                            ${rec.seat}
-                        </span>
-                        <div class="min-w-0">
-                            <p class="text-sm font-bold text-slate-900 truncate">${rec.name}</p>
-                            <p class="text-[11px] text-slate-500 font-mono">#${rec.code} • ${rec.position} • <strong class="text-indigo-700">${rec.roomLabel || 'Sem quarto'}</strong></p>
+            records.forEach(r => {
+                const item = document.createElement('div');
+                item.className = 'p-3 rounded-2xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2';
+                item.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <span class="px-2.5 py-1.5 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs shrink-0">${r.seat}</span>
+                        <div>
+                            <p class="text-xs sm:text-sm font-bold text-slate-900">${r.name}</p>
+                            <p class="text-[11px] text-slate-500 font-mono">CPF: ${r.doc} • ${r.roomLabel || 'Sem quarto'} • #${r.code}</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button type="button" onclick="toggleManualCheckin(${seatNum})"
-                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${rec.boarded
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
-                            ${rec.boarded ? `Embarcado (${rec.boardedAt})` : 'Confirmar Embarque'}
-                        </button>
-                        <button type="button" onclick="releaseSingleSeat(${seatNum})" title="Liberar poltrona e quarto"
-                            class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 transition cursor-pointer">
+                    <div class="flex items-center gap-2 self-end sm:self-center">
+                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${r.boarded ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                            ${r.boarded ? `Embarcado (${r.boardedAt})` : 'Aguardando'}
+                        </span>
+                        <button type="button" onclick="releaseSingleSeat(${r.seatRaw})" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[11px] border border-red-200 cursor-pointer">
                             Liberar
                         </button>
                     </div>
                 `;
-                listEl.appendChild(row);
+                listEl.appendChild(item);
             });
         }
 
-        function toggleManualCheckin(seatNum) {
-            if (!seatRecords[seatNum]) {
-                seatRecords[seatNum] = {
-                    code: 'MANUAL',
-                    seat: formatSeatNum(seatNum),
-                    seatRaw: seatNum,
-                    position: getSeatPosition(seatNum),
-                    name: 'Passageiro Confirmado',
-                    boarded: false,
-                    boardedAt: ''
-                };
-            }
-            const rec = seatRecords[seatNum];
-            rec.boarded = !rec.boarded;
-            rec.boardedAt = rec.boarded
-                ? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-                : '';
-            saveOccupiedSeats();
-            if (rec.boarded) pushRecordToCloud('CHECKIN', rec);
-            renderCoordinatorList();
-        }
-
-        function releaseSingleSeat(seatNum) {
+        async function releaseSingleSeat(seatNum) {
+            const record = seatRecords[seatNum];
             occupiedSeats = occupiedSeats.filter(s => s !== seatNum);
             delete seatRecords[seatNum];
             saveOccupiedSeats();
-            pushRecordToCloud('RELEASE', { seatRaw: seatNum });
+            if (record) {
+                await pushRecordToCloud('RELEASE', record);
+            }
             renderBusMap();
             renderCoordinatorList();
             showToast(`Poltrona ${formatSeatNum(seatNum)} e vaga do quarto liberadas.`, 'info');
         }
 
+        async function resetDemoData() {
+            occupiedSeats = [];
+            seatRecords = {};
+            selectedSeat = null;
+            selectedRoomId = null;
+            saveOccupiedSeats();
+            await pushRecordToCloud('CLEAR_ALL', {});
+            updateSelectedBadge();
+            updateSelectedRoomBadge();
+            renderBusMap();
+            renderCoordinatorList();
+            showToast('Todos os assentos e quartos foram zerados.', 'info');
+        }
+
         function exportManifestCSV() {
-            const header = ['Poltrona', 'Posicao', 'Quarto', 'TipoQuarto', 'Codigo', 'Passageiro', 'CPF', 'Telefone', 'StatusEmbarque', 'HorarioCheckin'];
-            const rows = [...occupiedSeats].sort((a, b) => a - b).map(seatNum => {
-                const r = seatRecords[seatNum] || {};
-                return [
-                    formatSeatNum(seatNum),
-                    getSeatPosition(seatNum),
-                    `"${(r.roomLabel || 'Sem quarto').replace(/"/g, '""')}"`,
-                    `"${(r.roomType || '').replace(/"/g, '""')}"`,
-                    r.code || '',
-                    `"${(r.name || 'Ocupada').replace(/"/g, '""')}"`,
-                    r.doc || '',
-                    r.phone || '',
-                    r.boarded ? 'EMBARCADO' : 'PENDENTE',
+            const records = Object.values(seatRecords).sort((a, b) => a.seatRaw - b.seatRaw);
+            const headers = ['Poltrona', 'Posicao', 'Quarto', 'TipoQuarto', 'Codigo', 'Nome', 'CPF', 'Telefone', 'Embarcado', 'HoraCheckin'];
+            const lines = [headers.join(';')];
+
+            records.forEach(r => {
+                lines.push([
+                    r.seat,
+                    r.position,
+                    r.roomLabel || '',
+                    r.roomType || '',
+                    r.code,
+                    `"${r.name}"`,
+                    r.doc,
+                    r.phone,
+                    r.boarded ? 'SIM' : 'NAO',
                     r.boardedAt || ''
-                ].join(';');
+                ].join(';'));
             });
 
-            const csvContent = '\uFEFF' + [header.join(';'), ...rows].join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `Lista_Embarque_Quartos_${new Date().toISOString().slice(0, 10)}.csv`;
-            document.body.appendChild(link);
+            link.download = `lista-embarque-quartos-${new Date().toISOString().slice(0, 10)}.csv`;
             link.click();
-            document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
 
         /**
-         * Gera uma imagem PNG de alta resolução do comprovante e inicia o download
+         * Gera e baixa o Cartão de Embarque em alta resolução (PNG)
          */
-        async function downloadVoucherPNG() {
+        function downloadVoucherPNG() {
             if (!currentTicketData) return;
 
             const canvas = document.getElementById('export-canvas');
             const ctx = canvas.getContext('2d');
-
-            const width = 760;
-            const height = 1040;
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = 720;
+            canvas.height = 960;
 
             // Fundo branco
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, width, height);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Cabeçalho Azul Marinho
+            // Cabeçalho escuro
             ctx.fillStyle = '#0f172a';
-            ctx.fillRect(0, 0, width, 165);
+            ctx.fillRect(0, 0, canvas.width, 150);
 
             ctx.fillStyle = '#34d399';
-            ctx.font = 'bold 20px Inter, sans-serif';
-            ctx.fillText('COMPROVANTE DE RESERVA E HOSPEDAGEM', 48, 58);
+            ctx.font = 'bold 18px Inter, sans-serif';
+            ctx.fillText('COMPROVANTE DE VIAGEM', 48, 56);
 
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 38px Inter, sans-serif';
-            ctx.fillText('Bilhete de Embarque', 48, 112);
+            ctx.font = 'bold 34px Inter, sans-serif';
+            ctx.fillText('Cartão de Embarque', 48, 104);
 
-            // Código no canto direito do cabeçalho
-            ctx.fillStyle = '#94a3b8';
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 22px monospace';
+            ctx.textAlign = 'right';
+            ctx.fillText(`#${currentTicketData.code}`, canvas.width - 48, 92);
+            ctx.textAlign = 'left';
+
+            // Faixa de destaque Poltrona & Quarto
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 150, canvas.width, 165);
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'bold 16px Inter, sans-serif';
+            ctx.fillText('POLTRONA RESERVADA', 48, 195);
+
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 68px monospace';
+            ctx.fillText(`${currentTicketData.seat} (${currentTicketData.position})`, 48, 268);
+
+            ctx.fillStyle = '#64748b';
             ctx.font = 'bold 16px Inter, sans-serif';
             ctx.textAlign = 'right';
-            ctx.fillText('CÓDIGO', width - 48, 60);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 26px monospace';
-            ctx.fillText(`#${currentTicketData.code}`, width - 48, 102);
-            ctx.textAlign = 'left';
-
-            // Faixa de Destaque da Poltrona e Quarto
-            ctx.fillStyle = '#f8fafc';
-            ctx.fillRect(0, 165, width, 175);
-            ctx.strokeStyle = '#e2e8f0';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(0, 340);
-            ctx.lineTo(width, 340);
-            ctx.stroke();
-
-            ctx.fillStyle = '#64748b';
-            ctx.font = 'bold 18px Inter, sans-serif';
-            ctx.fillText('POLTRONA RESERVADA', 48, 212);
+            ctx.fillText('QUARTO / HOSPEDAGEM', canvas.width - 48, 195);
 
             ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 76px monospace';
-            ctx.fillText(currentTicketData.seat, 48, 295);
-
-            // Badge Posição
-            ctx.fillStyle = '#d1fae5';
-            roundRect(ctx, 165, 245, 145, 44, 22, true, false);
-            ctx.fillStyle = '#065f46';
-            ctx.font = 'bold 20px Inter, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(currentTicketData.position.toUpperCase(), 237, 274);
-
-            // Quarto à direita
-            ctx.textAlign = 'right';
-            ctx.fillStyle = '#64748b';
-            ctx.font = 'bold 18px Inter, sans-serif';
-            ctx.fillText('QUARTO / HOSPEDAGEM', width - 48, 212);
-
-            ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 34px monospace';
-            ctx.fillText(currentTicketData.roomLabel || 'Sem quarto', width - 48, 262);
+            ctx.font = 'bold 30px monospace';
+            ctx.fillText(currentTicketData.roomLabel || 'Sem quarto', canvas.width - 48, 240);
 
             ctx.fillStyle = '#4338ca';
-            ctx.font = 'bold 20px Inter, sans-serif';
-            ctx.fillText(currentTicketData.roomType || '', width - 48, 298);
+            ctx.font = 'bold 18px Inter, sans-serif';
+            ctx.fillText(currentTicketData.roomType || '', canvas.width - 48, 272);
             ctx.textAlign = 'left';
 
-            // Campos do Passageiro
-            let y = 400;
-            drawTicketField(ctx, 'PASSAGEIRO(A)', currentTicketData.name, 48, y, 30);
-            y += 105;
-            drawTicketField(ctx, 'DOCUMENTO', currentTicketData.doc, 48, y, 24);
-            drawTicketField(ctx, 'TELEFONE', currentTicketData.phone, 400, y, 24);
-            y += 105;
-            drawTicketField(ctx, 'LOCAL DE EMBARQUE', currentTicketData.boarding, 48, y, 24);
-            y += 105;
-            drawTicketField(ctx, 'EMISSÃO', currentTicketData.datetime, 48, y, 22);
+            // Dados do passageiro
+            const fields = [
+                { label: 'PASSAGEIRO(A)', value: currentTicketData.name, y: 380 },
+                { label: 'DOCUMENTO (CPF)', value: currentTicketData.doc, y: 470 },
+                { label: 'TELEFONE', value: currentTicketData.phone, y: 560 },
+                { label: 'LOCAL DE EMBARQUE', value: currentTicketData.boarding, y: 650 },
+                { label: 'DATA E HORA DA EMISSÃO', value: currentTicketData.datetime, y: 740 }
+            ];
 
-            // Linha Tracejada
-            y += 75;
+            fields.forEach(f => {
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = 'bold 15px Inter, sans-serif';
+                ctx.fillText(f.label, 48, f.y);
+
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 24px Inter, sans-serif';
+                ctx.fillText(String(f.value).slice(0, 44), 48, f.y + 34);
+            });
+
+            // Rodapé
             ctx.strokeStyle = '#cbd5e1';
-            ctx.lineWidth = 3;
-            ctx.setLineDash([12, 10]);
+            ctx.setLineDash([10, 8]);
             ctx.beginPath();
-            ctx.moveTo(48, y);
-            ctx.lineTo(width - 48, y);
+            ctx.moveTo(48, 815);
+            ctx.lineTo(canvas.width - 48, 815);
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // Texto de instrução e QR Code
-            y += 55;
-            ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 22px Inter, sans-serif';
-            ctx.fillText('Validação de Embarque', 48, y + 20);
+            ctx.fillStyle = '#475569';
+            ctx.font = '18px Inter, sans-serif';
+            ctx.fillText('Apresente este cartão ao coordenador no embarque.', 48, 875);
 
-            ctx.fillStyle = '#64748b';
-            ctx.font = '19px Inter, sans-serif';
-            ctx.fillText('Apresente este bilhete digital ou', 48, y + 58);
-            ctx.fillText('impresso no momento do embarque.', 48, y + 86);
-
-            // Tenta desenhar o QR Code carregado na tela
             const qrImg = document.querySelector('#qrcode-container img');
+            const triggerDownload = () => {
+                const link = document.createElement('a');
+                link.download = `cartao-embarque-${currentTicketData.seat}-${currentTicketData.code}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast('Cartão de embarque salvo em PNG!', 'success');
+            };
+
             if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) {
                 try {
-                    ctx.drawImage(qrImg, width - 210, y - 15, 160, 160);
-                } catch (err) {
-                    drawFallbackCodeBox(ctx, width - 210, y - 15, currentTicketData.code);
+                    ctx.drawImage(qrImg, canvas.width - 168, 830, 115, 115);
+                } catch (e) {
+                    // Ignora tainted canvas caso o servidor externo bloqueie CORS
                 }
-            } else {
-                drawFallbackCodeBox(ctx, width - 210, y - 15, currentTicketData.code);
             }
-
-            // Dispara o download do arquivo PNG
-            const link = document.createElement('a');
-            link.download = `Comprovante_Poltrona_${currentTicketData.seat}_${currentTicketData.roomLabel.replace(/\s+/g, '_')}.png`;
-            link.href = canvas.toDataURL('image/png');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            showToast('Imagem PNG do comprovante baixada!', 'success');
-        }
-
-        function drawTicketField(ctx, label, value, x, y, fontSize) {
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'bold 17px Inter, sans-serif';
-            ctx.fillText(label, x, y);
-
-            ctx.fillStyle = '#0f172a';
-            ctx.font = `bold ${fontSize}px Inter, sans-serif`;
-            const safeText = String(value).length > 36 ? String(value).slice(0, 35) + '...' : String(value);
-            ctx.fillText(safeText, x, y + 36);
-        }
-
-        function drawFallbackCodeBox(ctx, x, y, code) {
-            ctx.strokeStyle = '#cbd5e1';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, y, 160, 160);
-            ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 20px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(code, x + 80, y + 86);
-            ctx.textAlign = 'left';
-        }
-
-        function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
-            ctx.beginPath();
-            ctx.moveTo(x + radius, y);
-            ctx.lineTo(x + width - radius, y);
-            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-            ctx.lineTo(x + width, y + height - radius);
-            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-            ctx.lineTo(x + radius, y + height);
-            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-            ctx.lineTo(x, y + radius);
-            ctx.quadraticCurveTo(x, y, x + radius, y);
-            ctx.closePath();
-            if (fill) ctx.fill();
-            if (stroke) ctx.stroke();
+            triggerDownload();
         }
 
         /**
-         * Sistema de Notificação Toast (Substitui alert())
+         * Exibe notificações toast na tela
          */
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
+            if (!container) return;
 
-            const colors = {
-                success: 'bg-slate-900 text-white border-emerald-500',
-                error: 'bg-red-950 text-white border-red-500',
-                info: 'bg-slate-800 text-white border-slate-600'
+            const toast = document.createElement('div');
+            const bgColors = {
+                success: 'bg-emerald-900 text-white border-emerald-700',
+                error: 'bg-red-900 text-white border-red-700',
+                info: 'bg-slate-900 text-white border-slate-700'
             };
 
-            toast.className = `${colors[type] || colors.info} border-l-4 px-4 py-3 rounded-xl shadow-xl text-xs sm:text-sm font-medium pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
-            toast.textContent = message;
+            toast.className = `${bgColors[type] || bgColors.info} pointer-events-auto border px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-medium flex items-center justify-between gap-3 transition-all`;
+            toast.innerHTML = `<span>${message}</span>`;
 
             container.appendChild(toast);
-
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            });
-
             setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 250);
+            }, 4200);
         }
     </script>
 </body>
