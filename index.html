@@ -389,7 +389,7 @@
                         <!-- As fileiras serão inseridas aqui -->
                     </div>
 
-                    <!-- Fundos: Banheiro e Água / Lanche -->
+                    <!-- Fundos: Banheiro e Água / Café -->
                     <div class="grid grid-cols-2 gap-3 pt-3 mt-3 border-t-2 border-dashed border-slate-300">
                         <div class="bg-slate-200/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-300 text-slate-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -401,7 +401,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>
                             </svg>
-                            <span class="text-[11px] font-semibold">Água / Café</span>
+                            <span class="text-[11px] font-semibold">Água / Lanche</span>
                         </div>
                     </div>
                 </div>
@@ -1569,29 +1569,39 @@
 
         async function releaseSingleSeat(seatNum) {
             const record = seatRecords[seatNum];
-            occupiedSeats = occupiedSeats.filter(s => s !== seatNum);
-            delete seatRecords[seatNum];
-            saveOccupiedSeats();
-            if (record) {
-                await pushRecordToCloud('RELEASE', record);
+            isSyncing = true;
+            try {
+                occupiedSeats = occupiedSeats.filter(s => s !== seatNum);
+                delete seatRecords[seatNum];
+                saveOccupiedSeats();
+                renderBusMap();
+                renderCoordinatorList();
+                if (record) {
+                    await pushRecordToCloud('RELEASE', record);
+                }
+                showToast(`Poltrona ${formatSeatNum(seatNum)} e vaga do quarto liberadas.`, 'info');
+            } finally {
+                isSyncing = false;
             }
-            renderBusMap();
-            renderCoordinatorList();
-            showToast(`Poltrona ${formatSeatNum(seatNum)} e vaga do quarto liberadas.`, 'info');
         }
 
         async function resetDemoData() {
-            occupiedSeats = [];
-            seatRecords = {};
-            selectedSeat = null;
-            selectedRoomId = null;
-            saveOccupiedSeats();
-            await pushRecordToCloud('CLEAR_ALL', {});
-            updateSelectedBadge();
-            updateSelectedRoomBadge();
-            renderBusMap();
-            renderCoordinatorList();
-            showToast('Todos os assentos e quartos foram zerados.', 'info');
+            isSyncing = true;
+            try {
+                occupiedSeats = [];
+                seatRecords = {};
+                selectedSeat = null;
+                selectedRoomId = null;
+                saveOccupiedSeats();
+                updateSelectedBadge();
+                updateSelectedRoomBadge();
+                renderBusMap();
+                renderCoordinatorList();
+                await pushRecordToCloud('CLEAR_ALL', {});
+                showToast('Todos os assentos e quartos foram zerados.', 'info');
+            } finally {
+                isSyncing = false;
+            }
         }
 
         function exportManifestCSV() {
