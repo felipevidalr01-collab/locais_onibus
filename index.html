@@ -12,9 +12,711 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
     <script>
-// ... existing code ... -->
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        navy: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#090d16',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos personalizados para o mapa do ônibus e impressão */
+        body {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        /* Estilo realista de poltrona de ônibus */
+        .seat-btn {
+            position: relative;
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .seat-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 18%;
+            right: 18%;
+            height: 3px;
+            border-radius: 999px;
+            background-color: currentColor;
+            opacity: 0.35;
+        }
+
+        .seat-available {
+            background-color: #ffffff;
+            border: 2px solid #10b981;
+            color: #065f46;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.08);
+        }
+
+        .seat-available:hover {
+            background-color: #ecfdf5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.18);
+        }
+
+        .seat-selected {
+            background-color: #0f172a;
+            border: 2px solid #0f172a;
+            color: #ffffff;
+            transform: scale(1.06);
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.28);
+            z-index: 10;
+        }
+
+        .seat-occupied {
+            background-color: #e2e8f0;
+            border: 2px solid #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* Efeito de recorte lateral (picote) do bilhete */
+        .ticket-notch-left, .ticket-notch-right {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background-color: #f1f5f9;
+            border-radius: 9999px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20;
+        }
+        .ticket-notch-left {
+            left: -12px;
+            box-shadow: inset -2px 0 3px rgba(0,0,0,0.06);
+        }
+        .ticket-notch-right {
+            right: -12px;
+            box-shadow: inset 2px 0 3px rgba(0,0,0,0.06);
+        }
+
+        /* Otimização para Impressão / PDF */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-voucher-area, #printable-voucher-area * {
+                visibility: visible;
+            }
+            #printable-voucher-area {
+                position: fixed;
+                left: 50%;
+                top: 20px;
+                transform: translateX(-50%);
+                width: 100%;
+                max-width: 440px;
+                box-shadow: none !important;
+                border: 2px solid #cbd5e1 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- Cabeçalho Superior -->
+    <header class="bg-slate-900 text-white shadow-md no-print">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-500 text-slate-950 p-2.5 rounded-xl shadow-inner">
+                    <!-- Ícone de Ônibus SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight leading-tight">Reserva de Assentos</h1>
+                    <p class="text-xs text-slate-400">Ônibus Executivo Semileito • 46 Lugares</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-slate-800 text-emerald-400 px-3 py-1.5 rounded-full border border-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="available-counter">46 livres</span>
+                </span>
+                <button type="button" onclick="resetDemoData()" title="Limpar todas as reservas e liberar poltronas" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 transition">
+                    Limpar Mapa
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Notificação Toast Flutuante (Substitui alert()) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+            <!-- COLUNA ESQUERDA: Mapa Interativo do Ônibus -->
+            <section class="lg:col-span-6 xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 no-print">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900">1. Escolha sua Poltrona</h2>
+                        <p class="text-xs text-slate-500">Toque em um assento livre (verde) para selecionar</p>
+                    </div>
+                </div>
+
+                <!-- Legenda -->
+                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200/80 mb-5 text-xs font-medium">
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="w-4 h-4 rounded bg-white border-2 border-emerald-500 inline-block"></span>
+                        <span class="text-slate-700">Livre</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="w-4 h-4 rounded bg-slate-900 border-2 border-slate-900 inline-block"></span>
+                        <span class="text-slate-700">Selecionada</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="w-4 h-4 rounded bg-slate-200 border-2 border-slate-300 inline-block"></span>
+                        <span class="text-slate-500">Ocupada</span>
+                    </div>
+                </div>
+
+                <!-- Carroceria do Ônibus -->
+                <div class="max-w-[330px] mx-auto bg-slate-100 rounded-t-[44px] rounded-b-3xl border-4 border-slate-300 p-3.5 shadow-inner relative">
+                    
+                    <!-- Para-brisa / Frente -->
+                    <div class="text-center mb-2">
+                        <span class="text-[10px] uppercase tracking-widest font-bold text-slate-400">Frente do Veículo</span>
+                    </div>
+
+                    <!-- Cabine do Motorista e Porta de Entrada -->
+                    <div class="grid grid-cols-2 gap-3 pb-3 mb-3 border-b-2 border-dashed border-slate-300">
+                        <!-- Motorista -->
+                        <div class="bg-slate-200/90 rounded-xl p-2.5 flex items-center gap-2 border border-slate-300">
+                            <div class="w-7 h-7 rounded-full bg-slate-700 text-white flex items-center justify-center shrink-0">
+                                <!-- Volante SVG -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 14v7"/><path d="M10 12 3.5 9.5"/><path d="M14 12l6.5-2.5"/>
+                                </svg>
+                            </div>
+                            <div class="leading-tight">
+                                <span class="block text-[11px] font-bold text-slate-700">Motorista</span>
+                                <span class="block text-[10px] text-slate-500">Cabine</span>
+                            </div>
+                        </div>
+
+                        <!-- Porta / Escada -->
+                        <div class="bg-slate-200/60 rounded-xl p-2.5 flex items-center justify-end gap-2 border border-slate-300/80">
+                            <div class="text-right leading-tight">
+                                <span class="block text-[11px] font-bold text-slate-600">Entrada</span>
+                                <span class="block text-[10px] text-slate-400">Escada</span>
+                            </div>
+                            <div class="w-7 h-7 rounded-lg bg-slate-300 text-slate-600 flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cabeçalho Janela / Corredor -->
+                    <div class="grid grid-cols-5 text-[10px] font-semibold text-slate-400 text-center mb-1.5 px-1">
+                        <span>Janela</span>
+                        <span>Corredor</span>
+                        <span></span>
+                        <span>Corredor</span>
+                        <span>Janela</span>
+                    </div>
+
+                    <!-- Grade de Poltronas (Gerada via JS) -->
+                    <div id="bus-seats-grid" class="flex flex-col gap-2">
+                        <!-- As fileiras serão inseridas aqui -->
+                    </div>
+
+                    <!-- Fundos: Banheiro e Cafeteira/Frigobar -->
+                    <div class="grid grid-cols-2 gap-3 pt-3 mt-3 border-t-2 border-dashed border-slate-300">
+                        <div class="bg-slate-200/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-300 text-slate-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 6 6.5 3.5a1.5 1.5 0 0 0-1-.5C4.683 3 4 3.683 4 4.5V17a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><line x1="10" x2="8" y1="5" y2="7"/><line x1="2" x2="22" y1="12" y2="12"/>
+                            </svg>
+                            <span class="text-[11px] font-semibold">Sanitário (WC)</span>
+                        </div>
+                        <div class="bg-slate-200/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-300 text-slate-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>
+                            </svg>
+                            <span class="text-[11px] font-semibold">Água / Café</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUNA DIREITA: Formulário e Comprovante Gerado -->
+            <div class="lg:col-span-6 xl:col-span-7 flex flex-col gap-6">
+
+                <!-- Cartão do Formulário de Dados do Passageiro -->
+                <section id="booking-form-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 no-print">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-slate-900">2. Dados do Passageiro</h2>
+                            <p class="text-xs text-slate-500">Preencha seus dados para emitir o comprovante de assento</p>
+                        </div>
+
+                        <!-- Badge dinâmico do assento selecionado -->
+                        <div id="selected-seat-badge" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold">
+                            <span>Nenhuma poltrona selecionada</span>
+                        </div>
+                    </div>
+
+                    <form id="reservation-form" class="space-y-4" novalidate>
+                        <div>
+                            <label for="passenger-name" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                Nome Completo <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="passenger-name" required placeholder="Ex: Mariana Oliveira Santos"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="passenger-doc" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                    CPF ou RG <span class="text-slate-400 font-normal">(Opcional)</span>
+                                </label>
+                                <input type="text" id="passenger-doc" maxlength="18" placeholder="000.000.000-00"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
+                            </div>
+
+                            <div>
+                                <label for="passenger-phone" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                    Telefone / WhatsApp <span class="text-slate-400 font-normal">(Opcional)</span>
+                                </label>
+                                <input type="tel" id="passenger-phone" maxlength="15" placeholder="(11) 99999-9999"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" id="confirm-btn"
+                                class="w-full py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                                </svg>
+                                Confirmar Assento e Gerar Comprovante
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- ÁREA DO COMPROVANTE GERADO (Oculta até confirmar) -->
+                <section id="voucher-section" class="hidden">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-4 flex items-center justify-between gap-3 no-print">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-emerald-950">Assento reservado com sucesso!</h3>
+                                <p class="text-xs text-emerald-800">Baixe a imagem abaixo para guardar ou apresentar no embarque.</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="startNewReservation()" class="text-xs font-semibold text-emerald-800 hover:text-emerald-950 underline shrink-0">
+                            Nova reserva
+                        </button>
+                    </div>
+
+                    <!-- Cartão Visual do Bilhete / Comprovante -->
+                    <div id="printable-voucher-area" class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden max-w-md mx-auto">
+                        <!-- Topo Azul Marinho do Bilhete -->
+                        <div class="bg-slate-900 text-white px-6 py-5 flex items-center justify-between">
+                            <div>
+                                <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Comprovante de Assento</span>
+                                <h4 class="text-lg font-extrabold tracking-tight">Bilhete de Embarque</h4>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] text-slate-400 block">CÓDIGO</span>
+                                <span id="voucher-code" class="font-mono text-sm font-bold text-white bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">#BUS-0000</span>
+                            </div>
+                        </div>
+
+                        <!-- Destaque Principal da Poltrona -->
+                        <div class="px-6 py-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Poltrona Reservada</span>
+                                <div class="flex items-baseline gap-2 mt-0.5">
+                                    <span id="voucher-seat-number" class="text-4xl font-black text-slate-900 font-mono">00</span>
+                                    <span id="voucher-seat-position" class="text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Janela</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Categoria</span>
+                                <span class="text-sm font-bold text-slate-800">Executivo Semileito</span>
+                                <span class="text-xs text-slate-500 block">46 Lugares</span>
+                            </div>
+                        </div>
+
+                        <!-- Dados do Passageiro -->
+                        <div class="px-6 py-5 space-y-3.5 text-sm">
+                            <div>
+                                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Passageiro(a)</span>
+                                <p id="voucher-name" class="font-bold text-slate-900 text-base break-words">—</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Documento</span>
+                                    <p id="voucher-doc" class="font-medium text-slate-800 font-mono text-xs sm:text-sm">Não informado</p>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Telefone</span>
+                                    <p id="voucher-phone" class="font-medium text-slate-800 text-xs sm:text-sm">Não informado</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Local de Embarque</span>
+                                <p id="voucher-boarding" class="font-semibold text-slate-800">—</p>
+                            </div>
+
+                            <div>
+                                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Data e Hora da Emissão</span>
+                                <p id="voucher-datetime" class="font-mono text-xs text-slate-600">—</p>
+                            </div>
+                        </div>
+
+                        <!-- Linha Picotada com Recortes Laterais -->
+                        <div class="relative flex items-center justify-center my-1">
+                            <div class="ticket-notch-left"></div>
+                            <div class="w-full border-t-2 border-dashed border-slate-200 mx-4"></div>
+                            <div class="ticket-notch-right"></div>
+                        </div>
+
+                        <!-- Rodapé com QR Code -->
+                        <div class="px-6 py-5 bg-white flex items-center justify-between gap-4">
+                            <div class="space-y-1">
+                                <span class="text-xs font-bold text-slate-800 block">Validação de Embarque</span>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">
+                                    Apresente este comprovante digital ou impresso ao motorista ou coordenador antes de embarcar.
+                                </p>
+                            </div>
+                            <!-- Container do QR Code -->
+                            <div id="qrcode-container" class="p-2 bg-white border border-slate-200 rounded-xl shrink-0"></div>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Download e Impressão -->
+                    <div class="max-w-md mx-auto mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 no-print">
+                        <button type="button" onclick="downloadVoucherPNG()"
+                            class="py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
+                            </svg>
+                            Baixar Imagem (PNG)
+                        </button>
+
+                        <button type="button" onclick="window.print()"
+                            class="py-3.5 px-4 rounded-xl bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-800 font-bold text-sm border border-slate-300 shadow-sm flex items-center justify-center gap-2 transition cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>
+                            </svg>
+                            Imprimir / Salvar PDF
+                        </button>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Canvas oculto utilizado para renderizar o comprovante em alta resolução (PNG) -->
+    <canvas id="export-canvas" class="hidden"></canvas>
+
+    <script>
         /**
-         * Preenche os dados no cartão visual do comprovante e gera o QR Code nativo (100% offline/sem CDN)
+         * CONFIGURAÇÃO DO ÔNIBUS (46 LUGARES - PADRÃO EXECUTIVO)
+         * Disposição realista:
+         * Lado Esquerdo (Motorista): Janela (ímpar), Corredor (par) -> Ex: 01, 02
+         * Lado Direito (Porta): Corredor (par), Janela (ímpar) -> Ex: 04, 03
+         */
+        const TOTAL_SEATS = 46;
+        const STORAGE_KEY = 'bus_seat_reservations_v2';
+        const DEFAULT_BOARDING_POINT = 'Embarque Único — Saída Principal';
+
+        // Nenhum assento previamente ocupado: todos começam livres
+        const DEFAULT_OCCUPIED = [];
+
+        // Estado da aplicação
+        let occupiedSeats = [];
+        let selectedSeat = null;
+        let currentTicketData = null;
+
+        /**
+         * Inicialização ao carregar a página
+         */
+        window.addEventListener('DOMContentLoaded', () => {
+            loadOccupiedSeats();
+            renderBusMap();
+            setupInputMasks();
+            setupFormListener();
+        });
+
+        /**
+         * Carrega assentos ocupados do localStorage ou inicia totalmente livre
+         */
+        function loadOccupiedSeats() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) {
+                        occupiedSeats = parsed;
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn('Erro ao ler armazenamento local:', err);
+            }
+            occupiedSeats = [...DEFAULT_OCCUPIED];
+            saveOccupiedSeats();
+        }
+
+        /**
+         * Salva assentos ocupados no localStorage
+         */
+        function saveOccupiedSeats() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(occupiedSeats));
+            } catch (err) {
+                console.warn('Erro ao salvar no armazenamento local:', err);
+            }
+        }
+
+        /**
+         * Formata número do assento com dois dígitos (ex: 1 -> 01)
+         */
+        function formatSeatNum(num) {
+            return String(num).padStart(2, '0');
+        }
+
+        /**
+         * Retorna se o assento é Janela ou Corredor
+         */
+        function getSeatPosition(seatNum) {
+            return seatNum % 2 !== 0 ? 'Janela' : 'Corredor';
+        }
+
+        /**
+         * Renderiza a grade interativa das 46 poltronas do ônibus
+         */
+        function renderBusMap() {
+            const grid = document.getElementById('bus-seats-grid');
+            grid.innerHTML = '';
+
+            const totalRows = Math.ceil(TOTAL_SEATS / 4);
+
+            for (let row = 0; row < totalRows; row++) {
+                const base = row * 4;
+                const leftWindow = base + 1;   // Ex: 01
+                const leftAisle = base + 2;    // Ex: 02
+                const rightAisle = base + 4;   // Ex: 04
+                const rightWindow = base + 3;  // Ex: 03
+
+                const rowEl = document.createElement('div');
+                rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
+
+                // Coluna 1: Janela Esquerda
+                rowEl.appendChild(createSeatElement(leftWindow));
+                // Coluna 2: Corredor Esquerdo
+                rowEl.appendChild(createSeatElement(leftAisle));
+
+                // Coluna 3: Corredor Central (número da fileira)
+                const aisleEl = document.createElement('div');
+                aisleEl.className = 'text-center text-[10px] font-mono text-slate-400 select-none';
+                aisleEl.textContent = `F${row + 1}`;
+                rowEl.appendChild(aisleEl);
+
+                // Coluna 4: Corredor Direito
+                if (rightAisle <= TOTAL_SEATS) {
+                    rowEl.appendChild(createSeatElement(rightAisle));
+                } else {
+                    rowEl.appendChild(document.createElement('div'));
+                }
+
+                // Coluna 5: Janela Direita
+                if (rightWindow <= TOTAL_SEATS) {
+                    rowEl.appendChild(createSeatElement(rightWindow));
+                } else {
+                    rowEl.appendChild(document.createElement('div'));
+                }
+
+                grid.appendChild(rowEl);
+            }
+
+            updateAvailableCounter();
+        }
+
+        /**
+         * Cria o botão HTML de uma poltrona individual
+         */
+        function createSeatElement(seatNum) {
+            if (seatNum > TOTAL_SEATS) return document.createElement('div');
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = formatSeatNum(seatNum);
+            btn.setAttribute('aria-label', `Poltrona ${formatSeatNum(seatNum)} - ${getSeatPosition(seatNum)}`);
+
+            const isOccupied = occupiedSeats.includes(seatNum);
+            const isSelected = selectedSeat === seatNum;
+
+            btn.className = 'seat-btn h-10 rounded-lg font-mono text-xs font-bold flex items-center justify-center';
+
+            if (isOccupied) {
+                btn.classList.add('seat-occupied');
+                btn.disabled = true;
+                btn.title = `Poltrona ${formatSeatNum(seatNum)} (Ocupada)`;
+            } else if (isSelected) {
+                btn.classList.add('seat-selected');
+                btn.title = `Poltrona ${formatSeatNum(seatNum)} (Selecionada)`;
+                btn.addEventListener('click', () => handleSeatClick(seatNum));
+            } else {
+                btn.classList.add('seat-available');
+                btn.title = `Poltrona ${formatSeatNum(seatNum)} — ${getSeatPosition(seatNum)} (Livre)`;
+                btn.addEventListener('click', () => handleSeatClick(seatNum));
+            }
+
+            return btn;
+        }
+
+        /**
+         * Trata o clique/toque em uma poltrona livre
+         */
+        function handleSeatClick(seatNum) {
+            if (occupiedSeats.includes(seatNum)) return;
+
+            if (selectedSeat === seatNum) {
+                selectedSeat = null;
+            } else {
+                selectedSeat = seatNum;
+            }
+
+            updateSelectedBadge();
+            renderBusMap();
+        }
+
+        /**
+         * Atualiza o indicador visual da poltrona escolhida no formulário
+         */
+        function updateSelectedBadge() {
+            const badge = document.getElementById('selected-seat-badge');
+            if (!selectedSeat) {
+                badge.className = 'inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold';
+                badge.innerHTML = '<span>Nenhuma poltrona selecionada</span>';
+            } else {
+                const pos = getSeatPosition(selectedSeat);
+                badge.className = 'inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold';
+                badge.innerHTML = `
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>Poltrona ${formatSeatNum(selectedSeat)} (${pos})</span>
+                `;
+            }
+        }
+
+        /**
+         * Atualiza o contador de assentos livres no cabeçalho
+         */
+        function updateAvailableCounter() {
+            const freeCount = Math.max(0, TOTAL_SEATS - occupiedSeats.length);
+            const counterEl = document.getElementById('available-counter');
+            if (counterEl) {
+                counterEl.textContent = `${freeCount} ${freeCount === 1 ? 'livre' : 'livres'}`;
+            }
+        }
+
+        /**
+         * Submissão do formulário e geração do comprovante
+         */
+        function setupFormListener() {
+            const form = document.getElementById('reservation-form');
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const nameInput = document.getElementById('passenger-name');
+                const docInput = document.getElementById('passenger-doc');
+                const phoneInput = document.getElementById('passenger-phone');
+
+                const name = nameInput.value.trim();
+
+                if (!selectedSeat) {
+                    showToast('Por favor, selecione uma poltrona livre no mapa do ônibus.', 'error');
+                    return;
+                }
+
+                if (name.length < 3) {
+                    showToast('Por favor, informe o nome completo do passageiro.', 'error');
+                    nameInput.focus();
+                    return;
+                }
+
+                const randomCode = Math.floor(1000 + Math.random() * 9000);
+                const code = `#BUS-${randomCode}`;
+
+                const now = new Date();
+                const formattedDate = now.toLocaleDateString('pt-BR', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+                const formattedTime = now.toLocaleTimeString('pt-BR', {
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+
+                const ticketData = {
+                    code,
+                    seat: formatSeatNum(selectedSeat),
+                    seatRaw: selectedSeat,
+                    position: getSeatPosition(selectedSeat),
+                    name,
+                    doc: docInput.value.trim() || 'Não informado',
+                    phone: phoneInput.value.trim() || 'Não informado',
+                    boarding: DEFAULT_BOARDING_POINT,
+                    datetime: `${formattedDate} às ${formattedTime}`
+                };
+
+                occupiedSeats.push(selectedSeat);
+                saveOccupiedSeats();
+
+                currentTicketData = ticketData;
+
+                renderVoucher(ticketData);
+
+                selectedSeat = null;
+                updateSelectedBadge();
+                renderBusMap();
+
+                document.getElementById('booking-form-card').classList.add('hidden');
+                const voucherSec = document.getElementById('voucher-section');
+                voucherSec.classList.remove('hidden');
+                voucherSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                showToast('Reserva confirmada! Seu comprovante está pronto.', 'success');
+            });
+        }
+
+        /**
+         * Preenche os dados no cartão visual do comprovante e gera o QR Code nativo
          */
         function renderVoucher(data) {
             document.getElementById('voucher-code').textContent = data.code;
@@ -30,7 +732,6 @@
             const qrContainer = document.getElementById('qrcode-container');
             qrContainer.innerHTML = '';
 
-            // Texto curto e direto para leitura instantânea por qualquer câmera
             const qrPayload = `${data.code} | Poltrona ${data.seat} (${data.position}) | ${data.name}`;
             const qrCanvas = createNativeQRCanvas(qrPayload, 116);
             qrContainer.appendChild(qrCanvas);
@@ -43,16 +744,14 @@
             const bytes = new TextEncoder().encode(text);
             const len = bytes.length;
 
-            // Capacidade em bytes (Level L) para versões 1 a 6
             const capacities = [17, 32, 53, 78, 106, 134];
             let version = capacities.findIndex(c => len <= c) + 1;
-            if (version === 0) version = 6; // limita ao máximo suportado
+            if (version === 0) version = 6;
 
             const totalCodewords = [26, 44, 70, 100, 134, 172][version - 1];
             const ecCodewords = [7, 10, 15, 20, 26, 36][version - 1];
             const dataCapacity = totalCodewords - ecCodewords;
 
-            // Monta bitstream (Mode 0100 = Byte, Count 8 bits, Data, Terminator, Padding)
             const bits = [];
             const pushBits = (val, n) => {
                 for (let i = n - 1; i >= 0; i--) bits.push((val >>> i) & 1);
@@ -77,7 +776,6 @@
                 padIdx++;
             }
 
-            // Aritmética GF(256) para Reed-Solomon
             const exp = new Uint8Array(512);
             const log = new Uint8Array(256);
             let x = 1;
@@ -90,7 +788,6 @@
             for (let i = 255; i < 512; i++) exp[i] = exp[i - 255];
             const gfMul = (a, b) => (a === 0 || b === 0) ? 0 : exp[log[a] + log[b]];
 
-            // Polinômio gerador Reed-Solomon
             let gen = [1];
             for (let i = 0; i < ecCodewords; i++) {
                 const next = new Array(gen.length + 1).fill(0);
@@ -122,7 +819,6 @@
                 }
             };
 
-            // Finder patterns + separadores
             const drawFinder = (r, c) => {
                 for (let dr = -1; dr <= 7; dr++) {
                     for (let dc = -1; dc <= 7; dc++) {
@@ -137,7 +833,6 @@
             drawFinder(0, size - 7);
             drawFinder(size - 7, 0);
 
-            // Alignment pattern (versões >= 2)
             if (version >= 2) {
                 const pos = size - 7;
                 for (let dr = -2; dr <= 2; dr++) {
@@ -148,13 +843,11 @@
                 }
             }
 
-            // Timing patterns
             for (let i = 8; i < size - 8; i++) {
                 setFunc(6, i, i % 2 === 0);
                 setFunc(i, 6, i % 2 === 0);
             }
 
-            // Dark module + reserva de format info
             setFunc(size - 8, 8, true);
             for (let i = 0; i < 9; i++) {
                 if (!isFunction[8][i]) setFunc(8, i, false);
@@ -165,7 +858,6 @@
                 setFunc(size - 1 - i, 8, false);
             }
 
-            // Preenche dados em zigue-zague
             let bitIdx = 0;
             const totalBits = allCodewords.length * 8;
             let upward = true;
@@ -181,7 +873,6 @@
                                 dark = ((allCodewords[bitIdx >>> 3] >>> (7 - (bitIdx & 7))) & 1) === 1;
                                 bitIdx++;
                             }
-                            // Máscara 0: (r + c) % 2 === 0
                             if ((r + c) % 2 === 0) dark = !dark;
                             modules[r][c] = dark;
                         }
@@ -190,7 +881,6 @@
                 upward = !upward;
             }
 
-            // Format info para ECC Level L (01) + Mask 0 (000) -> 0x77c4
             const fmtBits = 0x77c4;
             for (let i = 0; i < 15; i++) {
                 const bit = ((fmtBits >>> i) & 1) === 1;
@@ -203,7 +893,6 @@
                 else setFunc(8, 14 - i, bit);
             }
 
-            // Renderiza no Canvas com Quiet Zone de 2 módulos
             const quiet = 2;
             const fullModules = size + quiet * 2;
             const scale = Math.max(3, Math.floor(pixelSize / fullModules));
@@ -242,17 +931,14 @@
             const canvas = document.getElementById('export-canvas');
             const ctx = canvas.getContext('2d');
 
-            // Resolução 2x (Retina) para nitidez impecável no celular
             const width = 760;
             const height = 1040;
             canvas.width = width;
             canvas.height = height;
 
-            // Fundo geral
             ctx.fillStyle = '#f1f5f9';
             ctx.fillRect(0, 0, width, height);
 
-            // Cartão principal branco com borda arredondada
             const cardX = 40;
             const cardY = 40;
             const cardW = width - 80;
@@ -263,7 +949,6 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Cabeçalho Escuro
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(cardX + 28, cardY);
@@ -278,7 +963,6 @@
             ctx.fill();
             ctx.restore();
 
-            // Textos do Cabeçalho
             ctx.fillStyle = '#34d399';
             ctx.font = 'bold 18px Inter, sans-serif';
             ctx.fillText('COMPROVANTE DE ASSENTO', cardX + 40, cardY + 55);
@@ -287,7 +971,6 @@
             ctx.font = '800 34px Inter, sans-serif';
             ctx.fillText('Bilhete de Embarque', cardX + 40, cardY + 102);
 
-            // Badge Código no topo direito
             ctx.fillStyle = '#94a3b8';
             ctx.font = 'bold 15px Inter, sans-serif';
             ctx.textAlign = 'right';
@@ -298,7 +981,6 @@
             ctx.fillText(currentTicketData.code, cardX + cardW - 40, cardY + 95);
             ctx.textAlign = 'left';
 
-            // Faixa de Destaque da Poltrona
             const seatBoxY = cardY + 150;
             ctx.fillStyle = '#f8fafc';
             ctx.fillRect(cardX + 2, seatBoxY, cardW - 4, 175);
@@ -318,13 +1000,11 @@
             ctx.font = '900 76px monospace';
             ctx.fillText(currentTicketData.seat, cardX + 40, seatBoxY + 132);
 
-            // Pill Janela / Corredor
             drawRoundedRect(ctx, cardX + 165, seatBoxY + 86, 145, 42, 21, '#d1fae5');
             ctx.fillStyle = '#065f46';
             ctx.font = 'bold 20px Inter, sans-serif';
             ctx.fillText(currentTicketData.position.toUpperCase(), cardX + 188, seatBoxY + 114);
 
-            // Categoria à direita
             ctx.textAlign = 'right';
             ctx.fillStyle = '#64748b';
             ctx.font = 'bold 18px Inter, sans-serif';
@@ -339,10 +1019,8 @@
             ctx.fillText('46 Lugares', cardX + cardW - 40, seatBoxY + 120);
             ctx.textAlign = 'left';
 
-            // Corpo de Informações do Passageiro
             let cursorY = seatBoxY + 235;
 
-            // Nome
             ctx.fillStyle = '#94a3b8';
             ctx.font = 'bold 17px Inter, sans-serif';
             ctx.fillText('PASSAGEIRO(A)', cardX + 40, cursorY);
@@ -354,7 +1032,6 @@
                 : currentTicketData.name;
             ctx.fillText(displayName, cardX + 40, cursorY + 38);
 
-            // Documento e Telefone
             cursorY += 105;
             ctx.fillStyle = '#94a3b8';
             ctx.font = 'bold 17px Inter, sans-serif';
@@ -367,7 +1044,6 @@
             ctx.font = '600 23px Inter, sans-serif';
             ctx.fillText(currentTicketData.phone, cardX + 360, cursorY + 35);
 
-            // Local de Embarque
             cursorY += 100;
             ctx.fillStyle = '#94a3b8';
             ctx.font = 'bold 17px Inter, sans-serif';
@@ -377,7 +1053,6 @@
             ctx.font = 'bold 23px Inter, sans-serif';
             ctx.fillText(currentTicketData.boarding, cardX + 40, cursorY + 35);
 
-            // Data e Hora
             cursorY += 95;
             ctx.fillStyle = '#94a3b8';
             ctx.font = 'bold 17px Inter, sans-serif';
@@ -387,7 +1062,6 @@
             ctx.font = '600 21px monospace';
             ctx.fillText(currentTicketData.datetime, cardX + 40, cursorY + 34);
 
-            // Linha Picotada e Recortes Laterais
             const tearY = cardY + cardH - 195;
             ctx.save();
             ctx.setLineDash([10, 10]);
@@ -399,7 +1073,6 @@
             ctx.stroke();
             ctx.restore();
 
-            // Círculos laterais simulando picote
             ctx.fillStyle = '#f1f5f9';
             ctx.beginPath();
             ctx.arc(cardX, tearY, 22, 0, Math.PI * 2);
@@ -408,7 +1081,6 @@
             ctx.arc(cardX + cardW, tearY, 22, 0, Math.PI * 2);
             ctx.fill();
 
-            // Rodapé com instruções e QR Code copiado do DOM
             const footerY = tearY + 42;
             ctx.fillStyle = '#1e293b';
             ctx.font = 'bold 21px Inter, sans-serif';
@@ -419,9 +1091,7 @@
             ctx.fillText('Apresente este comprovante digital ou impresso', cardX + 40, footerY + 52);
             ctx.fillText('ao motorista ou coordenador antes de embarcar.', cardX + 40, footerY + 78);
 
-            // Desenha o QR Code gerado na tela dentro do Canvas sem suavização (nitidez máxima)
             const qrCanvas = document.querySelector('#qrcode-container canvas');
-            const qrImg = document.querySelector('#qrcode-container img');
             const qrSize = 132;
             const qrX = cardX + cardW - 40 - qrSize;
             const qrY = tearY + 20;
@@ -435,12 +1105,9 @@
             ctx.imageSmoothingEnabled = false;
             if (qrCanvas) {
                 ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
-            } else if (qrImg && qrImg.complete) {
-                ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
             }
             ctx.restore();
 
-            // Dispara o download do arquivo PNG
             try {
                 const dataUrl = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
@@ -497,20 +1164,20 @@
         }
 
         /**
-         * Restaura o mapa para o estado inicial de demonstração
+         * Limpa todas as reservas e deixa todas as 46 poltronas livres
          */
         function resetDemoData() {
-            occupiedSeats = [...DEFAULT_OCCUPIED];
+            occupiedSeats = [];
             selectedSeat = null;
             saveOccupiedSeats();
             updateSelectedBadge();
             renderBusMap();
             startNewReservation();
-            showToast('Mapa de assentos restaurado com sucesso.', 'info');
+            showToast('Mapa de assentos limpo! Todas as 46 poltronas estão livres.', 'info');
         }
 
         /**
-         * Máscaras leves para telefone e documento
+         * Máscara leve para telefone
          */
         function setupInputMasks() {
             const phoneInput = document.getElementById('passenger-phone');
