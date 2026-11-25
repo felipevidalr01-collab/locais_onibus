@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
             theme: {
@@ -163,14 +164,14 @@
     <!-- MODAL DE VALIDAÇÃO DE EMBARQUE (Exibido ao escanear o QR Code) -->
     <div id="qr-validation-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200">
-            <div id="val-header" class="bg-emerald-600 text-white px-6 py-5 text-center">
+            <div id="val-header" class="bg-slate-900 text-white px-6 py-5 text-center">
                 <div id="val-icon-wrap" class="w-14 h-14 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6">
-                        <polyline points="20 6 9 17 4 12"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                     </svg>
                 </div>
-                <span id="val-badge" class="text-[11px] uppercase tracking-widest font-bold bg-black/20 px-3 py-1 rounded-full">Check-in Realizado</span>
-                <h2 id="val-title" class="text-xl font-extrabold mt-2">Embarque Liberado!</h2>
+                <span id="val-badge" class="text-[11px] uppercase tracking-widest font-bold bg-black/20 px-3 py-1 rounded-full">Aguardando Coordenador</span>
+                <h2 id="val-title" class="text-xl font-extrabold mt-2">Confirmar Embarque</h2>
             </div>
 
             <div class="p-6 space-y-4">
@@ -190,16 +191,33 @@
                     <p id="val-name" class="text-base font-bold text-slate-900">—</p>
                 </div>
 
+                <!-- Formulário de senha para validar check-in via QR Code -->
+                <form id="val-auth-form" class="hidden space-y-3 pt-1">
+                    <div>
+                        <label for="val-password-input" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                            Senha do Coordenador para Confirmar Embarque
+                        </label>
+                        <input type="password" id="val-password-input" autocomplete="off" placeholder="Digite a senha"
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 text-center font-mono text-base tracking-widest focus:outline-none focus:ring-2 focus:ring-slate-900 transition">
+                        <p id="val-password-error" class="hidden text-xs font-semibold text-red-600 mt-1.5 text-center">
+                            Senha incorreta. Apenas o coordenador pode confirmar o embarque.
+                        </p>
+                    </div>
+                    <button type="submit" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer">
+                        Liberar Embarque Agora
+                    </button>
+                </form>
+
                 <p id="val-message" class="text-xs text-slate-600 bg-slate-100 p-3 rounded-xl leading-relaxed">
-                    Presença confirmada na lista de embarque deste veículo.
+                    Apresente este bilhete ao coordenador do ônibus para validar o embarque.
                 </p>
 
-                <div class="grid grid-cols-2 gap-3 pt-2">
+                <div id="val-actions" class="grid grid-cols-2 gap-3 pt-2">
                     <button type="button" onclick="requestCoordinatorAccess(); closeValidationModal();" class="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition cursor-pointer">
                         Ver Lista Geral
                     </button>
                     <button type="button" onclick="closeValidationModal()" class="py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer">
-                        Concluir Leitura
+                        Fechar
                     </button>
                 </div>
             </div>
@@ -587,7 +605,7 @@
          * Cole abaixo a URL do seu Web App do Google Apps Script para sincronizar
          * reservas e leituras de QR Code em tempo real entre todos os aparelhos.
          */
-        const GOOGLE_SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwWE_wGxR7UGrnPHO7sGJa-huIU8GURD7-4Gd7GWYKUAWI69kh9JUcR0k4aC5z_paKv/exec';
+        const GOOGLE_SHEETS_WEBHOOK_URL = '';
 
         // Estado da aplicação
         let occupiedSeats = [];
@@ -912,7 +930,10 @@
 
         /**
          * Verifica se a URL atual veio da leitura de um QR Code (?validar=...)
+         * Exige autenticação do coordenador antes de confirmar o embarque
          */
+        let pendingValidationData = null;
+
         function checkQRCodeValidationInURL() {
             const params = new URLSearchParams(window.location.search);
             const validarCode = params.get('validar');
@@ -922,47 +943,44 @@
             const nameParam = params.get('n') || 'Passageiro';
             const fullCode = validarCode.startsWith('#') ? validarCode : `#${validarCode}`;
 
+            pendingValidationData = {
+                seatParam,
+                nameParam,
+                fullCode
+            };
+
             const modal = document.getElementById('qr-validation-modal');
             const header = document.getElementById('val-header');
             const badge = document.getElementById('val-badge');
             const title = document.getElementById('val-title');
             const msg = document.getElementById('val-message');
+            const authForm = document.getElementById('val-auth-form');
+            const pwdError = document.getElementById('val-password-error');
+            const pwdInput = document.getElementById('val-password-input');
 
             document.getElementById('val-seat').textContent = formatSeatNum(seatParam);
             document.getElementById('val-code').textContent = fullCode;
 
             const existing = seatRecords[seatParam];
+            document.getElementById('val-name').textContent = existing?.name || nameParam;
 
             if (existing && existing.boarded) {
+                authForm.classList.add('hidden');
                 header.className = 'bg-amber-500 text-slate-950 px-6 py-5 text-center';
                 badge.textContent = 'Atenção • Leitura Repetida';
                 title.textContent = 'Bilhete Já Utilizado!';
-                document.getElementById('val-name').textContent = existing.name;
                 msg.textContent = `Este QR Code já teve o embarque registrado anteriormente às ${existing.boardedAt}.`;
+            } else if (isAdminAuthenticated) {
+                executeAuthorizedCheckIn();
             } else {
-                const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                if (!occupiedSeats.includes(seatParam) && seatParam >= 1 && seatParam <= TOTAL_SEATS) {
-                    occupiedSeats.push(seatParam);
-                }
-                seatRecords[seatParam] = {
-                    ...(existing || {}),
-                    code: fullCode,
-                    seat: formatSeatNum(seatParam),
-                    seatRaw: seatParam,
-                    position: getSeatPosition(seatParam),
-                    name: existing?.name || nameParam,
-                    boarded: true,
-                    boardedAt: nowTime
-                };
-                saveOccupiedSeats();
-                pushRecordToCloud('CHECKIN', seatRecords[seatParam]);
-                renderBusMap();
-
-                header.className = 'bg-emerald-600 text-white px-6 py-5 text-center';
-                badge.textContent = `Check-in às ${nowTime}`;
-                title.textContent = 'Embarque Liberado!';
-                document.getElementById('val-name').textContent = seatRecords[seatParam].name;
-                msg.textContent = 'Passageiro validado com sucesso e marcado como presente no controle do ônibus.';
+                header.className = 'bg-slate-900 text-white px-6 py-5 text-center';
+                badge.textContent = 'Acesso Restrito • Coordenador';
+                title.textContent = 'Validar Bilhete';
+                msg.textContent = 'Somente o coordenador pode confirmar o embarque. Digite a senha acima para registrar a entrada.';
+                pwdError.classList.add('hidden');
+                pwdInput.value = '';
+                authForm.classList.remove('hidden');
+                setTimeout(() => pwdInput.focus(), 80);
             }
 
             modal.classList.remove('hidden');
@@ -972,14 +990,62 @@
             } catch (e) {}
         }
 
+        function executeAuthorizedCheckIn() {
+            if (!pendingValidationData) return;
+            const { seatParam, nameParam, fullCode } = pendingValidationData;
+            const existing = seatRecords[seatParam];
+
+            const header = document.getElementById('val-header');
+            const badge = document.getElementById('val-badge');
+            const title = document.getElementById('val-title');
+            const msg = document.getElementById('val-message');
+            const authForm = document.getElementById('val-auth-form');
+
+            authForm.classList.add('hidden');
+
+            if (existing && existing.boarded) {
+                header.className = 'bg-amber-500 text-slate-950 px-6 py-5 text-center';
+                badge.textContent = 'Atenção • Leitura Repetida';
+                title.textContent = 'Bilhete Já Utilizado!';
+                msg.textContent = `Este QR Code já teve o embarque registrado anteriormente às ${existing.boardedAt}.`;
+                return;
+            }
+
+            const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            if (!occupiedSeats.includes(seatParam) && seatParam >= 1 && seatParam <= TOTAL_SEATS) {
+                occupiedSeats.push(seatParam);
+            }
+            seatRecords[seatParam] = {
+                ...(existing || {}),
+                code: fullCode,
+                seat: formatSeatNum(seatParam),
+                seatRaw: seatParam,
+                position: getSeatPosition(seatParam),
+                name: existing?.name || nameParam,
+                boarded: true,
+                boardedAt: nowTime
+            };
+            saveOccupiedSeats();
+            pushRecordToCloud('CHECKIN', seatRecords[seatParam]);
+            renderBusMap();
+
+            header.className = 'bg-emerald-600 text-white px-6 py-5 text-center';
+            badge.textContent = `Check-in às ${nowTime}`;
+            title.textContent = 'Embarque Liberado!';
+            document.getElementById('val-name').textContent = seatRecords[seatParam].name;
+            msg.textContent = 'Passageiro validado com sucesso e marcado como presente no controle do ônibus.';
+            pendingValidationData = null;
+        }
+
         function closeValidationModal() {
             document.getElementById('qr-validation-modal').classList.add('hidden');
+            pendingValidationData = null;
         }
 
         /**
          * Acesso discreto e protegido por senha ao Painel do Coordenador (3 cliques no ícone do ônibus ou ?admin=1)
          */
-        let isAdminAuthenticated = false;
+        let isAdminAuthenticated = sessionStorage.getItem('bus_coord_auth') === '1';
 
         function setupAdminTrigger() {
             const params = new URLSearchParams(window.location.search);
@@ -1009,10 +1075,30 @@
 
                 if (input.value === ADMIN_PASSWORD) {
                     isAdminAuthenticated = true;
+                    sessionStorage.setItem('bus_coord_auth', '1');
                     errorEl.classList.add('hidden');
                     input.value = '';
                     closePasswordModal();
                     openCoordinatorPanel();
+                } else {
+                    errorEl.classList.remove('hidden');
+                    input.value = '';
+                    input.focus();
+                }
+            });
+
+            const valAuthForm = document.getElementById('val-auth-form');
+            valAuthForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const input = document.getElementById('val-password-input');
+                const errorEl = document.getElementById('val-password-error');
+
+                if (input.value === ADMIN_PASSWORD) {
+                    isAdminAuthenticated = true;
+                    sessionStorage.setItem('bus_coord_auth', '1');
+                    errorEl.classList.add('hidden');
+                    input.value = '';
+                    executeAuthorizedCheckIn();
                 } else {
                     errorEl.classList.remove('hidden');
                     input.value = '';
