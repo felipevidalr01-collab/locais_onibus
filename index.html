@@ -133,33 +133,33 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased">
 
-    <!-- Cabeçalho Superior -->
+    <!-- Cabeçalho Superior Ajustado para Celular -->
     <header class="bg-slate-900 text-white shadow-md no-print">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div class="flex items-center gap-3">
-                <div id="admin-secret-trigger" title="Controle de Embarque" class="bg-emerald-500 text-slate-950 p-2.5 rounded-xl shadow-inner cursor-pointer select-none">
+                <div id="admin-secret-trigger" title="Controle de Embarque" class="bg-emerald-500 text-slate-950 p-2 sm:p-2.5 rounded-xl shadow-inner cursor-pointer select-none shrink-0">
                     <!-- Ícone de Ônibus SVG -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>
                     </svg>
                 </div>
-                <div>
-                    <h1 class="text-lg sm:text-xl font-bold tracking-tight leading-tight">Reserva de Assentos e Quartos</h1>
-                    <p class="text-xs text-slate-400">Ônibus Executivo (46 Lugares) • 15 Quartos</p>
+                <div class="min-w-0">
+                    <h1 class="text-base sm:text-xl font-bold tracking-tight leading-tight">Reserva de Assentos e Quartos</h1>
+                    <p class="text-[11px] sm:text-xs text-slate-400">Ônibus Executivo (46 Lugares) • 15 Quartos</p>
                 </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-                <span id="live-sync-badge" class="hidden inline-flex items-center gap-1.5 text-[11px] font-medium bg-slate-800/80 text-slate-300 px-2.5 py-1.5 rounded-full border border-slate-700" title="Mapa atualizado automaticamente sem recarregar">
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-2 sm:pt-0 border-t border-slate-800/80 sm:border-0">
+                <span id="live-sync-badge" class="hidden inline-flex items-center gap-1.5 text-[11px] font-medium bg-slate-800/80 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700" title="Mapa atualizado automaticamente sem recarregar">
                     <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
                     <span>Ao vivo</span>
                 </span>
-                <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-slate-800 text-emerald-400 px-3 py-1.5 rounded-full border border-slate-700">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium bg-slate-800 text-emerald-400 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">
+                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span id="available-counter">46 poltronas</span>
                 </span>
-                <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-slate-800 text-amber-300 px-3 py-1.5 rounded-full border border-slate-700">
-                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium bg-slate-800 text-amber-300 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">
+                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400"></span>
                     <span id="available-rooms-counter">40 vagas em quartos</span>
                 </span>
             </div>
@@ -412,7 +412,7 @@
             <!-- COLUNA DIREITA: Escolha de Quarto, Formulário e Comprovante Gerado -->
             <div class="lg:col-span-6 xl:col-span-7 flex flex-col gap-6">
 
-                <!-- PASSO 2: Escolha de Quarto (10 Triplos + 5 Duplos) -->
+                <!-- PASSO 2: Escolha de Quarto (10 Triplos + 5 Duplos - Um embaixo do outro no celular) -->
                 <section id="room-selection-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 no-print">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
                         <div>
@@ -425,8 +425,8 @@
                         </div>
                     </div>
 
-                    <div id="rooms-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 max-h-[340px] overflow-y-auto pr-1">
-                        <!-- Cards dos 15 quartos gerados via JS -->
+                    <div id="rooms-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
+                        <!-- Cards dos 15 quartos gerados via JS (1 por linha no celular) -->
                     </div>
                 </section>
 
@@ -463,7 +463,7 @@
                                 <label for="passenger-doc" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                                     CPF <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="passenger-doc" inputmode="numeric" required maxlength="18" placeholder="000.000.000-00"
+                                <input type="text" id="passenger-doc" required maxlength="18" placeholder="000.000.000-00"
                                     class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
                             </div>
 
@@ -471,7 +471,7 @@
                                 <label for="passenger-phone" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                                     Telefone / WhatsApp <span class="text-slate-400 font-normal">(Opcional)</span>
                                 </label>
-                                <input type="tel" id="passenger-phone" inputmode="tel" maxlength="15" placeholder="(11) 99999-9999"
+                                <input type="tel" id="passenger-phone" maxlength="15" placeholder="(11) 99999-9999"
                                     class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
                             </div>
                         </div>
@@ -618,6 +618,24 @@
                     </button>
                 </div>
 
+                <!-- Reencaminhar tela do QR Code por E-mail -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-sm space-y-2">
+                    <label for="voucher-email-input" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                        Reenviar Link do QR Code por E-mail
+                    </label>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="email" id="voucher-email-input" placeholder="passageiro@email.com"
+                            class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/60 focus:bg-white text-slate-900 text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-slate-900 transition">
+                        <button type="button" onclick="sendVoucherByEmail()"
+                            class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                            </svg>
+                            Enviar por E-mail
+                        </button>
+                    </div>
+                </div>
+
                 <button type="button" onclick="startNewReservation()"
                     class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer">
                     Fazer Outra Reserva
@@ -666,7 +684,7 @@
         const ADMIN_PASSWORD = '2307';
 
         /**
-         * INTEGRAÇÃO COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
+         * INTEGRAÇÃO OPCIONAL COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
          */
         const GOOGLE_SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwWE_wGxR7UGrnPHO7sGJa-huIU8GURD7-4Gd7GWYKUAWI69kh9JUcR0k4aC5z_paKv/exec';
 
@@ -732,6 +750,9 @@
             });
         });
 
+        /**
+         * Carrega assentos ocupados e registros detalhados do localStorage
+         */
         function loadOccupiedSeats() {
             try {
                 const saved = localStorage.getItem(STORAGE_KEY);
@@ -744,6 +765,9 @@
             }
         }
 
+        /**
+         * Salva lista de assentos e registros no localStorage
+         */
         function saveOccupiedSeats() {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(occupiedSeats));
@@ -753,6 +777,9 @@
             }
         }
 
+        /**
+         * Sincronização em nuvem (Google Sheets)
+         */
         async function syncFromCloudIfConfigured() {
             if (!GOOGLE_SHEETS_WEBHOOK_URL) return;
             isSyncing = true;
@@ -838,14 +865,23 @@
             return { ok: false };
         }
 
+        /**
+         * Formata número do assento com dois dígitos (ex: 1 -> "01")
+         */
         function formatSeatNum(num) {
             return String(num).padStart(2, '0');
         }
 
+        /**
+         * Retorna posição do assento (Janela ou Corredor)
+         */
         function getSeatPosition(num) {
             return num % 2 !== 0 ? 'Janela' : 'Corredor';
         }
 
+        /**
+         * Auxiliares dos Quartos
+         */
         function getRoomById(roomId) {
             return ROOMS_CONFIG.find(r => r.id === Number(roomId)) || null;
         }
@@ -860,6 +896,9 @@
             return getRoomOccupants(roomId).length >= room.capacity;
         }
 
+        /**
+         * Atualiza os contadores de poltronas e vagas de quartos no topo
+         */
         function updateAvailableCounter() {
             const freeSeats = TOTAL_SEATS - occupiedSeats.length;
             const seatCounterEl = document.getElementById('available-counter');
@@ -875,6 +914,9 @@
             }
         }
 
+        /**
+         * Renderiza todas as 46 poltronas do ônibus (2x2) e os 15 quartos
+         */
         function renderBusMap() {
             const grid = document.getElementById('bus-seats-grid');
             if (grid) {
@@ -913,6 +955,9 @@
             updateAvailableCounter();
         }
 
+        /**
+         * Cria o elemento visual de cada poltrona
+         */
         function createSeatButton(seatNumber) {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -952,6 +997,9 @@
             return div;
         }
 
+        /**
+         * Renderiza os 15 quartos (10 Triplos e 5 Duplos - 1 por linha no celular)
+         */
         function renderRoomsGrid() {
             const roomsGrid = document.getElementById('rooms-grid');
             if (!roomsGrid) return;
@@ -968,11 +1016,11 @@
                 card.disabled = full;
 
                 if (full) {
-                    card.className = 'text-left p-3 rounded-xl border-2 border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed flex flex-col justify-between gap-2';
+                    card.className = 'w-full text-left p-3.5 rounded-xl border-2 border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed flex flex-col justify-between gap-2';
                 } else if (isSelected) {
-                    card.className = 'text-left p-3 rounded-xl border-2 border-slate-900 bg-slate-900 text-white shadow-md flex flex-col justify-between gap-2 cursor-pointer transition';
+                    card.className = 'w-full text-left p-3.5 rounded-xl border-2 border-slate-900 bg-slate-900 text-white shadow-md flex flex-col justify-between gap-2 cursor-pointer transition';
                 } else {
-                    card.className = 'text-left p-3 rounded-xl border-2 border-slate-200 hover:border-emerald-500 bg-white hover:bg-emerald-50/40 text-slate-800 flex flex-col justify-between gap-2 cursor-pointer transition';
+                    card.className = 'w-full text-left p-3.5 rounded-xl border-2 border-slate-200 hover:border-emerald-500 bg-white hover:bg-emerald-50/40 text-slate-800 flex flex-col justify-between gap-2 cursor-pointer transition';
                 }
 
                 // Indicador visual de camas ocupadas/livres
@@ -995,17 +1043,17 @@
                     : 'Quarto vazio';
 
                 card.innerHTML = `
-                    <div class="flex items-center justify-between gap-1 w-full">
-                        <span class="font-bold text-xs sm:text-sm">${room.label}</span>
+                    <div class="flex items-center justify-between gap-2 w-full">
+                        <span class="font-bold text-sm">${room.label}</span>
                         <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${badgeClass}">${room.type}</span>
                     </div>
                     <div class="flex items-center justify-between w-full">
-                        <div class="flex items-center gap-1">${bedsDots}</div>
-                        <span class="text-[11px] font-semibold ${full ? 'text-red-500' : (isSelected ? 'text-emerald-300' : 'text-emerald-700')}">
+                        <div class="flex items-center gap-1.5">${bedsDots}</div>
+                        <span class="text-xs font-semibold ${full ? 'text-red-500' : (isSelected ? 'text-emerald-300' : 'text-emerald-700')}">
                             ${full ? 'Lotado' : `${freeSpots} ${freeSpots === 1 ? 'vaga' : 'vagas'}`}
                         </span>
                     </div>
-                    <p class="text-[11px] truncate w-full ${isSelected ? 'text-slate-300' : 'text-slate-500'}" title="${namesList}">
+                    <p class="text-xs truncate w-full ${isSelected ? 'text-slate-300' : 'text-slate-500'}" title="${namesList}">
                         ${namesList}
                     </p>
                 `;
@@ -1018,6 +1066,9 @@
             });
         }
 
+        /**
+         * Trata o clique do usuário em um assento livre
+         */
         function handleSeatClick(seatNumber) {
             if (occupiedSeats.includes(seatNumber)) {
                 showToast(`A poltrona ${formatSeatNum(seatNumber)} já está ocupada.`, 'error');
@@ -1029,6 +1080,9 @@
             updateSelectedBadge();
         }
 
+        /**
+         * Trata o clique do usuário em um quarto com vagas
+         */
         function handleRoomClick(roomId) {
             if (isRoomFull(roomId)) {
                 showToast('Este quarto já está com todas as vagas preenchidas.', 'error');
@@ -1040,6 +1094,9 @@
             updateSelectedRoomBadge();
         }
 
+        /**
+         * Atualiza o indicador visual do assento selecionado no formulário
+         */
         function updateSelectedBadge() {
             const badge = document.getElementById('selected-seat-badge');
             if (!badge) return;
@@ -1056,6 +1113,9 @@
             badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Poltrona ${formatted} (${pos})</span>`;
         }
 
+        /**
+         * Atualiza o indicador visual do quarto selecionado no formulário
+         */
         function updateSelectedRoomBadge() {
             const badge = document.getElementById('selected-room-badge');
             if (!badge) return;
@@ -1071,6 +1131,9 @@
             badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>${room.label} (${room.type})</span>`;
         }
 
+        /**
+         * Processa a confirmação da reserva e gera o comprovante
+         */
         function setupFormListener() {
             const form = document.getElementById('reservation-form');
             form.addEventListener('submit', async (e) => {
@@ -1219,6 +1282,9 @@
             });
         }
 
+        /**
+         * Preenche o cartão visual do comprovante e gera o QR Code
+         */
         function renderVoucher(data) {
             document.getElementById('voucher-code').textContent = `#${data.code}`;
             document.getElementById('voucher-seat-number').textContent = data.seat;
@@ -1256,6 +1322,9 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        /**
+         * Prepara o formulário para uma nova reserva e retorna à tela de seleção
+         */
         function startNewReservation() {
             document.getElementById('reservation-form').reset();
             document.getElementById('voucher-section').classList.add('hidden');
@@ -1268,6 +1337,9 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        /**
+         * Máscaras automáticas para CPF e Telefone
+         */
         function setupInputMasks() {
             const docInput = document.getElementById('passenger-doc');
             const phoneInput = document.getElementById('passenger-phone');
@@ -1301,6 +1373,9 @@
             }
         }
 
+        /**
+         * Monta o link de check-in que será codificado no QR Code
+         */
         function buildValidationURL(data) {
             const currentUrl = window.location.href.split('?')[0];
             if (currentUrl.startsWith('http://') || currentUrl.startsWith('https://')) {
@@ -1315,6 +1390,9 @@
             return `BILHETE:${data.code}|POLTRONA:${data.seat}|QUARTO:${data.roomLabel || ''}|PASSAGEIRO:${data.name}`;
         }
 
+        /**
+         * Verifica se a página foi aberta através da leitura de um QR Code (?validar=...)
+         */
         function checkQRCodeValidationInURL() {
             const params = new URLSearchParams(window.location.search);
             const ticketCode = params.get('validar');
@@ -1396,6 +1474,9 @@
             window.history.replaceState({}, document.title, cleanUrl);
         }
 
+        /**
+         * Acesso secreto ao Painel do Coordenador (3 cliques no ícone do ônibus ou ?admin=1)
+         */
         function setupAdminTrigger() {
             const trigger = document.getElementById('admin-secret-trigger');
             let clickCount = 0;
@@ -1490,10 +1571,15 @@
                             <p class="text-[11px] text-slate-500 font-mono">CPF: ${r.doc} • ${r.roomLabel || 'Sem quarto'} • #${r.code}</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 self-end sm:self-center">
+                    <div class="flex flex-wrap items-center gap-2 self-end sm:self-center">
                         <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${r.boarded ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
                             ${r.boarded ? `Embarcado (${r.boardedAt})` : 'Aguardando'}
                         </span>
+                        ${!r.boarded ? `
+                            <button type="button" onclick="manualCheckinSeat(${r.seatRaw})" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[11px] border border-emerald-200 cursor-pointer">
+                                Check-in Manual
+                            </button>
+                        ` : ''}
                         <button type="button" onclick="releaseSingleSeat(${r.seatRaw})" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[11px] border border-red-200 cursor-pointer">
                             Liberar
                         </button>
@@ -1501,6 +1587,60 @@
                 `;
                 listEl.appendChild(item);
             });
+        }
+
+        /**
+         * Realiza check-in manual pelo painel do coordenador caso o passageiro não apresente o QR Code
+         */
+        async function manualCheckinSeat(seatNum) {
+            const record = seatRecords[seatNum];
+            if (!record) return;
+
+            const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            isSyncing = true;
+            try {
+                record.boarded = true;
+                record.boardedAt = nowTime;
+                saveOccupiedSeats();
+                renderCoordinatorList();
+                await pushRecordToCloud('CHECKIN', record);
+                showToast(`Check-in manual confirmado para a poltrona ${formatSeatNum(seatNum)} às ${nowTime}.`, 'success');
+            } finally {
+                isSyncing = false;
+            }
+        }
+
+        /**
+         * Abre o cliente de e-mail com o link direto para a tela de validação do QR Code
+         */
+        function sendVoucherByEmail() {
+            if (!currentTicketData) return;
+
+            const emailInput = document.getElementById('voucher-email-input');
+            const recipientEmail = emailInput ? emailInput.value.trim() : '';
+
+            if (recipientEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
+                showToast('Informe um endereço de e-mail válido.', 'error');
+                emailInput.focus();
+                return;
+            }
+
+            const qrLink = buildValidationURL(currentTicketData);
+            const subject = encodeURIComponent(`Cartão de Embarque #${currentTicketData.code} — Poltrona ${currentTicketData.seat}`);
+            const body = encodeURIComponent(
+                `Olá, ${currentTicketData.name}!\n\n` +
+                `Aqui está o link para acessar sua tela de QR Code e Cartão de Embarque:\n${qrLink}\n\n` +
+                `Detalhes da reserva:\n` +
+                `• Código: #${currentTicketData.code}\n` +
+                `• Poltrona: ${currentTicketData.seat} (${currentTicketData.position})\n` +
+                `• Quarto: ${currentTicketData.roomLabel || 'Não informado'} (${currentTicketData.roomType || ''})\n` +
+                `• Embarque: ${currentTicketData.boarding}\n` +
+                `• Emitido em: ${currentTicketData.datetime}`
+            );
+
+            const mailtoUrl = `mailto:${encodeURIComponent(recipientEmail)}?subject=${subject}&body=${body}`;
+            window.location.href = mailtoUrl;
+            showToast('Abrindo seu aplicativo de e-mail com o link do QR Code...', 'info');
         }
 
         async function releaseSingleSeat(seatNum) {
@@ -1569,6 +1709,9 @@
             URL.revokeObjectURL(url);
         }
 
+        /**
+         * Gera e baixa o Cartão de Embarque em alta resolução (PNG)
+         */
         function downloadVoucherPNG() {
             if (!currentTicketData) return;
 
@@ -1676,6 +1819,9 @@
             triggerDownload();
         }
 
+        /**
+         * Exibe notificações toast na tela
+         */
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             if (!container) return;
