@@ -514,4 +514,573 @@
                 // Marca poltrona como ocupada e salva
                 occupiedSeats.push(selectedSeat);
                 saveOccupiedSeats();
-// ... existing code ... -->
+
+                // Guarda dados atuais para download em PNG
+                currentTicketData = ticketData;
+
+                // Preenche o comprovante na tela
+                renderVoucher(ticketData);
+
+                // Limpa seleção atual e atualiza o mapa
+                selectedSeat = null;
+                updateSelectedBadge();
+                renderBusMap();
+
+                // Alterna visualização para o comprovante
+                document.getElementById('booking-form-card').classList.add('hidden');
+                const voucherSec = document.getElementById('voucher-section');
+                voucherSec.classList.remove('hidden');
+                voucherSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                showToast('Reserva confirmada! Seu comprovante está pronto.', 'success');
+            });
+        }
+
+        // Estado da aplicação
+        let occupiedSeats = [];
+        let selectedSeat = null;
+        let currentTicketData = null;
+
+        /**
+         * Inicialização ao carregar a página
+         */
+        window.addEventListener('DOMContentLoaded', () => {
+            loadOccupiedSeats();
+            renderBusMap();
+            setupInputMasks();
+            setupFormListener();
+        });
+
+        /**
+         * Carrega assentos ocupados do localStorage ou usa os padrões
+         */
+        function loadOccupiedSeats() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) {
+                        occupiedSeats = parsed;
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn('Erro ao ler armazenamento local:', err);
+            }
+            occupiedSeats = [...DEFAULT_OCCUPIED];
+            saveOccupiedSeats();
+        }
+
+        /**
+         * Salva assentos ocupados no localStorage
+         */
+        function saveOccupiedSeats() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(occupiedSeats));
+            } catch (err) {
+                console.warn('Erro ao salvar no armazenamento local:', err);
+            }
+        }
+
+        /**
+         * Formata número do assento com dois dígitos (ex: 1 -> 01)
+         */
+        function formatSeatNum(num) {
+            return String(num).padStart(2, '0');
+        }
+
+        /**
+         * Retorna se o assento é Janela ou Corredor
+         */
+        function getSeatPosition(seatNum) {
+            // Na disposição padrão de ônibus 2x2: ímpares são janela, pares são corredor
+            return seatNum % 2 !== 0 ? 'Janela' : 'Corredor';
+        }
+
+        /**
+         * Renderiza a grade interativa das 46 poltronas do ônibus
+         */
+        function renderBusMap() {
+            const grid = document.getElementById('bus-seats-grid');
+            grid.innerHTML = '';
+
+            // 11 fileiras completas de 4 poltronas (44 lugares) + 1 fileira final com 2 poltronas à esquerda (45 e 46)
+            const totalRows = Math.ceil(TOTAL_SEATS / 4);
+
+            for (let row = 0; row < totalRows; row++) {
+                const base = row * 4;
+                const leftWindow = base + 1;   // Ex: 01
+                const leftAisle = base + 2;    // Ex: 02
+                const rightAisle = base + 4;   // Ex: 04
+                const rightWindow = base + 3;  // Ex: 03
+
+                const rowEl = document.createElement('div');
+                rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
+
+                // Coluna 1: Janela Esquerda
+                rowEl.appendChild(createSeatElement(leftWindow));
+                // Coluna 2: Corredor Esquerdo
+                rowEl.appendChild(createSeatElement(leftAisle));
+
+                // Coluna 3: Corredor Central (número da fileira)
+                const aisleEl = document.createElement('div');
+                aisleEl.className = 'text-center text-[10px] font-mono text-slate-400 select-none';
+                aisleEl.textContent = `F${row + 1}`;
+                rowEl.appendChild(aisleEl);
+
+                // Coluna 4: Corredor Direito (se existir)
+                if (rightAisle <= TOTAL_SEATS) {
+                    rowEl.appendChild(createSeatElement(rightAisle));
+                } else {
+                    rowEl.appendChild(document.createElement('div'));
+                }
+
+                // Coluna 5: Janela Direita (se existir)
+                if (rightWindow <= TOTAL_SEATS) {
+                    rowEl.appendChild(createSeatElement(rightWindow));
+                } else {
+                    rowEl.appendChild(document.createElement('div'));
+                }
+
+                grid.appendChild(rowEl);
+            }
+
+            updateAvailableCounter();
+        }
+
+        /**
+         * Cria o botão HTML de uma poltrona individual
+         */
+        function createSeatElement(seatNum) {
+            if (seatNum > TOTAL_SEATS) return document.createElement('div');
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = formatSeatNum(seatNum);
+            btn.setAttribute('aria-label', `Poltrona ${formatSeatNum(seatNum)} - ${getSeatPosition(seatNum)}`);
+
+            const isOccupied = occupiedSeats.includes(seatNum);
+            const isSelected = selectedSeat === seatNum;
+
+            btn.className = 'seat-btn h-10 rounded-lg font-mono text-xs font-bold flex items-center justify-center';
+
+            if (isOccupied) {
+                btn.classList.add('seat-occupied');
+                btn.disabled = true;
+                btn.title = `Poltrona ${formatSeatNum(seatNum)} (Ocupada)`;
+            } else if (isSelected) {
+                btn.classList.add('seat-selected');
+                btn.title = `Poltrona ${formatSeatNum(seatNum)} (Selecionada)`;
+                btn.addEventListener('click', () => handleSeatClick(seatNum));
+            } else {
+                btn.classList.add('seat-available');
+                btn.title = `Poltrona ${formatSeatNum(seatNum)} — ${getSeatPosition(seatNum)} (Livre)`;
+                btn.addEventListener('click', () => handleSeatClick(seatNum));
+            }
+
+            return btn;
+        }
+
+        /**
+         * Trata o clique/toque em uma poltrona livre
+         */
+        function handleSeatClick(seatNum) {
+            if (occupiedSeats.includes(seatNum)) return;
+
+            if (selectedSeat === seatNum) {
+                selectedSeat = null;
+            } else {
+                selectedSeat = seatNum;
+            }
+
+            updateSelectedBadge();
+            renderBusMap();
+        }
+
+        /**
+         * Atualiza o indicador visual da poltrona escolhida no formulário
+         */
+        function updateSelectedBadge() {
+            const badge = document.getElementById('selected-seat-badge');
+            if (!selectedSeat) {
+                badge.className = 'inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold';
+                badge.innerHTML = '<span>Nenhuma poltrona selecionada</span>';
+            } else {
+                const pos = getSeatPosition(selectedSeat);
+                badge.className = 'inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold';
+                badge.innerHTML = `
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>Poltrona ${formatSeatNum(selectedSeat)} (${pos})</span>
+                `;
+            }
+        }
+
+        /**
+         * Atualiza o contador de assentos livres no cabeçalho
+         */
+        function updateAvailableCounter() {
+            const freeCount = Math.max(0, TOTAL_SEATS - occupiedSeats.length);
+            const counterEl = document.getElementById('available-counter');
+            if (counterEl) {
+                counterEl.textContent = `${freeCount} ${freeCount === 1 ? 'livre' : 'livres'}`;
+            }
+        }
+
+        /**
+         * Preenche os dados no cartão visual do comprovante e gera o QR Code
+         */
+        function renderVoucher(data) {
+            document.getElementById('voucher-code').textContent = data.code;
+            document.getElementById('voucher-seat-number').textContent = data.seat;
+            document.getElementById('voucher-seat-position').textContent = data.position;
+            document.getElementById('voucher-name').textContent = data.name;
+            document.getElementById('voucher-doc').textContent = data.doc;
+            document.getElementById('voucher-phone').textContent = data.phone;
+            document.getElementById('voucher-boarding').textContent = data.boarding;
+            document.getElementById('voucher-datetime').textContent = data.datetime;
+
+            // Gera QR Code de validação
+            const qrContainer = document.getElementById('qrcode-container');
+            qrContainer.innerHTML = '';
+
+            const qrPayload = `COMPROVANTE:${data.code}|POLTRONA:${data.seat}|PASSAGEIRO:${data.name}`;
+
+            try {
+                if (typeof QRCode !== 'undefined') {
+                    new QRCode(qrContainer, {
+                        text: qrPayload,
+                        width: 78,
+                        height: 78,
+                        colorDark: '#0f172a',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } else {
+                    qrContainer.innerHTML = `<div class="w-[78px] h-[78px] flex items-center justify-center text-[10px] font-mono text-slate-500 text-center">${data.code}</div>`;
+                }
+            } catch (e) {
+                qrContainer.innerHTML = `<div class="w-[78px] h-[78px] flex items-center justify-center text-[10px] font-mono text-slate-500 text-center">${data.code}</div>`;
+            }
+        }
+
+        /**
+         * Gera e baixa uma imagem PNG de alta resolução do comprovante via Canvas
+         */
+        function downloadVoucherPNG() {
+            if (!currentTicketData) {
+                showToast('Nenhum comprovante disponível para download.', 'error');
+                return;
+            }
+
+            const canvas = document.getElementById('export-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Resolução 2x (Retina) para nitidez impecável no celular
+            const width = 760;
+            const height = 1040;
+            canvas.width = width;
+            canvas.height = height;
+
+            // Fundo geral
+            ctx.fillStyle = '#f1f5f9';
+            ctx.fillRect(0, 0, width, height);
+
+            // Cartão principal branco com borda arredondada
+            const cardX = 40;
+            const cardY = 40;
+            const cardW = width - 80;
+            const cardH = height - 80;
+
+            drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 28, '#ffffff');
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Cabeçalho Escuro
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cardX + 28, cardY);
+            ctx.lineTo(cardX + cardW - 28, cardY);
+            ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + 28);
+            ctx.lineTo(cardX + cardW, cardY + 150);
+            ctx.lineTo(cardX, cardY + 150);
+            ctx.lineTo(cardX, cardY + 28);
+            ctx.quadraticCurveTo(cardX, cardY, cardX + 28, cardY);
+            ctx.closePath();
+            ctx.fillStyle = '#0f172a';
+            ctx.fill();
+            ctx.restore();
+
+            // Textos do Cabeçalho
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 18px Inter, sans-serif';
+            ctx.fillText('COMPROVANTE DE ASSENTO', cardX + 40, cardY + 55);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '800 34px Inter, sans-serif';
+            ctx.fillText('Bilhete de Embarque', cardX + 40, cardY + 102);
+
+            // Badge Código no topo direito
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 15px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText('CÓDIGO', cardX + cardW - 40, cardY + 55);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px monospace';
+            ctx.fillText(currentTicketData.code, cardX + cardW - 40, cardY + 95);
+            ctx.textAlign = 'left';
+
+            // Faixa de Destaque da Poltrona
+            const seatBoxY = cardY + 150;
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(cardX + 2, seatBoxY, cardW - 4, 175);
+
+            ctx.beginPath();
+            ctx.moveTo(cardX, seatBoxY + 175);
+            ctx.lineTo(cardX + cardW, seatBoxY + 175);
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'bold 18px Inter, sans-serif';
+            ctx.fillText('POLTRONA RESERVADA', cardX + 40, seatBoxY + 48);
+
+            ctx.fillStyle = '#0f172a';
+            ctx.font = '900 76px monospace';
+            ctx.fillText(currentTicketData.seat, cardX + 40, seatBoxY + 132);
+
+            // Pill Janela / Corredor
+            drawRoundedRect(ctx, cardX + 165, seatBoxY + 86, 145, 42, 21, '#d1fae5');
+            ctx.fillStyle = '#065f46';
+            ctx.font = 'bold 20px Inter, sans-serif';
+            ctx.fillText(currentTicketData.position.toUpperCase(), cardX + 188, seatBoxY + 114);
+
+            // Categoria à direita
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'bold 18px Inter, sans-serif';
+            ctx.fillText('CATEGORIA', cardX + cardW - 40, seatBoxY + 48);
+
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 24px Inter, sans-serif';
+            ctx.fillText('Executivo Semileito', cardX + cardW - 40, seatBoxY + 88);
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 20px Inter, sans-serif';
+            ctx.fillText('46 Lugares', cardX + cardW - 40, seatBoxY + 120);
+            ctx.textAlign = 'left';
+
+            // Corpo de Informações do Passageiro
+            let cursorY = seatBoxY + 235;
+
+            // Nome
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 17px Inter, sans-serif';
+            ctx.fillText('PASSAGEIRO(A)', cardX + 40, cursorY);
+
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 28px Inter, sans-serif';
+            const displayName = currentTicketData.name.length > 34
+                ? currentTicketData.name.substring(0, 34) + '...'
+                : currentTicketData.name;
+            ctx.fillText(displayName, cardX + 40, cursorY + 38);
+
+            // Documento e Telefone
+            cursorY += 105;
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 17px Inter, sans-serif';
+            ctx.fillText('DOCUMENTO', cardX + 40, cursorY);
+            ctx.fillText('TELEFONE', cardX + 360, cursorY);
+
+            ctx.fillStyle = '#1e293b';
+            ctx.font = '600 23px monospace';
+            ctx.fillText(currentTicketData.doc, cardX + 40, cursorY + 35);
+            ctx.font = '600 23px Inter, sans-serif';
+            ctx.fillText(currentTicketData.phone, cardX + 360, cursorY + 35);
+
+            // Local de Embarque
+            cursorY += 100;
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 17px Inter, sans-serif';
+            ctx.fillText('LOCAL DE EMBARQUE', cardX + 40, cursorY);
+
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 23px Inter, sans-serif';
+            ctx.fillText(currentTicketData.boarding, cardX + 40, cursorY + 35);
+
+            // Data e Hora
+            cursorY += 95;
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 17px Inter, sans-serif';
+            ctx.fillText('DATA E HORA DA EMISSÃO', cardX + 40, cursorY);
+
+            ctx.fillStyle = '#475569';
+            ctx.font = '600 21px monospace';
+            ctx.fillText(currentTicketData.datetime, cardX + 40, cursorY + 34);
+
+            // Linha Picotada e Recortes Laterais
+            const tearY = cardY + cardH - 195;
+            ctx.save();
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(cardX + 30, tearY);
+            ctx.lineTo(cardX + cardW - 30, tearY);
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.restore();
+
+            // Círculos laterais simulando picote
+            ctx.fillStyle = '#f1f5f9';
+            ctx.beginPath();
+            ctx.arc(cardX, tearY, 22, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(cardX + cardW, tearY, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Rodapé com instruções e QR Code copiado do DOM
+            const footerY = tearY + 42;
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 21px Inter, sans-serif';
+            ctx.fillText('Validação de Embarque', cardX + 40, footerY + 18);
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '400 18px Inter, sans-serif';
+            ctx.fillText('Apresente este comprovante digital ou impresso', cardX + 40, footerY + 52);
+            ctx.fillText('ao motorista ou coordenador antes de embarcar.', cardX + 40, footerY + 78);
+
+            // Desenha o QR Code gerado na tela dentro do Canvas
+            const qrCanvas = document.querySelector('#qrcode-container canvas');
+            const qrImg = document.querySelector('#qrcode-container img');
+            const qrSize = 122;
+            const qrX = cardX + cardW - 40 - qrSize;
+            const qrY = tearY + 26;
+
+            drawRoundedRect(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 14, '#ffffff');
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            if (qrCanvas) {
+                ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+            } else if (qrImg && qrImg.complete) {
+                ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+            }
+
+            // Dispara o download do arquivo PNG
+            try {
+                const dataUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                const safeName = currentTicketData.name
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-zA-Z0-9]/g, '_')
+                    .toLowerCase();
+
+                link.download = `comprovante_poltrona_${currentTicketData.seat}_${safeName}.png`;
+                link.href = dataUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showToast('Download da imagem PNG iniciado!', 'success');
+            } catch (err) {
+                console.error('Erro ao exportar PNG:', err);
+                showToast('Não foi possível baixar a imagem. Tente usar "Imprimir / Salvar PDF".', 'error');
+            }
+        }
+
+        /**
+         * Auxiliar para desenhar retângulos com cantos arredondados no Canvas
+         */
+        function drawRoundedRect(ctx, x, y, width, height, radius, fillColor) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            if (fillColor) {
+                ctx.fillStyle = fillColor;
+                ctx.fill();
+            }
+        }
+
+        /**
+         * Volta para o formulário para realizar outra reserva
+         */
+        function startNewReservation() {
+            document.getElementById('reservation-form').reset();
+            document.getElementById('voucher-section').classList.add('hidden');
+            document.getElementById('booking-form-card').classList.remove('hidden');
+            selectedSeat = null;
+            updateSelectedBadge();
+            renderBusMap();
+        }
+
+        /**
+         * Restaura o mapa para o estado inicial de demonstração
+         */
+        function resetDemoData() {
+            occupiedSeats = [...DEFAULT_OCCUPIED];
+            selectedSeat = null;
+            saveOccupiedSeats();
+            updateSelectedBadge();
+            renderBusMap();
+            startNewReservation();
+            showToast('Mapa de assentos restaurado com sucesso.', 'info');
+        }
+
+        /**
+         * Máscaras leves para telefone e documento
+         */
+        function setupInputMasks() {
+            const phoneInput = document.getElementById('passenger-phone');
+            phoneInput.addEventListener('input', (e) => {
+                let v = e.target.value.replace(/\D/g, '');
+                if (v.length > 11) v = v.slice(0, 11);
+                if (v.length > 6) {
+                    e.target.value = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
+                } else if (v.length > 2) {
+                    e.target.value = `(${v.slice(0, 2)}) ${v.slice(2)}`;
+                } else if (v.length > 0) {
+                    e.target.value = `(${v}`;
+                }
+            });
+        }
+
+        /**
+         * Exibe notificação visual amigável (Toast)
+         */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            const colors = {
+                success: 'bg-slate-900 text-white border-emerald-500',
+                error: 'bg-red-600 text-white border-red-800',
+                info: 'bg-slate-800 text-white border-slate-600'
+            };
+
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border-l-4 text-xs sm:text-sm font-medium flex items-center justify-between gap-3 transition-all duration-300 ${colors[type] || colors.info}`;
+            toast.innerHTML = `<span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(8px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
