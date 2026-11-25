@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expresso Viação — Escolha de Poltronas e Quartos</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -453,7 +455,7 @@
                                 Nome Completo <span class="text-red-500">*</span>
                             </label>
                             <input type="text" id="passenger-name" required placeholder="Ex: Mariana Oliveira Santos"
-                                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
+                                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -461,16 +463,16 @@
                                 <label for="passenger-doc" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                                     CPF <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="passenger-doc" required maxlength="18" placeholder="000.000.000-00"
-                                    class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
+                                <input type="text" id="passenger-doc" inputmode="numeric" required maxlength="18" placeholder="000.000.000-00"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
                             </div>
 
                             <div>
                                 <label for="passenger-phone" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                                     Telefone / WhatsApp <span class="text-slate-400 font-normal">(Opcional)</span>
                                 </label>
-                                <input type="tel" id="passenger-phone" maxlength="15" placeholder="(11) 99999-9999"
-                                    class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
+                                <input type="tel" id="passenger-phone" inputmode="tel" maxlength="15" placeholder="(11) 99999-9999"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
                             </div>
                         </div>
 
@@ -660,14 +662,11 @@
 
         /**
          * SENHA DO PAINEL DO COORDENADOR
-         * Altere o valor abaixo para definir a senha desejada (padrão: '1234')
          */
         const ADMIN_PASSWORD = '2307';
 
         /**
-         * INTEGRAÇÃO OPCIONAL COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
-         * Cole abaixo a URL do seu Web App do Google Apps Script para sincronizar
-         * reservas de assentos e quartos em tempo real entre todos os aparelhos.
+         * INTEGRAÇÃO COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
          */
         const GOOGLE_SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwWE_wGxR7UGrnPHO7sGJa-huIU8GURD7-4Gd7GWYKUAWI69kh9JUcR0k4aC5z_paKv/exec';
 
@@ -733,9 +732,6 @@
             });
         });
 
-        /**
-         * Carrega assentos ocupados e registros detalhados do localStorage
-         */
         function loadOccupiedSeats() {
             try {
                 const saved = localStorage.getItem(STORAGE_KEY);
@@ -748,9 +744,6 @@
             }
         }
 
-        /**
-         * Salva lista de assentos e registros no localStorage
-         */
         function saveOccupiedSeats() {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(occupiedSeats));
@@ -760,9 +753,6 @@
             }
         }
 
-        /**
-         * Sincronização em nuvem (Google Sheets)
-         */
         async function syncFromCloudIfConfigured() {
             if (!GOOGLE_SHEETS_WEBHOOK_URL) return;
             isSyncing = true;
@@ -848,23 +838,14 @@
             return { ok: false };
         }
 
-        /**
-         * Formata número do assento com dois dígitos (ex: 1 -> "01")
-         */
         function formatSeatNum(num) {
             return String(num).padStart(2, '0');
         }
 
-        /**
-         * Retorna posição do assento (Janela ou Corredor)
-         */
         function getSeatPosition(num) {
             return num % 2 !== 0 ? 'Janela' : 'Corredor';
         }
 
-        /**
-         * Auxiliares dos Quartos
-         */
         function getRoomById(roomId) {
             return ROOMS_CONFIG.find(r => r.id === Number(roomId)) || null;
         }
@@ -879,9 +860,6 @@
             return getRoomOccupants(roomId).length >= room.capacity;
         }
 
-        /**
-         * Atualiza os contadores de poltronas e vagas de quartos no topo
-         */
         function updateAvailableCounter() {
             const freeSeats = TOTAL_SEATS - occupiedSeats.length;
             const seatCounterEl = document.getElementById('available-counter');
@@ -897,9 +875,6 @@
             }
         }
 
-        /**
-         * Renderiza todas as 46 poltronas do ônibus (2x2) e os 15 quartos
-         */
         function renderBusMap() {
             const grid = document.getElementById('bus-seats-grid');
             if (grid) {
@@ -938,9 +913,6 @@
             updateAvailableCounter();
         }
 
-        /**
-         * Cria o elemento visual de cada poltrona
-         */
         function createSeatButton(seatNumber) {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -980,9 +952,6 @@
             return div;
         }
 
-        /**
-         * Renderiza os 15 quartos (10 Triplos e 5 Duplos)
-         */
         function renderRoomsGrid() {
             const roomsGrid = document.getElementById('rooms-grid');
             if (!roomsGrid) return;
@@ -1049,9 +1018,6 @@
             });
         }
 
-        /**
-         * Trata o clique do usuário em um assento livre
-         */
         function handleSeatClick(seatNumber) {
             if (occupiedSeats.includes(seatNumber)) {
                 showToast(`A poltrona ${formatSeatNum(seatNumber)} já está ocupada.`, 'error');
@@ -1063,9 +1029,6 @@
             updateSelectedBadge();
         }
 
-        /**
-         * Trata o clique do usuário em um quarto com vagas
-         */
         function handleRoomClick(roomId) {
             if (isRoomFull(roomId)) {
                 showToast('Este quarto já está com todas as vagas preenchidas.', 'error');
@@ -1077,9 +1040,6 @@
             updateSelectedRoomBadge();
         }
 
-        /**
-         * Atualiza o indicador visual do assento selecionado no formulário
-         */
         function updateSelectedBadge() {
             const badge = document.getElementById('selected-seat-badge');
             if (!badge) return;
@@ -1096,9 +1056,6 @@
             badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Poltrona ${formatted} (${pos})</span>`;
         }
 
-        /**
-         * Atualiza o indicador visual do quarto selecionado no formulário
-         */
         function updateSelectedRoomBadge() {
             const badge = document.getElementById('selected-room-badge');
             if (!badge) return;
@@ -1114,9 +1071,6 @@
             badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>${room.label} (${room.type})</span>`;
         }
 
-        /**
-         * Processa a confirmação da reserva e gera o comprovante
-         */
         function setupFormListener() {
             const form = document.getElementById('reservation-form');
             form.addEventListener('submit', async (e) => {
@@ -1265,9 +1219,6 @@
             });
         }
 
-        /**
-         * Preenche o cartão visual do comprovante e gera o QR Code
-         */
         function renderVoucher(data) {
             document.getElementById('voucher-code').textContent = `#${data.code}`;
             document.getElementById('voucher-seat-number').textContent = data.seat;
@@ -1305,9 +1256,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        /**
-         * Prepara o formulário para uma nova reserva e retorna à tela de seleção
-         */
         function startNewReservation() {
             document.getElementById('reservation-form').reset();
             document.getElementById('voucher-section').classList.add('hidden');
@@ -1320,9 +1268,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        /**
-         * Máscaras automáticas para CPF e Telefone
-         */
         function setupInputMasks() {
             const docInput = document.getElementById('passenger-doc');
             const phoneInput = document.getElementById('passenger-phone');
@@ -1356,9 +1301,6 @@
             }
         }
 
-        /**
-         * Monta o link de check-in que será codificado no QR Code
-         */
         function buildValidationURL(data) {
             const currentUrl = window.location.href.split('?')[0];
             if (currentUrl.startsWith('http://') || currentUrl.startsWith('https://')) {
@@ -1373,9 +1315,6 @@
             return `BILHETE:${data.code}|POLTRONA:${data.seat}|QUARTO:${data.roomLabel || ''}|PASSAGEIRO:${data.name}`;
         }
 
-        /**
-         * Verifica se a página foi aberta através da leitura de um QR Code (?validar=...)
-         */
         function checkQRCodeValidationInURL() {
             const params = new URLSearchParams(window.location.search);
             const ticketCode = params.get('validar');
@@ -1457,9 +1396,6 @@
             window.history.replaceState({}, document.title, cleanUrl);
         }
 
-        /**
-         * Acesso secreto ao Painel do Coordenador (3 cliques no ícone do ônibus ou ?admin=1)
-         */
         function setupAdminTrigger() {
             const trigger = document.getElementById('admin-secret-trigger');
             let clickCount = 0;
@@ -1633,9 +1569,6 @@
             URL.revokeObjectURL(url);
         }
 
-        /**
-         * Gera e baixa o Cartão de Embarque em alta resolução (PNG)
-         */
         function downloadVoucherPNG() {
             if (!currentTicketData) return;
 
@@ -1743,9 +1676,6 @@
             triggerDownload();
         }
 
-        /**
-         * Exibe notificações toast na tela
-         */
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             if (!container) return;
