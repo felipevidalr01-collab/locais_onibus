@@ -158,42 +158,45 @@
         </div>
     </header>
 
-    <!-- Notificação Toast Flutuante (Substitui alert()) -->
+    <!-- Notificação Toast Flutuante -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
 
-    <!-- MODAL DE VALIDAÇÃO DE QR CODE (Aberto automaticamente ao escanear bilhete) -->
+    <!-- MODAL DE VALIDAÇÃO DE EMBARQUE (Exibido ao escanear o QR Code) -->
     <div id="qr-validation-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200">
-            <div id="val-header" class="bg-emerald-600 text-white px-6 py-6 text-center">
-                <div id="val-icon" class="w-14 h-14 rounded-full bg-white/20 mx-auto mb-3 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            <div id="val-header" class="bg-emerald-600 text-white px-6 py-5 text-center">
+                <div id="val-icon-wrap" class="w-14 h-14 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
                 </div>
                 <span id="val-badge" class="text-[11px] uppercase tracking-widest font-bold bg-black/20 px-3 py-1 rounded-full">Check-in Realizado</span>
-                <h2 id="val-title" class="text-2xl font-black mt-2">Embarque Liberado!</h2>
+                <h2 id="val-title" class="text-xl font-extrabold mt-2">Embarque Liberado!</h2>
             </div>
 
             <div class="p-6 space-y-4">
-                <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex items-center justify-between">
                     <div>
                         <span class="text-[11px] font-bold uppercase text-slate-400 block">Poltrona</span>
-                        <span id="val-seat" class="text-4xl font-black font-mono text-slate-900">00</span>
+                        <span id="val-seat" class="text-3xl font-black font-mono text-slate-900">00</span>
                     </div>
                     <div class="text-right">
                         <span class="text-[11px] font-bold uppercase text-slate-400 block">Código do Bilhete</span>
-                        <span id="val-code" class="font-mono text-sm font-bold text-slate-800">#BUS-0000</span>
-                        <span id="val-status-text" class="block text-xs font-semibold text-emerald-600 mt-1">Presente no ônibus</span>
+                        <span id="val-code" class="text-sm font-bold font-mono text-slate-800">#BUS-0000</span>
                     </div>
                 </div>
 
                 <div>
                     <span class="text-[11px] font-bold uppercase text-slate-400 block">Passageiro(a)</span>
-                    <p id="val-name" class="text-lg font-bold text-slate-900">—</p>
+                    <p id="val-name" class="text-base font-bold text-slate-900">—</p>
                 </div>
 
-                <div id="val-warning-box" class="hidden bg-amber-50 border border-amber-300 text-amber-900 text-xs p-3 rounded-xl font-medium"></div>
+                <p id="val-message" class="text-xs text-slate-600 bg-slate-100 p-3 rounded-xl leading-relaxed">
+                    Presença confirmada na lista de embarque deste veículo.
+                </p>
 
                 <div class="grid grid-cols-2 gap-3 pt-2">
-                    <button type="button" onclick="openCoordinatorPanel(); closeValidationModal();" class="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition cursor-pointer">
+                    <button type="button" onclick="requestCoordinatorAccess(); closeValidationModal();" class="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition cursor-pointer">
                         Ver Lista Geral
                     </button>
                     <button type="button" onclick="closeValidationModal()" class="py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer">
@@ -204,7 +207,42 @@
         </div>
     </div>
 
-    <!-- PAINEL DO COORDENADOR (Acesso secreto: 3 cliques no ícone do ônibus ou ?admin=1) -->
+    <!-- MODAL DE SENHA DO COORDENADOR -->
+    <div id="admin-password-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-200">
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Acesso Restrito</span>
+                    <h2 class="text-base font-bold">Senha do Coordenador</h2>
+                </div>
+                <button type="button" onclick="closePasswordModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form id="admin-password-form" class="p-6 space-y-4">
+                <div>
+                    <label for="admin-password-input" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                        Digite a senha de acesso
+                    </label>
+                    <input type="password" id="admin-password-input" autocomplete="off" placeholder="••••"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 text-center font-mono text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-slate-900 transition">
+                    <p id="admin-password-error" class="hidden text-xs font-semibold text-red-600 mt-2 text-center">
+                        Senha incorreta. Tente novamente.
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 gap-2.5 pt-1">
+                    <button type="button" onclick="closePasswordModal()" class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer">
+                        Entrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PAINEL DO COORDENADOR (Acesso protegido por senha após 3 cliques no ícone do ônibus ou ?admin=1) -->
     <div id="coordinator-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[88vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200">
             <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
@@ -535,9 +573,15 @@
          * Lado Direito (Porta): Corredor (par), Janela (ímpar) -> Ex: 04, 03
          */
         const TOTAL_SEATS = 46;
-        const STORAGE_KEY = 'bus_seat_reservations_v2';
-        const RECORDS_STORAGE_KEY = 'bus_seat_records_v2';
+        const STORAGE_KEY = 'bus_seat_reservations_v3';
+        const RECORDS_STORAGE_KEY = 'bus_seat_records_v3';
         const DEFAULT_BOARDING_POINT = 'Embarque Único — Saída Principal';
+
+        /**
+         * SENHA DO PAINEL DO COORDENADOR
+         * Altere o valor abaixo para definir a senha desejada (padrão: '1234')
+         */
+        const ADMIN_PASSWORD = '1234';
 
         /**
          * INTEGRAÇÃO OPCIONAL COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
@@ -546,12 +590,9 @@
          */
         const GOOGLE_SHEETS_WEBHOOK_URL = '';
 
-        // Nenhum assento previamente ocupado: todos começam livres
-        const DEFAULT_OCCUPIED = [];
-
         // Estado da aplicação
         let occupiedSeats = [];
-        let seatRecords = {}; // Mapa { [seatNum]: { code, seat, position, name, doc, phone, datetime, boarded, boardedAt } }
+        let seatRecords = {};
         let selectedSeat = null;
         let currentTicketData = null;
 
@@ -565,7 +606,7 @@
             setupInputMasks();
             setupFormListener();
             setupAdminTrigger();
-            checkQRValidationParams();
+            checkQRCodeValidationInURL();
         });
 
         /**
@@ -573,27 +614,19 @@
          */
         function loadOccupiedSeats() {
             try {
+                const savedSeats = localStorage.getItem(STORAGE_KEY);
                 const savedRecords = localStorage.getItem(RECORDS_STORAGE_KEY);
+                if (savedSeats) {
+                    const parsed = JSON.parse(savedSeats);
+                    if (Array.isArray(parsed)) occupiedSeats = parsed;
+                }
                 if (savedRecords) {
                     const parsedRec = JSON.parse(savedRecords);
-                    if (parsedRec && typeof parsedRec === 'object') {
-                        seatRecords = parsedRec;
-                    }
-                }
-
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed)) {
-                        occupiedSeats = parsed;
-                        return;
-                    }
+                    if (parsedRec && typeof parsedRec === 'object') seatRecords = parsedRec;
                 }
             } catch (err) {
                 console.warn('Erro ao ler armazenamento local:', err);
             }
-            occupiedSeats = [...DEFAULT_OCCUPIED];
-            saveOccupiedSeats();
         }
 
         /**
@@ -609,16 +642,16 @@
         }
 
         /**
-         * Sincronização com Google Sheets (quando GOOGLE_SHEETS_WEBHOOK_URL estiver preenchida)
+         * Sincronização opcional com Google Sheets
          */
         async function syncFromCloudIfConfigured() {
             if (!GOOGLE_SHEETS_WEBHOOK_URL) return;
             try {
                 const res = await fetch(GOOGLE_SHEETS_WEBHOOK_URL);
                 const data = await res.json();
-                if (data && Array.isArray(data.records)) {
-                    seatRecords = {};
+                if (Array.isArray(data.records)) {
                     occupiedSeats = [];
+                    seatRecords = {};
                     data.records.forEach(rec => {
                         const sNum = Number(rec.seatRaw);
                         if (sNum >= 1 && sNum <= TOTAL_SEATS) {
@@ -628,8 +661,8 @@
                     });
                     saveOccupiedSeats();
                 }
-            } catch (err) {
-                console.warn('Sincronização em nuvem indisponível no momento:', err);
+            } catch (e) {
+                console.warn('Falha na sincronização com Google Sheets:', e);
             }
         }
 
@@ -642,21 +675,15 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action, record })
                 });
-            } catch (err) {
-                console.warn('Falha ao enviar para planilha:', err);
+            } catch (e) {
+                console.warn('Erro ao enviar registro para nuvem:', e);
             }
         }
 
-        /**
-         * Formata número do assento com dois dígitos (ex: 1 -> 01)
-         */
         function formatSeatNum(num) {
             return String(num).padStart(2, '0');
         }
 
-        /**
-         * Retorna se o assento é Janela ou Corredor
-         */
         function getSeatPosition(seatNum) {
             return seatNum % 2 !== 0 ? 'Janela' : 'Corredor';
         }
@@ -672,33 +699,28 @@
 
             for (let row = 0; row < totalRows; row++) {
                 const base = row * 4;
-                const leftWindow = base + 1;   // Ex: 01
-                const leftAisle = base + 2;    // Ex: 02
-                const rightAisle = base + 4;   // Ex: 04
-                const rightWindow = base + 3;  // Ex: 03
+                const leftWindow = base + 1;
+                const leftAisle = base + 2;
+                const rightAisle = base + 4;
+                const rightWindow = base + 3;
 
                 const rowEl = document.createElement('div');
                 rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
 
-                // Coluna 1: Janela Esquerda
                 rowEl.appendChild(createSeatElement(leftWindow));
-                // Coluna 2: Corredor Esquerdo
                 rowEl.appendChild(createSeatElement(leftAisle));
 
-                // Coluna 3: Corredor Central (número da fileira)
                 const aisleEl = document.createElement('div');
                 aisleEl.className = 'text-center text-[10px] font-mono text-slate-400 select-none';
                 aisleEl.textContent = `F${row + 1}`;
                 rowEl.appendChild(aisleEl);
 
-                // Coluna 4: Corredor Direito
                 if (rightAisle <= TOTAL_SEATS) {
                     rowEl.appendChild(createSeatElement(rightAisle));
                 } else {
                     rowEl.appendChild(document.createElement('div'));
                 }
 
-                // Coluna 5: Janela Direita
                 if (rightWindow <= TOTAL_SEATS) {
                     rowEl.appendChild(createSeatElement(rightWindow));
                 } else {
@@ -711,9 +733,6 @@
             updateAvailableCounter();
         }
 
-        /**
-         * Cria o botão HTML de uma poltrona individual
-         */
         function createSeatElement(seatNum) {
             if (seatNum > TOTAL_SEATS) return document.createElement('div');
 
@@ -744,25 +763,13 @@
             return btn;
         }
 
-        /**
-         * Trata o clique/toque em uma poltrona livre
-         */
         function handleSeatClick(seatNum) {
             if (occupiedSeats.includes(seatNum)) return;
-
-            if (selectedSeat === seatNum) {
-                selectedSeat = null;
-            } else {
-                selectedSeat = seatNum;
-            }
-
+            selectedSeat = selectedSeat === seatNum ? null : seatNum;
             updateSelectedBadge();
             renderBusMap();
         }
 
-        /**
-         * Atualiza o indicador visual da poltrona escolhida no formulário
-         */
         function updateSelectedBadge() {
             const badge = document.getElementById('selected-seat-badge');
             if (!selectedSeat) {
@@ -778,9 +785,6 @@
             }
         }
 
-        /**
-         * Atualiza o contador de assentos livres no cabeçalho
-         */
         function updateAvailableCounter() {
             const freeCount = Math.max(0, TOTAL_SEATS - occupiedSeats.length);
             const counterEl = document.getElementById('available-counter');
@@ -837,7 +841,7 @@
                     boarding: DEFAULT_BOARDING_POINT,
                     datetime: `${formattedDate} às ${formattedTime}`,
                     boarded: false,
-                    boardedAt: null
+                    boardedAt: ''
                 };
 
                 occupiedSeats.push(selectedSeat);
@@ -846,16 +850,12 @@
                 pushRecordToCloud('RESERVE', ticketData);
 
                 currentTicketData = ticketData;
-
-                // Preenche o comprovante na tela
                 renderVoucher(ticketData);
 
-                // Limpa seleção atual e atualiza o mapa
                 selectedSeat = null;
                 updateSelectedBadge();
                 renderBusMap();
 
-                // Alterna visualização para o comprovante
                 document.getElementById('booking-form-card').classList.add('hidden');
                 const voucherSec = document.getElementById('voucher-section');
                 voucherSec.classList.remove('hidden');
@@ -866,7 +866,7 @@
         }
 
         /**
-         * Preenche os dados no cartão visual do comprovante e gera o QR Code nativo
+         * Preenche os dados no cartão visual do comprovante e gera o QR Code
          */
         function renderVoucher(data) {
             document.getElementById('voucher-code').textContent = data.code;
@@ -878,103 +878,79 @@
             document.getElementById('voucher-boarding').textContent = data.boarding;
             document.getElementById('voucher-datetime').textContent = data.datetime;
 
-            // Gera QR Code contendo URL de validação automática para leitura pela câmera
             const qrContainer = document.getElementById('qrcode-container');
             qrContainer.innerHTML = '';
 
-            const baseUrl = window.location.href.split('?')[0].split('#')[0];
-            const validationParams = new URLSearchParams({
-                validar: data.code.replace('#', ''),
-                p: data.seat,
-                n: data.name.slice(0, 32)
-            });
+            const isWebHosted = window.location.protocol.startsWith('http');
+            const cleanCode = data.code.replace('#', '');
+            const qrPayload = isWebHosted
+                ? `${window.location.origin}${window.location.pathname}?validar=${encodeURIComponent(cleanCode)}&p=${data.seat}&n=${encodeURIComponent(data.name.slice(0, 28))}`
+                : `${data.code} | Poltrona ${data.seat} | ${data.name.slice(0, 28)}`;
 
-            // Usa link completo quando hospedado na web (http/https) para abrir direto ao apontar a câmera
-            const qrPayload = baseUrl.startsWith('http')
-                ? `${baseUrl}?${validationParams.toString()}`
-                : `VALIDAR:${data.code}|POLTRONA:${data.seat}|${data.name}`;
-
-            const qrCanvas = createNativeQRCanvas(qrPayload, 116);
+            const qrCanvas = createNativeQRCanvas(qrPayload, 112);
             qrContainer.appendChild(qrCanvas);
         }
 
         /**
-         * Verifica se a página foi aberta através da leitura de um QR Code (?validar=...)
+         * Verifica se a URL atual veio da leitura de um QR Code (?validar=...)
          */
-        function checkQRValidationParams() {
+        function checkQRCodeValidationInURL() {
             const params = new URLSearchParams(window.location.search);
-            const rawCode = params.get('validar');
-            const seatStr = params.get('p');
-            const passengerName = params.get('n') || 'Passageiro Identificado';
+            const validarCode = params.get('validar');
+            if (!validarCode) return;
 
-            if (!rawCode || !seatStr) return;
+            const seatParam = Number(params.get('p') || 0);
+            const nameParam = params.get('n') || 'Passageiro';
+            const fullCode = validarCode.startsWith('#') ? validarCode : `#${validarCode}`;
 
-            const code = rawCode.startsWith('#') ? rawCode : `#${rawCode}`;
-            const seatNum = parseInt(seatStr, 10);
+            const modal = document.getElementById('qr-validation-modal');
+            const header = document.getElementById('val-header');
+            const badge = document.getElementById('val-badge');
+            const title = document.getElementById('val-title');
+            const msg = document.getElementById('val-message');
 
-            // Limpa os parâmetros da barra de endereços sem recarregar
-            window.history.replaceState({}, document.title, window.location.pathname);
+            document.getElementById('val-seat').textContent = formatSeatNum(seatParam);
+            document.getElementById('val-code').textContent = fullCode;
 
-            let record = seatRecords[seatNum];
-            const warningBox = document.getElementById('val-warning-box');
-            const headerEl = document.getElementById('val-header');
-            const titleEl = document.getElementById('val-title');
-            const badgeEl = document.getElementById('val-badge');
-            const statusTextEl = document.getElementById('val-status-text');
+            const existing = seatRecords[seatParam];
 
-            warningBox.classList.add('hidden');
-
-            // Se o QR Code foi lido no celular do coordenador (onde a reserva ainda não estava no cache local), registra automaticamente
-            if (!record) {
-                record = {
-                    code,
-                    seat: formatSeatNum(seatNum),
-                    seatRaw: seatNum,
-                    position: getSeatPosition(seatNum),
-                    name: passengerName,
-                    doc: 'Validado via QR',
-                    phone: '—',
-                    boarding: DEFAULT_BOARDING_POINT,
-                    datetime: new Date().toLocaleString('pt-BR'),
-                    boarded: false,
-                    boardedAt: null
-                };
-                if (!occupiedSeats.includes(seatNum)) {
-                    occupiedSeats.push(seatNum);
-                }
-            }
-
-            if (record.boarded && record.code === code) {
-                // Bilhete já havia sido escaneado anteriormente
-                headerEl.className = 'bg-amber-500 text-slate-950 px-6 py-6 text-center';
-                badgeEl.textContent = 'Atenção • Leitura Duplicada';
-                titleEl.textContent = 'Bilhete Já Utilizado';
-                statusTextEl.textContent = `Check-in feito às ${record.boardedAt}`;
-                statusTextEl.className = 'block text-xs font-bold text-amber-700 mt-1';
-                warningBox.textContent = `Este QR Code já foi validado anteriormente às ${record.boardedAt}. Verifique se é o mesmo passageiro.`;
-                warningBox.classList.remove('hidden');
+            if (existing && existing.boarded) {
+                header.className = 'bg-amber-500 text-slate-950 px-6 py-5 text-center';
+                badge.textContent = 'Atenção • Leitura Repetida';
+                title.textContent = 'Bilhete Já Utilizado!';
+                document.getElementById('val-name').textContent = existing.name;
+                msg.textContent = `Este QR Code já teve o embarque registrado anteriormente às ${existing.boardedAt}.`;
             } else {
-                // Primeira leitura: libera embarque e marca como presente
                 const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                record.boarded = true;
-                record.boardedAt = nowTime;
-                seatRecords[seatNum] = record;
+                if (!occupiedSeats.includes(seatParam) && seatParam >= 1 && seatParam <= TOTAL_SEATS) {
+                    occupiedSeats.push(seatParam);
+                }
+                seatRecords[seatParam] = {
+                    ...(existing || {}),
+                    code: fullCode,
+                    seat: formatSeatNum(seatParam),
+                    seatRaw: seatParam,
+                    position: getSeatPosition(seatParam),
+                    name: existing?.name || nameParam,
+                    boarded: true,
+                    boardedAt: nowTime
+                };
                 saveOccupiedSeats();
-                pushRecordToCloud('CHECKIN', record);
+                pushRecordToCloud('CHECKIN', seatRecords[seatParam]);
                 renderBusMap();
 
-                headerEl.className = 'bg-emerald-600 text-white px-6 py-6 text-center';
-                badgeEl.textContent = 'Check-in Confirmado';
-                titleEl.textContent = 'Embarque Liberado!';
-                statusTextEl.textContent = `Embarcado às ${nowTime}`;
-                statusTextEl.className = 'block text-xs font-semibold text-emerald-600 mt-1';
+                header.className = 'bg-emerald-600 text-white px-6 py-5 text-center';
+                badge.textContent = `Check-in às ${nowTime}`;
+                title.textContent = 'Embarque Liberado!';
+                document.getElementById('val-name').textContent = seatRecords[seatParam].name;
+                msg.textContent = 'Passageiro validado com sucesso e marcado como presente no controle do ônibus.';
             }
 
-            document.getElementById('val-seat').textContent = formatSeatNum(seatNum);
-            document.getElementById('val-code').textContent = code;
-            document.getElementById('val-name').textContent = record.name;
+            modal.classList.remove('hidden');
 
-            document.getElementById('qr-validation-modal').classList.remove('hidden');
+            try {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } catch (e) {}
         }
 
         function closeValidationModal() {
@@ -982,12 +958,14 @@
         }
 
         /**
-         * Acesso discreto ao Painel do Coordenador (3 cliques rápidos no ícone do ônibus ou ?admin=1)
+         * Acesso discreto e protegido por senha ao Painel do Coordenador (3 cliques no ícone do ônibus ou ?admin=1)
          */
+        let isAdminAuthenticated = false;
+
         function setupAdminTrigger() {
             const params = new URLSearchParams(window.location.search);
             if (params.get('admin') === '1') {
-                openCoordinatorPanel();
+                requestCoordinatorAccess();
             }
 
             const trigger = document.getElementById('admin-secret-trigger');
@@ -998,11 +976,48 @@
                 clearTimeout(timer);
                 if (clicks >= 3) {
                     clicks = 0;
-                    openCoordinatorPanel();
+                    requestCoordinatorAccess();
                 } else {
                     timer = setTimeout(() => { clicks = 0; }, 900);
                 }
             });
+
+            const pwdForm = document.getElementById('admin-password-form');
+            pwdForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const input = document.getElementById('admin-password-input');
+                const errorEl = document.getElementById('admin-password-error');
+
+                if (input.value === ADMIN_PASSWORD) {
+                    isAdminAuthenticated = true;
+                    errorEl.classList.add('hidden');
+                    input.value = '';
+                    closePasswordModal();
+                    openCoordinatorPanel();
+                } else {
+                    errorEl.classList.remove('hidden');
+                    input.value = '';
+                    input.focus();
+                }
+            });
+        }
+
+        function requestCoordinatorAccess() {
+            if (isAdminAuthenticated) {
+                openCoordinatorPanel();
+                return;
+            }
+            const modal = document.getElementById('admin-password-modal');
+            const input = document.getElementById('admin-password-input');
+            const errorEl = document.getElementById('admin-password-error');
+            errorEl.classList.add('hidden');
+            input.value = '';
+            modal.classList.remove('hidden');
+            setTimeout(() => input.focus(), 50);
+        }
+
+        function closePasswordModal() {
+            document.getElementById('admin-password-modal').classList.add('hidden');
         }
 
         function openCoordinatorPanel() {
