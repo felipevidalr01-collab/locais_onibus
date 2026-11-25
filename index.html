@@ -468,12 +468,20 @@
                             </div>
 
                             <div>
-                                <label for="passenger-phone" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                                    Telefone / WhatsApp <span class="text-slate-400 font-normal">(Opcional)</span>
+                                <label for="passenger-email" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                    E-mail <span class="text-red-500">*</span>
                                 </label>
-                                <input type="tel" id="passenger-phone" maxlength="15" placeholder="(11) 99999-9999"
+                                <input type="email" id="passenger-email" required placeholder="passageiro@email.com"
                                     class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
                             </div>
+                        </div>
+
+                        <div>
+                            <label for="passenger-phone" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                Telefone / WhatsApp <span class="text-slate-400 font-normal">(Opcional)</span>
+                            </label>
+                            <input type="tel" id="passenger-phone" maxlength="15" placeholder="(11) 99999-9999"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
                         </div>
 
                         <div class="pt-2">
@@ -556,15 +564,20 @@
                         <p id="voucher-name" class="font-bold text-slate-900 text-base break-words">—</p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Documento</span>
                             <p id="voucher-doc" class="font-medium text-slate-800 font-mono text-xs sm:text-sm">Não informado</p>
                         </div>
                         <div>
-                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Telefone</span>
-                            <p id="voucher-phone" class="font-medium text-slate-800 text-xs sm:text-sm">Não informado</p>
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">E-mail</span>
+                            <p id="voucher-email" class="font-medium text-slate-800 text-xs sm:text-sm break-all">Não informado</p>
                         </div>
+                    </div>
+
+                    <div>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Telefone</span>
+                        <p id="voucher-phone" class="font-medium text-slate-800 text-xs sm:text-sm">Não informado</p>
                     </div>
 
                     <div>
@@ -598,7 +611,7 @@
                 </div>
             </div>
 
-            <!-- Botões de Download, Impressão e Nova Reserva -->
+            <!-- Botões de Download, Impressão, E-mail e Nova Reserva -->
             <div class="max-w-md mx-auto mt-5 space-y-3 no-print">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button type="button" onclick="downloadVoucherPNG()"
@@ -806,6 +819,7 @@
                                 ...r,
                                 seatRaw: seatNum,
                                 seat: formatSeatNum(seatNum),
+                                email: r.email || '',
                                 roomId: r.roomId ? Number(r.roomId) : null
                             };
                         }
@@ -1152,11 +1166,13 @@
 
                 const nameInput = document.getElementById('passenger-name');
                 const docInput = document.getElementById('passenger-doc');
+                const emailInput = document.getElementById('passenger-email');
                 const phoneInput = document.getElementById('passenger-phone');
                 const submitBtn = document.getElementById('confirm-btn');
 
                 const name = nameInput.value.trim();
                 const doc = docInput.value.trim();
+                const email = emailInput.value.trim();
                 const phone = phoneInput.value.trim() || 'Não informado';
                 const boarding = DEFAULT_BOARDING_POINT;
 
@@ -1170,6 +1186,12 @@
                 if (normalizedCpf.length !== 11) {
                     showToast('Informe um CPF válido com 11 dígitos.', 'error');
                     docInput.focus();
+                    return;
+                }
+
+                if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    showToast('Informe um endereço de e-mail válido.', 'error');
+                    emailInput.focus();
                     return;
                 }
 
@@ -1237,6 +1259,7 @@
                     roomType: `${selectedRoom.type} (${selectedRoom.capacity} lugares)`,
                     name,
                     doc,
+                    email,
                     phone,
                     boarding,
                     datetime: `${formattedDate} às ${formattedTime}`,
@@ -1293,9 +1316,15 @@
             document.getElementById('voucher-room-type').textContent = data.roomType || '';
             document.getElementById('voucher-name').textContent = data.name;
             document.getElementById('voucher-doc').textContent = data.doc;
+            document.getElementById('voucher-email').textContent = data.email || 'Não informado';
             document.getElementById('voucher-phone').textContent = data.phone;
             document.getElementById('voucher-boarding').textContent = data.boarding;
             document.getElementById('voucher-datetime').textContent = data.datetime;
+
+            const emailInput = document.getElementById('voucher-email-input');
+            if (emailInput) {
+                emailInput.value = data.email || '';
+            }
 
             const qrContainer = document.getElementById('qrcode-container');
             qrContainer.innerHTML = '';
@@ -1564,14 +1593,15 @@
                 const item = document.createElement('div');
                 item.className = 'p-3 rounded-2xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2';
                 item.innerHTML = `
-                    <div class="flex items-start gap-3">
+                    <div class="flex items-start gap-3 min-w-0">
                         <span class="px-2.5 py-1.5 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs shrink-0">${r.seat}</span>
-                        <div>
-                            <p class="text-xs sm:text-sm font-bold text-slate-900">${r.name}</p>
+                        <div class="min-w-0">
+                            <p class="text-xs sm:text-sm font-bold text-slate-900 truncate">${r.name}</p>
                             <p class="text-[11px] text-slate-500 font-mono">CPF: ${r.doc} • ${r.roomLabel || 'Sem quarto'} • #${r.code}</p>
+                            <p class="text-[11px] text-slate-400 truncate">${r.email || 'Sem e-mail cadastrado'}</p>
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2 self-end sm:self-center">
+                    <div class="flex flex-wrap items-center gap-2 self-end sm:self-center shrink-0">
                         <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${r.boarded ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
                             ${r.boarded ? `Embarcado (${r.boardedAt})` : 'Aguardando'}
                         </span>
@@ -1580,6 +1610,9 @@
                                 Check-in Manual
                             </button>
                         ` : ''}
+                        <button type="button" onclick="sendAdminPassengerEmail(${r.seatRaw})" class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] border border-indigo-200 cursor-pointer">
+                            Enviar E-mail
+                        </button>
                         <button type="button" onclick="releaseSingleSeat(${r.seatRaw})" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[11px] border border-red-200 cursor-pointer">
                             Liberar
                         </button>
@@ -1587,6 +1620,37 @@
                 `;
                 listEl.appendChild(item);
             });
+        }
+
+        /**
+         * Envia por e-mail o link do QR Code do passageiro diretamente da tela do administrador
+         */
+        function sendAdminPassengerEmail(seatNum) {
+            const record = seatRecords[seatNum];
+            if (!record) return;
+
+            const recipientEmail = record.email || '';
+            const qrLink = buildValidationURL(record);
+            const subject = encodeURIComponent(`Cartão de Embarque #${record.code} — Poltrona ${record.seat}`);
+            const body = encodeURIComponent(
+                `Olá, ${record.name}!\n\n` +
+                `Aqui está o link para acessar sua tela de QR Code e Cartão de Embarque:\n${qrLink}\n\n` +
+                `Detalhes da reserva:\n` +
+                `• Código: #${record.code}\n` +
+                `• Poltrona: ${record.seat} (${record.position})\n` +
+                `• Quarto: ${record.roomLabel || 'Não informado'} (${record.roomType || ''})\n` +
+                `• Embarque: ${record.boarding || DEFAULT_BOARDING_POINT}\n` +
+                `• Emitido em: ${record.datetime || ''}`
+            );
+
+            const mailtoUrl = `mailto:${encodeURIComponent(recipientEmail)}?subject=${subject}&body=${body}`;
+            window.location.href = mailtoUrl;
+            showToast(
+                recipientEmail
+                    ? `Abrindo e-mail para ${recipientEmail}...`
+                    : `Abrindo aplicativo de e-mail para ${record.name}...`,
+                'info'
+            );
         }
 
         /**
@@ -1682,7 +1746,7 @@
 
         function exportManifestCSV() {
             const records = Object.values(seatRecords).sort((a, b) => a.seatRaw - b.seatRaw);
-            const headers = ['Poltrona', 'Posicao', 'Quarto', 'TipoQuarto', 'Codigo', 'Nome', 'CPF', 'Telefone', 'Embarcado', 'HoraCheckin'];
+            const headers = ['Poltrona', 'Posicao', 'Quarto', 'TipoQuarto', 'Codigo', 'Nome', 'CPF', 'Email', 'Telefone', 'Embarcado', 'HoraCheckin'];
             const lines = [headers.join(';')];
 
             records.forEach(r => {
@@ -1694,6 +1758,7 @@
                     r.code,
                     `"${r.name}"`,
                     r.doc,
+                    r.email || '',
                     r.phone,
                     r.boarded ? 'SIM' : 'NAO',
                     r.boardedAt || ''
@@ -1772,7 +1837,7 @@
             const fields = [
                 { label: 'PASSAGEIRO(A)', value: currentTicketData.name, y: 380 },
                 { label: 'DOCUMENTO (CPF)', value: currentTicketData.doc, y: 470 },
-                { label: 'TELEFONE', value: currentTicketData.phone, y: 560 },
+                { label: 'E-MAIL / TELEFONE', value: `${currentTicketData.email || 'Sem e-mail'} • ${currentTicketData.phone}`, y: 560 },
                 { label: 'LOCAL DE EMBARQUE', value: currentTicketData.boarding, y: 650 },
                 { label: 'DATA E HORA DA EMISSÃO', value: currentTicketData.datetime, y: 740 }
             ];
