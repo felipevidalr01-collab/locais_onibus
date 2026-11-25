@@ -1616,20 +1616,24 @@
             isSyncing = true;
             try {
                 const qrLink = buildValidationURL(record);
-                record.emailSent = true;
-                saveOccupiedSeats();
-                renderCoordinatorList();
-
                 const res = await pushRecordToCloud('SEND_EMAIL', {
                     ...record,
                     qrLink
                 });
 
-                if (res && res.status === 'NO_EMAIL') {
+                if (!res || !res.ok) {
+                    showToast('Não foi possível comunicar com a planilha para enviar o e-mail.', 'error');
+                    return;
+                }
+
+                if (res.status === 'NO_EMAIL') {
                     showToast('A coluna de e-mail na planilha está vazia para este passageiro.', 'error');
                     return;
                 }
 
+                record.emailSent = true;
+                saveOccupiedSeats();
+                renderCoordinatorList();
                 showToast(`E-mail disparado para ${record.email} e checkbox marcada na planilha!`, 'success');
             } finally {
                 isSyncing = false;
