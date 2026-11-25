@@ -10,8 +10,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-    <!-- Three.js para visualização 3D interativa do ônibus -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -146,7 +144,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-lg sm:text-xl font-bold tracking-tight leading-tight">Reserva de Assentos 3D</h1>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight leading-tight">Reserva de Assentos</h1>
                     <p class="text-xs text-slate-400">Ônibus Executivo Semileito • 46 Lugares</p>
                 </div>
             </div>
@@ -312,54 +310,97 @@
     <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-            <!-- COLUNA ESQUERDA: Mapa 3D Interativo do Ônibus (1 Andar - 46 Lugares) -->
+            <!-- COLUNA ESQUERDA: Mapa Interativo do Ônibus -->
             <section class="lg:col-span-6 xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 no-print">
-                <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h2 class="text-base sm:text-lg font-bold text-slate-900">1. Escolha sua Poltrona (3D)</h2>
-                        <p class="text-xs text-slate-500">Arraste para girar o ônibus e toque no assento livre</p>
-                    </div>
-                    <!-- Botões rápidos de câmera 3D -->
-                    <div class="flex items-center gap-1 shrink-0">
-                        <button type="button" onclick="setCameraView('top')" title="Visão de cima" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition cursor-pointer">
-                            Topo
-                        </button>
-                        <button type="button" onclick="setCameraView('angle')" title="Visão em perspectiva 3D" class="px-2.5 py-1.5 rounded-lg bg-slate-900 text-white text-[11px] font-bold transition cursor-pointer">
-                            3D
-                        </button>
-                        <button type="button" onclick="setCameraView('front')" title="Visão interna frontal" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition cursor-pointer">
-                            Frente
-                        </button>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900">1. Escolha sua Poltrona</h2>
+                        <p class="text-xs text-slate-500">Toque em um assento livre (verde) para selecionar</p>
                     </div>
                 </div>
 
                 <!-- Legenda -->
-                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200/80 mb-4 text-xs font-medium">
+                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200/80 mb-5 text-xs font-medium">
                     <div class="flex items-center justify-center gap-2">
-                        <span class="w-4 h-4 rounded bg-emerald-500 border border-emerald-600 inline-block shadow-sm"></span>
+                        <span class="w-4 h-4 rounded bg-white border-2 border-emerald-500 inline-block"></span>
                         <span class="text-slate-700">Livre</span>
                     </div>
                     <div class="flex items-center justify-center gap-2">
-                        <span class="w-4 h-4 rounded bg-sky-500 border border-sky-700 inline-block shadow-sm"></span>
+                        <span class="w-4 h-4 rounded bg-slate-900 border-2 border-slate-900 inline-block"></span>
                         <span class="text-slate-700">Selecionada</span>
                     </div>
                     <div class="flex items-center justify-center gap-2">
-                        <span class="w-4 h-4 rounded bg-slate-300 border border-slate-400 inline-block"></span>
+                        <span class="w-4 h-4 rounded bg-slate-200 border-2 border-slate-300 inline-block"></span>
                         <span class="text-slate-500">Ocupada</span>
                     </div>
                 </div>
 
-                <!-- Viewport 3D do Ônibus -->
-                <div id="bus-3d-container" class="relative w-full h-[460px] sm:h-[510px] rounded-2xl overflow-hidden border-2 border-slate-200 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200 select-none touch-none cursor-grab active:cursor-grabbing">
-                    <!-- Badge flutuante de hover sobre poltrona 3D -->
-                    <div id="hover-seat-tooltip" class="hidden pointer-events-none absolute top-3 left-3 z-10 px-3 py-1.5 rounded-xl bg-slate-900/90 text-white text-xs font-semibold shadow-lg backdrop-blur-sm">
-                        Poltrona 01 • Janela
+                <!-- Carroceria do Ônibus -->
+                <div class="max-w-[330px] mx-auto bg-slate-100 rounded-t-[44px] rounded-b-3xl border-4 border-slate-300 p-3.5 shadow-inner relative">
+                    
+                    <!-- Para-brisa / Frente -->
+                    <div class="text-center mb-2">
+                        <span class="text-[10px] uppercase tracking-widest font-bold text-slate-400">Frente do Veículo</span>
                     </div>
 
-                    <!-- Dica de interação na parte inferior -->
-                    <div class="pointer-events-none absolute bottom-3 inset-x-3 z-10 flex items-center justify-between text-[11px] text-slate-600 bg-white/85 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-slate-200/80 shadow-sm">
-                        <span class="font-semibold">Arraste: Girar • Pinça/Scroll: Zoom</span>
-                        <span class="font-mono text-[10px] text-slate-400">Frente ↑</span>
+                    <!-- Cabine do Motorista e Porta de Entrada -->
+                    <div class="grid grid-cols-2 gap-3 pb-3 mb-3 border-b-2 border-dashed border-slate-300">
+                        <!-- Motorista -->
+                        <div class="bg-slate-200/90 rounded-xl p-2.5 flex items-center gap-2 border border-slate-300">
+                            <div class="w-7 h-7 rounded-full bg-slate-700 text-white flex items-center justify-center shrink-0">
+                                <!-- Volante SVG -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 14v7"/><path d="M10 12 3.5 9.5"/><path d="M14 12l6.5-2.5"/>
+                                </svg>
+                            </div>
+                            <div class="leading-tight">
+                                <span class="block text-[11px] font-bold text-slate-700">Motorista</span>
+                                <span class="block text-[10px] text-slate-500">Cabine</span>
+                            </div>
+                        </div>
+
+                        <!-- Porta / Escada -->
+                        <div class="bg-slate-200/60 rounded-xl p-2.5 flex items-center justify-end gap-2 border border-slate-300/80">
+                            <div class="text-right leading-tight">
+                                <span class="block text-[11px] font-bold text-slate-600">Entrada</span>
+                                <span class="block text-[10px] text-slate-400">Escada</span>
+                            </div>
+                            <div class="w-7 h-7 rounded-lg bg-slate-300 text-slate-600 flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cabeçalho Janela / Corredor -->
+                    <div class="grid grid-cols-5 text-[10px] font-semibold text-slate-400 text-center mb-1.5 px-1">
+                        <span>Janela</span>
+                        <span>Corredor</span>
+                        <span></span>
+                        <span>Corredor</span>
+                        <span>Janela</span>
+                    </div>
+
+                    <!-- Grade de Poltronas (Gerada via JS) -->
+                    <div id="bus-seats-grid" class="flex flex-col gap-2">
+                        <!-- As fileiras serão inseridas aqui -->
+                    </div>
+
+                    <!-- Fundos: Banheiro e Cafeteira/Frigobar -->
+                    <div class="grid grid-cols-2 gap-3 pt-3 mt-3 border-t-2 border-dashed border-slate-300">
+                        <div class="bg-slate-200/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-300 text-slate-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 6 6.5 3.5a1.5 1.5 0 0 0-1-.5C4.683 3 4 3.683 4 4.5V17a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><line x1="10" x2="8" y1="5" y2="7"/><line x1="2" x2="22" y1="12" y2="12"/>
+                            </svg>
+                            <span class="text-[11px] font-semibold">Sanitário (WC)</span>
+                        </div>
+                        <div class="bg-slate-200/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-300 text-slate-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>
+                            </svg>
+                            <span class="text-[11px] font-semibold">Água / Lanche</span>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -464,8 +505,8 @@
                             </div>
                             <div class="text-right">
                                 <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Categoria</span>
-                                <span id="voucher-deck-name" class="text-sm font-bold text-slate-800">Executivo Semileito</span>
-                                <span id="voucher-deck-class" class="text-xs text-slate-500 block">46 Lugares • 1 Andar</span>
+                                <span class="text-sm font-bold text-slate-800">Executivo Semileito</span>
+                                <span class="text-xs text-slate-500 block">46 Lugares</span>
                             </div>
                         </div>
 
@@ -547,21 +588,21 @@
 
     <script>
         /**
-         * CONFIGURAÇÃO DO ÔNIBUS (1 ANDAR - 46 LUGARES EXECUTIVO SEMILEITO)
-         * Disposição 2x2:
+         * CONFIGURAÇÃO DO ÔNIBUS (46 LUGARES - PADRÃO EXECUTIVO)
+         * Disposição realista:
          * Lado Esquerdo (Motorista): Janela (ímpar), Corredor (par) -> Ex: 01, 02
          * Lado Direito (Porta): Corredor (par), Janela (ímpar) -> Ex: 04, 03
          */
         const TOTAL_SEATS = 46;
-        const STORAGE_KEY = 'bus_3d_seat_reservations_v1';
-        const RECORDS_STORAGE_KEY = 'bus_3d_seat_records_v1';
+        const STORAGE_KEY = 'bus_seat_reservations_v3';
+        const RECORDS_STORAGE_KEY = 'bus_seat_records_v3';
         const DEFAULT_BOARDING_POINT = 'Embarque Único — Saída Principal';
 
         /**
          * SENHA DO PAINEL DO COORDENADOR
          * Altere o valor abaixo para definir a senha desejada (padrão: '1234')
          */
-        const ADMIN_PASSWORD = '1234';
+        const ADMIN_PASSWORD = '2307';
 
         /**
          * INTEGRAÇÃO OPCIONAL COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
@@ -574,27 +615,14 @@
         let occupiedSeats = [];
         let seatRecords = {};
         let selectedSeat = null;
-        let hoveredSeat = null;
         let currentTicketData = null;
         let isSyncing = false;
-
-        // Variáveis da cena 3D (Three.js)
-        let scene3D, camera3D, renderer3D, busGroup3D;
-        let seatMeshes3D = {}; // { seatNum: { group, cushionMat, backMat, headrestMat } }
-        let raycaster3D, pointer3D;
-        let camSpherical = { radius: 13.8, theta: 0.42, phi: 0.72 };
-        let camTargetZ = 0;
-        let isDragging3D = false;
-        let dragMovedDist = 0;
-        let prevPointerPos = { x: 0, y: 0 };
-        let pinchStartDist = 0;
 
         /**
          * Inicialização ao carregar a página
          */
         window.addEventListener('DOMContentLoaded', async () => {
             loadOccupiedSeats();
-            initBus3DScene();
             renderBusMap();
             await syncFromCloudIfConfigured();
             renderBusMap();
@@ -636,510 +664,6 @@
                 }
             });
         });
-
-        /**
-         * Inicializa o cenário 3D completo do ônibus de 1 andar com Three.js
-         */
-        function initBus3DScene() {
-            const container = document.getElementById('bus-3d-container');
-            if (!container || typeof THREE === 'undefined') return;
-
-            const width = container.clientWidth || 340;
-            const height = container.clientHeight || 480;
-
-            scene3D = new THREE.Scene();
-
-            camera3D = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
-            updateCameraTransform();
-
-            renderer3D = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer3D.setSize(width, height);
-            renderer3D.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-            renderer3D.shadowMap.enabled = true;
-            renderer3D.shadowMap.type = THREE.PCFSoftShadowMap;
-            container.appendChild(renderer3D.domElement);
-
-            // Iluminação realista de estúdio
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.72);
-            scene3D.add(ambientLight);
-
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
-            dirLight.position.set(7, 15, 9);
-            dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 1024;
-            dirLight.shadow.mapSize.height = 1024;
-            scene3D.add(dirLight);
-
-            const fillLight = new THREE.DirectionalLight(0xe0f2fe, 0.35);
-            fillLight.position.set(-8, 10, -8);
-            scene3D.add(fillLight);
-
-            busGroup3D = new THREE.Group();
-            scene3D.add(busGroup3D);
-
-            buildBusChassis3D();
-            buildBusSeats3D();
-
-            raycaster3D = new THREE.Raycaster();
-            pointer3D = new THREE.Vector2();
-
-            setup3DControls(container);
-
-            window.addEventListener('resize', () => {
-                if (!container || !renderer3D || !camera3D) return;
-                const w = container.clientWidth || 340;
-                const h = container.clientHeight || 480;
-                camera3D.aspect = w / h;
-                camera3D.updateProjectionMatrix();
-                renderer3D.setSize(w, h);
-            });
-
-            function animate3D() {
-                requestAnimationFrame(animate3D);
-                // Suave flutuação na poltrona selecionada para destaque visual
-                if (selectedSeat && seatMeshes3D[selectedSeat]) {
-                    const pulse = 1 + Math.sin(Date.now() * 0.006) * 0.03;
-                    seatMeshes3D[selectedSeat].group.scale.set(pulse, pulse, pulse);
-                }
-                renderer3D.render(scene3D, camera3D);
-            }
-            animate3D();
-        }
-
-        /**
-         * Constrói o chassi, corredor, cabine do motorista, para-brisa e sanitário em 3D
-         */
-        function buildBusChassis3D() {
-            const busWidth = 3.5;
-            const busLength = 13.8;
-
-            // Base / Assoalho principal
-            const floorGeo = new THREE.BoxGeometry(busWidth, 0.24, busLength);
-            const floorMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.75 });
-            const floorMesh = new THREE.Mesh(floorGeo, floorMat);
-            floorMesh.position.set(0, -0.12, 0);
-            floorMesh.receiveShadow = true;
-            busGroup3D.add(floorMesh);
-
-            // Tapete do corredor central
-            const aisleGeo = new THREE.BoxGeometry(0.68, 0.02, busLength - 2.6);
-            const aisleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
-            const aisleMesh = new THREE.Mesh(aisleGeo, aisleMat);
-            aisleMesh.position.set(0, 0.01, 0.15);
-            aisleMesh.receiveShadow = true;
-            busGroup3D.add(aisleMesh);
-
-            // Paredes laterais baixas (estilo cutaway aberto para visão total das poltronas)
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.45, metalness: 0.15 });
-            const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.55, busLength), wallMat);
-            leftWall.position.set(-busWidth / 2 - 0.05, 0.16, 0);
-            busGroup3D.add(leftWall);
-
-            const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.55, busLength), wallMat);
-            rightWall.position.set(busWidth / 2 + 0.05, 0.16, 0);
-            busGroup3D.add(rightWall);
-
-            // Parede traseira
-            const backWall = new THREE.Mesh(new THREE.BoxGeometry(busWidth + 0.24, 0.75, 0.16), wallMat);
-            backWall.position.set(0, 0.26, busLength / 2 + 0.05);
-            busGroup3D.add(backWall);
-
-            // Frente / Painel e Para-brisa translúcido (Z negativo = Frente do ônibus)
-            const frontZ = -busLength / 2;
-            const dashMesh = new THREE.Mesh(
-                new THREE.BoxGeometry(busWidth + 0.18, 0.65, 0.45),
-                new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5 })
-            );
-            dashMesh.position.set(0, 0.22, frontZ + 0.15);
-            busGroup3D.add(dashMesh);
-
-            // Vidro do para-brisa inclinado
-            const glassMat = new THREE.MeshPhysicalMaterial({
-                color: 0x38bdf8,
-                transparent: true,
-                opacity: 0.28,
-                roughness: 0.1,
-                metalness: 0.1
-            });
-            const windshield = new THREE.Mesh(new THREE.BoxGeometry(busWidth + 0.1, 0.95, 0.06), glassMat);
-            windshield.position.set(0, 0.95, frontZ + 0.28);
-            windshield.rotation.x = -0.22;
-            busGroup3D.add(windshield);
-
-            // Cabine do Motorista (lado esquerdo frontal)
-            const driverSeat = new THREE.Mesh(
-                new THREE.BoxGeometry(0.62, 0.75, 0.55),
-                new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.6 })
-            );
-            driverSeat.position.set(-1.05, 0.38, frontZ + 0.85);
-            busGroup3D.add(driverSeat);
-
-            // Volante 3D
-            const wheel = new THREE.Mesh(
-                new THREE.TorusGeometry(0.22, 0.035, 10, 24),
-                new THREE.MeshStandardMaterial({ color: 0x090d16 })
-            );
-            wheel.position.set(-1.05, 0.68, frontZ + 0.45);
-            wheel.rotation.x = 0.65;
-            busGroup3D.add(wheel);
-
-            // Escada de entrada (lado direito frontal)
-            const entryBox = new THREE.Mesh(
-                new THREE.BoxGeometry(1.1, 0.12, 0.85),
-                new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 })
-            );
-            entryBox.position.set(1.05, 0.06, frontZ + 0.85);
-            busGroup3D.add(entryBox);
-
-            // Sanitário (WC) nos fundos à direita (alinhado com a fileira 12 que tem apenas assentos 45 e 46 à esquerda)
-            const wcGroup = new THREE.Group();
-            const wcBox = new THREE.Mesh(
-                new THREE.BoxGeometry(1.25, 1.05, 0.95),
-                new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.5 })
-            );
-            wcBox.position.set(0, 0.52, 0);
-            wcGroup.add(wcBox);
-
-            const wcLabelTex = createTextBadgeTexture('WC', '#334155', '#f8fafc', 128, 64, 34);
-            const wcSign = new THREE.Mesh(
-                new THREE.PlaneGeometry(0.7, 0.35),
-                new THREE.MeshBasicMaterial({ map: wcLabelTex, transparent: true })
-            );
-            wcSign.rotation.x = -Math.PI / 2;
-            wcSign.position.set(0, 1.06, 0);
-            wcGroup.add(wcSign);
-
-            wcGroup.position.set(0.98, 0, busLength / 2 - 0.72);
-            busGroup3D.add(wcGroup);
-
-            // 4 Rodas estilizadas nas laterais inferiores
-            const tireGeo = new THREE.CylinderGeometry(0.46, 0.46, 0.26, 20);
-            const tireMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.85 });
-            const wheelPositions = [
-                [-busWidth / 2 - 0.08, -0.15, -4.3],
-                [busWidth / 2 + 0.08, -0.15, -4.3],
-                [-busWidth / 2 - 0.08, -0.15, 4.3],
-                [busWidth / 2 + 0.08, -0.15, 4.3]
-            ];
-            wheelPositions.forEach(([wx, wy, wz]) => {
-                const tire = new THREE.Mesh(tireGeo, tireMat);
-                tire.rotation.z = Math.PI / 2;
-                tire.position.set(wx, wy, wz);
-                busGroup3D.add(tire);
-            });
-        }
-
-        /**
-         * Constrói todas as 46 poltronas 3D interativas com numeração nítida
-         */
-        function buildBusSeats3D() {
-            seatMeshes3D = {};
-            const totalRows = Math.ceil(TOTAL_SEATS / 4); // 12 fileiras
-            const startZ = -4.85;
-            const rowSpacing = 0.94;
-
-            // Posições X das 4 colunas (Janela Esq, Corredor Esq, Corredor Dir, Janela Dir)
-            const colX = {
-                leftWindow: -1.28,
-                leftAisle: -0.64,
-                rightAisle: 0.64,
-                rightWindow: 1.28
-            };
-
-            for (let row = 0; row < totalRows; row++) {
-                const base = row * 4;
-                const zPos = startZ + row * rowSpacing;
-
-                const rowSlots = [
-                    { seatNum: base + 1, x: colX.leftWindow },
-                    { seatNum: base + 2, x: colX.leftAisle },
-                    { seatNum: base + 4, x: colX.rightAisle },
-                    { seatNum: base + 3, x: colX.rightWindow }
-                ];
-
-                rowSlots.forEach(slot => {
-                    if (slot.seatNum <= TOTAL_SEATS) {
-                        const seatObj = createSingleSeatMesh3D(slot.seatNum, slot.x, zPos);
-                        busGroup3D.add(seatObj.group);
-                        seatMeshes3D[slot.seatNum] = seatObj;
-                    }
-                });
-            }
-        }
-
-        /**
-         * Cria a geometria detalhada de 1 poltrona 3D (assento, encosto reclinado, apoio de cabeça, braços e etiqueta numérica)
-         */
-        function createSingleSeatMesh3D(seatNum, x, z) {
-            const group = new THREE.Group();
-            group.position.set(x, 0, z);
-
-            const cushionMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.42, metalness: 0.08 });
-            const backMat = new THREE.MeshStandardMaterial({ color: 0x059669, roughness: 0.45, metalness: 0.08 });
-            const headrestMat = new THREE.MeshStandardMaterial({ color: 0x047857, roughness: 0.5 });
-            const frameMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 });
-
-            // Base metálica
-            const pedestal = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.22, 0.34), frameMat);
-            pedestal.position.set(0, 0.11, 0);
-            group.add(pedestal);
-
-            // Almofada do assento
-            const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.14, 0.48), cushionMat);
-            cushion.position.set(0, 0.26, -0.02);
-            cushion.castShadow = true;
-            cushion.receiveShadow = true;
-            group.add(cushion);
-
-            // Encosto (na parte traseira da poltrona = +Z, voltado para a frente -Z)
-            const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.62, 0.13), backMat);
-            backrest.position.set(0, 0.58, 0.20);
-            backrest.rotation.x = -0.14;
-            backrest.castShadow = true;
-            group.add(backrest);
-
-            // Apoio de cabeça
-            const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.18, 0.14), headrestMat);
-            headrest.position.set(0, 0.94, 0.25);
-            headrest.rotation.x = -0.14;
-            group.add(headrest);
-
-            // Descansos de braço laterais
-            const armLeft = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.38), frameMat);
-            armLeft.position.set(-0.26, 0.40, 0.02);
-            group.add(armLeft);
-
-            const armRight = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.38), frameMat);
-            armRight.position.set(0.26, 0.40, 0.02);
-            group.add(armRight);
-
-            // Placa numérica visível de cima e de frente
-            const labelTex = createTextBadgeTexture(formatSeatNum(seatNum), '#ffffff', '#0f172a', 128, 128, 66);
-            const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true });
-
-            // Número sobre o assento (visível na vista superior/3D)
-            const topNumberPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.36), labelMat);
-            topNumberPlane.rotation.x = -Math.PI / 2;
-            topNumberPlane.position.set(0, 0.34, -0.05);
-            group.add(topNumberPlane);
-
-            // Número no topo do encosto (visível de frente)
-            const frontHeadLabel = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.16), labelMat);
-            frontHeadLabel.position.set(0, 0.94, 0.175);
-            frontHeadLabel.rotation.x = -0.14;
-            group.add(frontHeadLabel);
-
-            // Associa o número da poltrona a todos os filhos para clique via Raycaster
-            group.traverse(child => {
-                if (child.isMesh) {
-                    child.userData.seatNum = seatNum;
-                }
-            });
-
-            return { group, cushionMat, backMat, headrestMat };
-        }
-
-        /**
-         * Gera textura Canvas nítida para números das poltronas e placas 3D
-         */
-        function createTextBadgeTexture(text, bgColor, textColor, w = 128, h = 128, fontSize = 64) {
-            const c = document.createElement('canvas');
-            c.width = w;
-            c.height = h;
-            const ctx = c.getContext('2d');
-
-            ctx.fillStyle = bgColor;
-            ctx.beginPath();
-            ctx.roundRect ? ctx.roundRect(6, 6, w - 12, h - 12, 22) : ctx.fillRect(6, 6, w - 12, h - 12);
-            ctx.fill();
-
-            ctx.fillStyle = textColor;
-            ctx.font = `800 ${fontSize}px "JetBrains Mono", monospace`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(text, w / 2, h / 2 + 2);
-
-            const tex = new THREE.CanvasTexture(c);
-            tex.needsUpdate = true;
-            return tex;
-        }
-
-        /**
-         * Atualiza as cores 3D de todas as poltronas conforme status (Livre, Selecionada, Ocupada)
-         */
-        function update3DSeatColors() {
-            Object.entries(seatMeshes3D).forEach(([numStr, obj]) => {
-                const seatNum = Number(numStr);
-                const isOccupied = occupiedSeats.includes(seatNum);
-                const isSelected = selectedSeat === seatNum;
-                const isHovered = hoveredSeat === seatNum && !isOccupied && !isSelected;
-
-                if (isOccupied) {
-                    obj.cushionMat.color.setHex(0xcbd5e1);
-                    obj.backMat.color.setHex(0x94a3b8);
-                    obj.headrestMat.color.setHex(0x64748b);
-                    obj.group.scale.set(1, 1, 1);
-                } else if (isSelected) {
-                    obj.cushionMat.color.setHex(0x0ea5e9);
-                    obj.backMat.color.setHex(0x0284c7);
-                    obj.headrestMat.color.setHex(0x0369a1);
-                } else if (isHovered) {
-                    obj.cushionMat.color.setHex(0x34d399);
-                    obj.backMat.color.setHex(0x10b981);
-                    obj.headrestMat.color.setHex(0x059669);
-                    obj.group.scale.set(1.04, 1.04, 1.04);
-                } else {
-                    obj.cushionMat.color.setHex(0x10b981);
-                    obj.backMat.color.setHex(0x059669);
-                    obj.headrestMat.color.setHex(0x047857);
-                    obj.group.scale.set(1, 1, 1);
-                }
-            });
-        }
-
-        /**
-         * Configura rotação orbital por mouse/toque, zoom e clique em poltronas 3D
-         */
-        function setup3DControls(container) {
-            const getHitSeat = (clientX, clientY) => {
-                const rect = container.getBoundingClientRect();
-                pointer3D.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-                pointer3D.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-                raycaster3D.setFromCamera(pointer3D, camera3D);
-                const intersects = raycaster3D.intersectObjects(busGroup3D.children, true);
-                for (let i = 0; i < intersects.length; i++) {
-                    if (intersects[i].object.userData && intersects[i].object.userData.seatNum) {
-                        return intersects[i].object.userData.seatNum;
-                    }
-                }
-                return null;
-            };
-
-            // Mouse events
-            container.addEventListener('mousedown', (e) => {
-                isDragging3D = true;
-                dragMovedDist = 0;
-                prevPointerPos = { x: e.clientX, y: e.clientY };
-            });
-
-            window.addEventListener('mousemove', (e) => {
-                if (isDragging3D) {
-                    const dx = e.clientX - prevPointerPos.x;
-                    const dy = e.clientY - prevPointerPos.y;
-                    dragMovedDist += Math.hypot(dx, dy);
-                    prevPointerPos = { x: e.clientX, y: e.clientY };
-
-                    camSpherical.theta -= dx * 0.008;
-                    camSpherical.phi = Math.max(0.18, Math.min(1.32, camSpherical.phi - dy * 0.007));
-                    updateCameraTransform();
-                } else if (e.target === renderer3D.domElement) {
-                    const hit = getHitSeat(e.clientX, e.clientY);
-                    const tooltip = document.getElementById('hover-seat-tooltip');
-                    if (hit !== hoveredSeat) {
-                        hoveredSeat = hit;
-                        update3DSeatColors();
-                    }
-                    if (hit) {
-                        const occ = occupiedSeats.includes(hit);
-                        container.style.cursor = occ ? 'not-allowed' : 'pointer';
-                        tooltip.textContent = `Poltrona ${formatSeatNum(hit)} • ${getSeatPosition(hit)} (${occ ? 'Ocupada' : 'Livre'})`;
-                        tooltip.classList.remove('hidden');
-                    } else {
-                        container.style.cursor = 'grab';
-                        tooltip.classList.add('hidden');
-                    }
-                }
-            });
-
-            window.addEventListener('mouseup', (e) => {
-                if (isDragging3D && dragMovedDist < 6 && e.target === renderer3D.domElement) {
-                    const hit = getHitSeat(e.clientX, e.clientY);
-                    if (hit) handleSeatClick(hit);
-                }
-                isDragging3D = false;
-            });
-
-            container.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                camSpherical.radius = Math.max(7.5, Math.min(20, camSpherical.radius + e.deltaY * 0.008));
-                updateCameraTransform();
-            }, { passive: false });
-
-            // Touch events (arrastar 1 dedo gira, pinça 2 dedos faz zoom, toque rápido seleciona poltrona)
-            container.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) {
-                    isDragging3D = true;
-                    dragMovedDist = 0;
-                    prevPointerPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                } else if (e.touches.length === 2) {
-                    isDragging3D = false;
-                    pinchStartDist = Math.hypot(
-                        e.touches[0].clientX - e.touches[1].clientX,
-                        e.touches[0].clientY - e.touches[1].clientY
-                    );
-                }
-            }, { passive: true });
-
-            container.addEventListener('touchmove', (e) => {
-                if (e.touches.length === 1 && isDragging3D) {
-                    const dx = e.touches[0].clientX - prevPointerPos.x;
-                    const dy = e.touches[0].clientY - prevPointerPos.y;
-                    dragMovedDist += Math.hypot(dx, dy);
-                    prevPointerPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-
-                    camSpherical.theta -= dx * 0.009;
-                    camSpherical.phi = Math.max(0.18, Math.min(1.32, camSpherical.phi - dy * 0.008));
-                    updateCameraTransform();
-                } else if (e.touches.length === 2) {
-                    const dist = Math.hypot(
-                        e.touches[0].clientX - e.touches[1].clientX,
-                        e.touches[0].clientY - e.touches[1].clientY
-                    );
-                    if (pinchStartDist > 0) {
-                        const delta = pinchStartDist - dist;
-                        camSpherical.radius = Math.max(7.5, Math.min(20, camSpherical.radius + delta * 0.025));
-                        updateCameraTransform();
-                    }
-                    pinchStartDist = dist;
-                }
-            }, { passive: true });
-
-            container.addEventListener('touchend', (e) => {
-                if (isDragging3D && dragMovedDist < 10 && e.changedTouches.length === 1) {
-                    const t = e.changedTouches[0];
-                    const hit = getHitSeat(t.clientX, t.clientY);
-                    if (hit) handleSeatClick(hit);
-                }
-                isDragging3D = false;
-                pinchStartDist = 0;
-            });
-        }
-
-        function updateCameraTransform() {
-            if (!camera3D) return;
-            const sinPhi = Math.sin(camSpherical.phi);
-            const cosPhi = Math.cos(camSpherical.phi);
-            const sinTheta = Math.sin(camSpherical.theta);
-            const cosTheta = Math.cos(camSpherical.theta);
-
-            camera3D.position.set(
-                camSpherical.radius * sinPhi * sinTheta,
-                camSpherical.radius * cosPhi,
-                camTargetZ + camSpherical.radius * sinPhi * cosTheta
-            );
-            camera3D.lookAt(0, 0.35, camTargetZ);
-        }
-
-        function setCameraView(preset) {
-            if (preset === 'top') {
-                camSpherical = { radius: 15.2, theta: 0, phi: 0.18 };
-            } else if (preset === 'front') {
-                camSpherical = { radius: 11.5, theta: Math.PI, phi: 0.92 };
-            } else {
-                camSpherical = { radius: 13.8, theta: 0.42, phi: 0.72 };
-            }
-            updateCameraTransform();
-        }
 
         /**
          * Carrega assentos ocupados e registros detalhados do localStorage
@@ -1249,23 +773,86 @@
         }
 
         function getSeatPosition(seatNum) {
-            // Disposição 2x2 padrão: ímpares na janela, pares no corredor
             return seatNum % 2 !== 0 ? 'Janela' : 'Corredor';
         }
 
         /**
-         * Atualiza o mapa 3D e os contadores de disponibilidade
+         * Renderiza a grade interativa das 46 poltronas do ônibus
          */
         function renderBusMap() {
-            update3DSeatColors();
+            const grid = document.getElementById('bus-seats-grid');
+            grid.innerHTML = '';
+
+            const totalRows = Math.ceil(TOTAL_SEATS / 4);
+
+            for (let row = 0; row < totalRows; row++) {
+                const base = row * 4;
+                const leftWindow = base + 1;
+                const leftAisle = base + 2;
+                const rightAisle = base + 4;
+                const rightWindow = base + 3;
+
+                const rowEl = document.createElement('div');
+                rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
+
+                rowEl.appendChild(createSeatElement(leftWindow));
+                rowEl.appendChild(createSeatElement(leftAisle));
+
+                const aisleEl = document.createElement('div');
+                aisleEl.className = 'text-center text-[10px] font-mono text-slate-400 select-none';
+                aisleEl.textContent = `F${row + 1}`;
+                rowEl.appendChild(aisleEl);
+
+                if (rightAisle <= TOTAL_SEATS) {
+                    rowEl.appendChild(createSeatElement(rightAisle));
+                } else {
+                    rowEl.appendChild(document.createElement('div'));
+                }
+
+                if (rightWindow <= TOTAL_SEATS) {
+                    rowEl.appendChild(createSeatElement(rightWindow));
+                } else {
+                    rowEl.appendChild(document.createElement('div'));
+                }
+
+                grid.appendChild(rowEl);
+            }
+
             updateAvailableCounter();
         }
 
-        function handleSeatClick(seatNum) {
-            if (occupiedSeats.includes(seatNum)) {
-                showToast(`A poltrona ${formatSeatNum(seatNum)} já está ocupada.`, 'error');
-                return;
+        function createSeatElement(seatNum) {
+            if (seatNum > TOTAL_SEATS) return document.createElement('div');
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = formatSeatNum(seatNum);
+            btn.setAttribute('aria-label', `Poltrona ${formatSeatNum(seatNum)} - ${getSeatPosition(seatNum)}`);
+
+            const isOccupied = occupiedSeats.includes(seatNum);
+            const isSelected = selectedSeat === seatNum;
+
+            btn.className = 'seat-btn h-10 rounded-lg font-mono text-xs font-bold flex items-center justify-center';
+
+            if (isOccupied) {
+                btn.classList.add('seat-occupied');
+                btn.disabled = true;
+                btn.title = `Poltrona ${formatSeatNum(seatNum)} (Ocupada)`;
+            } else if (isSelected) {
+                btn.classList.add('seat-selected');
+                btn.title = `Poltrona ${formatSeatNum(seatNum)} (Selecionada)`;
+                btn.addEventListener('click', () => handleSeatClick(seatNum));
+            } else {
+                btn.classList.add('seat-available');
+                btn.title = `Poltrona ${formatSeatNum(seatNum)} — ${getSeatPosition(seatNum)} (Livre)`;
+                btn.addEventListener('click', () => handleSeatClick(seatNum));
             }
+
+            return btn;
+        }
+
+        function handleSeatClick(seatNum) {
+            if (occupiedSeats.includes(seatNum)) return;
             selectedSeat = selectedSeat === seatNum ? null : seatNum;
             updateSelectedBadge();
             renderBusMap();
@@ -1278,9 +865,9 @@
                 badge.innerHTML = '<span>Nenhuma poltrona selecionada</span>';
             } else {
                 const pos = getSeatPosition(selectedSeat);
-                badge.className = 'inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-sky-50 border border-sky-300 text-sky-900 text-xs font-bold';
+                badge.className = 'inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold';
                 badge.innerHTML = `
-                    <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                     <span>Poltrona ${formatSeatNum(selectedSeat)} (${pos})</span>
                 `;
             }
@@ -1409,8 +996,6 @@
             document.getElementById('voucher-code').textContent = data.code;
             document.getElementById('voucher-seat-number').textContent = data.seat;
             document.getElementById('voucher-seat-position').textContent = data.position;
-            document.getElementById('voucher-deck-name').textContent = 'Executivo Semileito';
-            document.getElementById('voucher-deck-class').textContent = '46 Lugares • 1 Andar';
             document.getElementById('voucher-name').textContent = data.name;
             document.getElementById('voucher-doc').textContent = data.doc;
             document.getElementById('voucher-phone').textContent = data.phone;
@@ -2009,7 +1594,7 @@
 
             ctx.fillStyle = '#64748b';
             ctx.font = '500 20px Inter, sans-serif';
-            ctx.fillText('46 Lugares • 1 Andar', cardX + cardW - 40, seatBoxY + 120);
+            ctx.fillText('46 Lugares', cardX + cardW - 40, seatBoxY + 120);
             ctx.textAlign = 'left';
 
             let cursorY = seatBoxY + 235;
