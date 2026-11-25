@@ -1,229 +1,119 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expresso Viação — Escolha de Poltronas e Quartos</title>
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter & JetBrains Mono -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        navy: {
-                            800: '#1e293b',
-                            900: '#0f172a',
-                            950: '#090d16',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* Estilos personalizados para o mapa do ônibus e impressão */
-        body {
-            background-color: #f1f5f9;
-            color: #0f172a;
+        html, body {
+            font-family: 'Inter', sans-serif;
+            max-width: 100%;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
         }
-
-        /* Estilo realista de poltrona de ônibus */
-        .seat-btn {
-            position: relative;
-            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .seat-btn::after {
-            content: '';
-            position: absolute;
-            bottom: 3px;
-            left: 18%;
-            right: 18%;
-            height: 3px;
-            border-radius: 999px;
-            background-color: currentColor;
-            opacity: 0.35;
-        }
-
-        .seat-available {
-            background-color: #ffffff;
-            border: 2px solid #10b981;
-            color: #065f46;
-            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.08);
-        }
-
-        .seat-available:hover {
-            background-color: #ecfdf5;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.18);
-        }
-
-        .seat-selected {
-            background-color: #0f172a;
-            border: 2px solid #0f172a;
-            color: #ffffff;
-            transform: scale(1.06);
-            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.28);
-            z-index: 10;
-        }
-
-        .seat-occupied {
-            background-color: #e2e8f0;
-            border: 2px solid #cbd5e1;
-            color: #94a3b8;
-            cursor: not-allowed;
-        }
-
-        /* Efeito de recorte lateral (picote) do bilhete */
+        .seat-btn { transition: all 0.16s ease; }
+        .seat-available { background-color: #ffffff; border: 2px solid #10b981; color: #065f46; }
+        .seat-available:hover { background-color: #ecfdf5; transform: translateY(-1px); }
+        .seat-selected { background-color: #0f172a; border: 2px solid #0f172a; color: #ffffff; transform: scale(1.04); box-shadow: 0 6px 14px -3px rgba(15, 23, 42, 0.35); }
+        .seat-occupied { background-color: #e2e8f0; border: 2px solid #cbd5e1; color: #94a3b8; cursor: not-allowed; }
         .ticket-notch-left, .ticket-notch-right {
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            background-color: #f1f5f9;
-            border-radius: 9999px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 20;
+            position: absolute; top: -12px; width: 24px; height: 24px;
+            background-color: #f1f5f9; border-radius: 9999px; border: 1px solid #e2e8f0;
         }
-        .ticket-notch-left {
-            left: -12px;
-            box-shadow: inset -2px 0 3px rgba(0,0,0,0.06);
-        }
-        .ticket-notch-right {
-            right: -12px;
-            box-shadow: inset 2px 0 3px rgba(0,0,0,0.06);
-        }
-
-        /* Otimização para Impressão / PDF */
+        .ticket-notch-left { left: -13px; }
+        .ticket-notch-right { right: -13px; }
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            #printable-voucher-area, #printable-voucher-area * {
-                visibility: visible;
-            }
-            #printable-voucher-area {
-                position: fixed;
-                left: 50%;
-                top: 20px;
-                transform: translateX(-50%);
-                width: 100%;
-                max-width: 440px;
-                box-shadow: none !important;
-                border: 2px solid #cbd5e1 !important;
-            }
-            .no-print {
-                display: none !important;
-            }
+            .no-print { display: none !important; }
+            body { background: #fff !important; }
+            #checkout-screen { display: block !important; padding: 0 !important; }
+            #printable-voucher-area { box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased">
+<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col">
 
-    <!-- Cabeçalho Superior -->
-    <header class="bg-slate-900 text-white shadow-md no-print">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <div id="admin-secret-trigger" title="Controle de Embarque" class="bg-emerald-500 text-slate-950 p-2.5 rounded-xl shadow-inner cursor-pointer select-none">
-                    <!-- Ícone de Ônibus SVG -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Container de Notificações (Toasts) -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[60] flex flex-col gap-2 max-w-xs w-full pointer-events-none"></div>
+
+    <!-- Cabeçalho Compacto e Responsivo -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 no-print">
+        <div class="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex flex-wrap items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2.5">
+                <button type="button" id="admin-secret-trigger" title="Ônibus Executivo 46 Lugares"
+                    class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 cursor-pointer active:scale-95 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>
                     </svg>
-                </div>
+                </button>
                 <div>
-                    <h1 class="text-lg sm:text-xl font-bold tracking-tight leading-tight">Reserva de Assentos e Quartos</h1>
-                    <p class="text-xs text-slate-400">Ônibus Executivo (46 Lugares) • 15 Quartos</p>
+                    <h1 class="text-sm sm:text-base font-extrabold tracking-tight leading-tight">Reserva de Assentos e Quartos</h1>
+                    <p class="text-[11px] text-slate-400">Ônibus Executivo 46 Lugares • 15 Quartos</p>
                 </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-                <span id="live-sync-badge" class="hidden inline-flex items-center gap-1.5 text-[11px] font-medium bg-slate-800/80 text-slate-300 px-2.5 py-1.5 rounded-full border border-slate-700" title="Mapa atualizado automaticamente sem recarregar">
-                    <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
-                    <span>Ao vivo</span>
-                </span>
-                <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-slate-800 text-emerald-400 px-3 py-1.5 rounded-full border border-slate-700">
+            <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <span id="live-sync-badge" class="hidden inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold px-2.5 py-1 rounded-full">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span id="available-counter">46 poltronas</span>
+                    Ao vivo
                 </span>
-                <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-slate-800 text-amber-300 px-3 py-1.5 rounded-full border border-slate-700">
-                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                    <span id="available-rooms-counter">40 vagas em quartos</span>
+                <span id="available-counter" class="bg-slate-800 text-emerald-400 border border-slate-700 text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-full">
+                    46 poltronas
+                </span>
+                <span id="available-rooms-counter" class="bg-slate-800 text-amber-300 border border-slate-700 text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-full">
+                    40 vagas em quartos
                 </span>
             </div>
         </div>
     </header>
 
-    <!-- Notificação Toast Flutuante -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
-
-    <!-- MODAL DE VALIDAÇÃO DE EMBARQUE (Exibido ao escanear o QR Code) -->
+    <!-- MODAL DE VALIDAÇÃO DO QR CODE (EMBARQUE) -->
     <div id="qr-validation-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200">
             <div id="val-header" class="bg-slate-900 text-white px-6 py-5 text-center">
-                <div id="val-icon-wrap" class="w-14 h-14 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
-                </div>
-                <span id="val-badge" class="text-[11px] uppercase tracking-widest font-bold bg-black/20 px-3 py-1 rounded-full">Aguardando Coordenador</span>
-                <h2 id="val-title" class="text-xl font-extrabold mt-2">Confirmar Embarque</h2>
+                <span id="val-badge" class="text-[11px] uppercase tracking-widest font-bold opacity-85 block mb-1">Aguardando Coordenador</span>
+                <h2 id="val-title" class="text-xl font-extrabold">Confirmar Embarque</h2>
             </div>
 
-            <div class="p-6 space-y-4">
-                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex items-center justify-between">
+            <div class="p-6 text-center space-y-4">
+                <div class="inline-flex items-center gap-3 bg-slate-100 px-4 py-2 rounded-2xl border border-slate-200">
                     <div>
-                        <span class="text-[11px] font-bold uppercase text-slate-400 block">Poltrona</span>
-                        <span id="val-seat" class="text-3xl font-black font-mono text-slate-900">00</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Poltrona</span>
+                        <span id="val-seat" class="text-2xl font-black font-mono text-slate-900">00</span>
                     </div>
-                    <div class="text-right">
-                        <span class="text-[11px] font-bold uppercase text-slate-400 block">Código do Bilhete</span>
-                        <span id="val-code" class="text-sm font-bold font-mono text-slate-800">#BUS-0000</span>
+                    <div class="h-8 w-px bg-slate-300"></div>
+                    <div class="text-left">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Bilhete</span>
+                        <span id="val-code" class="text-xs font-mono font-bold text-slate-700">#BUS-0000</span>
                     </div>
                 </div>
 
                 <div>
-                    <span class="text-[11px] font-bold uppercase text-slate-400 block">Passageiro(a)</span>
-                    <p id="val-name" class="text-base font-bold text-slate-900">—</p>
+                    <span class="text-[11px] uppercase font-bold text-slate-400 block">Passageiro</span>
+                    <p id="val-name" class="text-base font-extrabold text-slate-900">—</p>
                 </div>
 
-                <!-- Formulário de senha para validar check-in via QR Code -->
-                <form id="val-auth-form" class="hidden space-y-3 pt-1">
-                    <div>
-                        <label for="val-password-input" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                            Senha do Coordenador para Confirmar Embarque
-                        </label>
-                        <input type="password" id="val-password-input" autocomplete="off" placeholder="Digite a senha"
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 text-center font-mono text-base tracking-widest focus:outline-none focus:ring-2 focus:ring-slate-900 transition">
-                        <p id="val-password-error" class="hidden text-xs font-semibold text-red-600 mt-1.5 text-center">
-                            Senha incorreta. Apenas o coordenador pode confirmar o embarque.
-                        </p>
-                    </div>
-                    <button type="submit" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer">
+                <p id="val-message" class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    Digite a senha do coordenador para confirmar o embarque.
+                </p>
+
+                <form id="val-auth-form" class="space-y-2.5 text-left">
+                    <label for="val-password-input" class="block text-[11px] font-bold uppercase text-slate-500">Senha do Coordenador</label>
+                    <input type="password" id="val-password-input" placeholder="••••" required
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
+                    <p id="val-password-error" class="hidden text-xs text-red-600 font-semibold">Senha incorreta. Tente novamente.</p>
+                    <button type="submit" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer">
                         Liberar Embarque Agora
                     </button>
                 </form>
 
-                <p id="val-message" class="text-xs text-slate-600 bg-slate-100 p-3 rounded-xl leading-relaxed">
-                    Apresente este bilhete ao coordenador do ônibus para validar o embarque.
-                </p>
-
-                <div id="val-actions" class="grid grid-cols-2 gap-3 pt-2">
-                    <button type="button" onclick="requestCoordinatorAccess(); closeValidationModal();" class="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition cursor-pointer">
-                        Ver Lista Geral
-                    </button>
-                    <button type="button" onclick="closeValidationModal()" class="py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer">
+                <div class="pt-1 flex gap-2">
+                    <button type="button" onclick="closeValidationModal()" class="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
                         Fechar
+                    </button>
+                    <button type="button" onclick="closeValidationModal(); requestCoordinatorAccess();" class="flex-1 py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer">
+                        Ver Lista Geral
                     </button>
                 </div>
             </div>
@@ -233,217 +123,166 @@
     <!-- MODAL DE SENHA DO COORDENADOR -->
     <div id="admin-password-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-200">
-            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
-                <div>
-                    <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Acesso Restrito</span>
-                    <h2 class="text-base font-bold">Senha do Coordenador</h2>
-                </div>
-                <button type="button" onclick="closePasswordModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800 cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
+            <div class="bg-slate-900 text-white px-6 py-4">
+                <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Acesso Restrito</span>
+                <h2 class="text-base font-bold">Painel do Coordenador</h2>
             </div>
             <form id="admin-password-form" class="p-6 space-y-4">
                 <div>
-                    <label for="admin-password-input" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                        Digite a senha de acesso
-                    </label>
-                    <input type="password" id="admin-password-input" autocomplete="off" placeholder="••••"
-                        class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 text-center font-mono text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-slate-900 transition">
-                    <p id="admin-password-error" class="hidden text-xs font-semibold text-red-600 mt-2 text-center">
-                        Senha incorreta. Tente novamente.
-                    </p>
+                    <label for="admin-password-input" class="block text-xs font-semibold text-slate-600 mb-1.5">Digite a senha de acesso:</label>
+                    <input type="password" id="admin-password-input" placeholder="••••" required
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
+                    <p id="admin-password-error" class="hidden text-xs text-red-600 font-semibold mt-1.5">Senha incorreta.</p>
                 </div>
-                <div class="grid grid-cols-2 gap-2.5 pt-1">
+                <div class="flex justify-end gap-2">
                     <button type="button" onclick="closePasswordModal()" class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
                         Cancelar
-                    </button>
-                    <button type="submit" class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer">
-                        Entrar
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- PAINEL DO COORDENADOR (Acesso protegido por senha após 3 cliques no ícone do ônibus ou ?admin=1) -->
-    <div id="coordinator-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[88vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200">
-            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+    <!-- MODAL DO PAINEL DO COORDENADOR -->
+    <div id="admin-panel-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+            <div class="bg-slate-900 text-white px-4 sm:px-6 py-4 flex items-center justify-between gap-2">
                 <div>
                     <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Área Restrita</span>
-                    <h2 class="text-lg font-bold">Controle de Passageiros e Embarque</h2>
+                    <h2 class="text-base sm:text-lg font-bold">Controle de Passageiros e Embarque</h2>
                 </div>
-                <button type="button" onclick="closeCoordinatorPanel()" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800 cursor-pointer">
+                <button type="button" onclick="closeAdminPanel()" class="text-slate-400 hover:text-white p-2 rounded-xl bg-slate-800 cursor-pointer shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
 
-            <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 border-b border-slate-200 text-center">
-                <div class="bg-white p-2.5 rounded-xl border border-slate-200">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Reservados</span>
-                    <span id="coord-total-reserved" class="text-xl font-black text-slate-900">0</span>
+            <div class="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 grid grid-cols-3 gap-2 sm:gap-3 text-center">
+                <div class="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200">
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase text-slate-400 block">Reservados</span>
+                    <span id="admin-stat-reserved" class="text-xl sm:text-2xl font-black text-slate-900">0</span>
                 </div>
-                <div class="bg-white p-2.5 rounded-xl border border-slate-200">
-                    <span class="text-[10px] uppercase font-bold text-emerald-600 block">Embarcados (QR)</span>
-                    <span id="coord-total-boarded" class="text-xl font-black text-emerald-600">0</span>
+                <div class="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200">
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase text-emerald-600 block">Embarcados</span>
+                    <span id="admin-stat-boarded" class="text-xl sm:text-2xl font-black text-emerald-600">0</span>
                 </div>
-                <div class="bg-white p-2.5 rounded-xl border border-slate-200">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Livres</span>
-                    <span id="coord-total-free" class="text-xl font-black text-slate-600">46</span>
+                <div class="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200">
+                    <span class="text-[10px] sm:text-[11px] font-bold uppercase text-slate-400 block">Livres</span>
+                    <span id="admin-stat-free" class="text-xl sm:text-2xl font-black text-slate-700">46</span>
                 </div>
             </div>
 
-            <div id="coordinator-list" class="flex-1 overflow-y-auto p-4 space-y-2">
-                <!-- Lista de passageiros renderizada via JS -->
+            <div id="admin-passengers-list" class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-2.5">
+                <!-- Preenchido via JS -->
             </div>
 
-            <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
-                <button type="button" onclick="exportManifestCSV()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer">
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <button type="button" onclick="exportManifestCSV()" class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer">
                     Exportar Lista (CSV / Excel)
                 </button>
-                <button type="button" onclick="resetDemoData()" class="px-4 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs transition cursor-pointer">
+                <button type="button" onclick="resetDemoData()" class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold transition cursor-pointer">
                     Zerar Todos os Assentos
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Conteúdo Principal -->
-    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
-        <!-- TELA DE SELEÇÃO (Mapa do Ônibus + Quartos + Formulário) -->
-        <div id="selection-screen-view" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <!-- Conteúdo Principal (Layout Responsivo Compacto no Mobile) -->
+    <main id="booking-flow-container" class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-8 pb-24 lg:pb-10 overflow-x-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-start">
 
-            <!-- COLUNA ESQUERDA: Mapa Interativo do Ônibus (1 Andar - 46 Lugares) -->
-            <section class="lg:col-span-6 xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 no-print">
-                <div class="flex items-center justify-between mb-4">
+            <!-- COLUNA ESQUERDA: Mapa 2D do Ônibus (46 lugares) -->
+            <section class="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200/80 p-3.5 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-4">
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-slate-900">1. Escolha sua Poltrona</h2>
-                        <p class="text-xs text-slate-500">Toque em um assento livre (verde) para selecionar</p>
+                        <p class="text-xs text-slate-500">Toque em um assento livre no mapa</p>
+                    </div>
+
+                    <!-- Legenda Compacta -->
+                    <div class="flex items-center justify-between sm:justify-start gap-2.5 text-[11px] sm:text-xs font-medium bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200/70">
+                        <div class="flex items-center gap-1">
+                            <span class="w-3 h-3 rounded bg-white border-2 border-emerald-500 inline-block"></span>
+                            <span class="text-slate-600">Livre</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="w-3 h-3 rounded bg-slate-900 inline-block"></span>
+                            <span class="text-slate-600">Sua</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="w-3 h-3 rounded bg-slate-200 border border-slate-300 inline-block"></span>
+                            <span class="text-slate-600">Ocupada</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Legenda -->
-                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200/80 mb-5 text-xs font-medium">
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="w-4 h-4 rounded bg-white border-2 border-emerald-500 inline-block"></span>
-                        <span class="text-slate-700">Livre</span>
-                    </div>
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="w-4 h-4 rounded bg-slate-900 border-2 border-slate-900 inline-block"></span>
-                        <span class="text-slate-700">Selecionada</span>
-                    </div>
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="w-4 h-4 rounded bg-slate-200 border-2 border-slate-300 inline-block"></span>
-                        <span class="text-slate-500">Ocupada</span>
-                    </div>
-                </div>
-
-                <!-- Carroceria do Ônibus -->
-                <div class="max-w-[330px] mx-auto bg-slate-100 rounded-t-[44px] rounded-b-3xl border-4 border-slate-300 p-3.5 shadow-inner relative">
-                    
+                <!-- Chassi Visual do Ônibus (Adaptável a telas pequenas sem estourar largura) -->
+                <div class="mx-auto w-full max-w-[330px] sm:max-w-[350px] bg-slate-100 rounded-t-[2.2rem] rounded-b-3xl border-2 border-slate-300 p-2.5 sm:p-3.5 shadow-inner relative">
                     <!-- Para-brisa / Frente -->
-                    <div class="text-center mb-2">
-                        <span class="text-[10px] uppercase tracking-widest font-bold text-slate-400">Frente do Veículo</span>
-                    </div>
-
-                    <!-- Cabine do Motorista e Porta de Entrada -->
-                    <div class="grid grid-cols-2 gap-3 pb-3 mb-3 border-b-2 border-dashed border-slate-300">
-                        <!-- Motorista -->
-                        <div class="bg-slate-200/90 rounded-xl p-2.5 flex items-center gap-2 border border-slate-300">
-                            <div class="w-7 h-7 rounded-full bg-slate-700 text-white flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 14v7"/><path d="M10 12 3.5 9.5"/><path d="M14 12l6.5-2.5"/>
-                                </svg>
-                            </div>
-                            <div class="leading-tight">
-                                <span class="block text-[11px] font-bold text-slate-700">Motorista</span>
-                                <span class="block text-[10px] text-slate-500">Cabine</span>
-                            </div>
+                    <div class="bg-slate-800 text-slate-300 rounded-t-[1.7rem] rounded-b-xl px-3 py-2 mb-3 flex items-center justify-between shadow-sm">
+                        <div class="flex items-center gap-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 14v7"/><path d="M10 12l-6.5-2"/><path d="M14 12l6.5-2"/>
+                            </svg>
+                            <span class="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider">Motorista</span>
                         </div>
-
-                        <!-- Porta / Escada -->
-                        <div class="bg-slate-200/60 rounded-xl p-2.5 flex items-center justify-end gap-2 border border-slate-300/80">
-                            <div class="text-right leading-tight">
-                                <span class="block text-[11px] font-bold text-slate-600">Entrada</span>
-                                <span class="block text-[10px] text-slate-400">Escada</span>
-                            </div>
-                            <div class="w-7 h-7 rounded-lg bg-slate-300 text-slate-600 flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"/>
-                                </svg>
-                            </div>
-                        </div>
+                        <span class="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest bg-slate-700/80 px-2 py-0.5 rounded text-slate-300">Frente</span>
                     </div>
 
                     <!-- Cabeçalho Janela / Corredor -->
-                    <div class="grid grid-cols-5 text-[10px] font-semibold text-slate-400 text-center mb-1.5 px-1">
-                        <span>Janela</span>
-                        <span>Corredor</span>
+                    <div class="grid grid-cols-5 gap-1.5 sm:gap-2 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-0.5">
+                        <span>Jan</span>
+                        <span>Cor</span>
                         <span></span>
-                        <span>Corredor</span>
-                        <span>Janela</span>
+                        <span>Cor</span>
+                        <span>Jan</span>
                     </div>
 
-                    <!-- Grade de Poltronas (Gerada via JS) -->
-                    <div id="bus-seats-grid" class="flex flex-col gap-2">
-                        <!-- As fileiras serão inseridas aqui -->
-                    </div>
+                    <!-- Grade de Poltronas Gerada via JS -->
+                    <div id="bus-seats-grid" class="space-y-1.5 sm:space-y-2"></div>
 
-                    <!-- Fundos: Banheiro e Água / Café -->
-                    <div class="grid grid-cols-2 gap-3 pt-3 mt-3 border-t-2 border-dashed border-slate-300">
-                        <div class="bg-slate-200/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-300 text-slate-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 6 6.5 3.5a1.5 1.5 0 0 0-1-.5C4.683 3 4 3.683 4 4.5V17a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><line x1="10" x2="8" y1="5" y2="7"/><line x1="2" x2="22" y1="12" y2="12"/>
-                            </svg>
-                            <span class="text-[11px] font-semibold">Sanitário (WC)</span>
-                        </div>
-                        <div class="bg-slate-200/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-300 text-slate-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>
-                            </svg>
-                            <span class="text-[11px] font-semibold">Água / Lanche</span>
-                        </div>
+                    <!-- Fundo do Ônibus / Sanitário -->
+                    <div class="mt-3 pt-2.5 border-t border-dashed border-slate-300 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-500 px-1.5">
+                        <span class="font-medium flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                            Saída / WC
+                        </span>
+                        <span class="font-mono text-[10px] uppercase tracking-wider text-slate-400">Traseira</span>
                     </div>
                 </div>
             </section>
 
-            <!-- COLUNA DIREITA: Escolha de Quarto, Formulário e Comprovante Gerado -->
-            <div class="lg:col-span-6 xl:col-span-7 flex flex-col gap-6">
+            <!-- COLUNA DIREITA: 2. Quartos + 3. Dados do Passageiro -->
+            <div class="lg:col-span-7 flex flex-col gap-4 sm:gap-6">
 
-                <!-- PASSO 2: Escolha de Quarto (10 Triplos + 5 Duplos) -->
-                <section id="room-selection-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 no-print">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
+                <!-- SEÇÃO 2: Seleção de Quartos (10 Triplos + 5 Duplos) -->
+                <section id="rooms-section" class="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200/80 p-3.5 sm:p-6 scroll-mt-4">
+                    <div class="flex items-start justify-between gap-2 pb-3 mb-3.5 border-b border-slate-100">
                         <div>
                             <h2 class="text-base sm:text-lg font-bold text-slate-900">2. Escolha seu Quarto</h2>
-                            <p class="text-xs text-slate-500">10 quartos Triplos (3 vagas) e 5 quartos Duplos (2 vagas)</p>
+                            <p class="text-xs text-slate-500">Quartos 01–10 (3 vagas) • Quartos 11–15 (2 vagas)</p>
                         </div>
-                        <div class="flex items-center gap-1.5 text-[11px] font-semibold">
-                            <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">01–10 Triplo</span>
-                            <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200">11–15 Duplo</span>
-                        </div>
+                        <span id="selected-room-pill" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 shrink-0">
+                            Nenhum quarto
+                        </span>
                     </div>
 
-                    <div id="rooms-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 max-h-[340px] overflow-y-auto pr-1">
-                        <!-- Cards dos 15 quartos gerados via JS -->
+                    <!-- Grade Compacta de Quartos (2 colunas no mobile, 3 no desktop) -->
+                    <div id="rooms-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 max-h-[340px] sm:max-h-[400px] overflow-y-auto pr-0.5">
+                        <!-- Renderizado via JS -->
                     </div>
                 </section>
 
-                <!-- Cartão do Formulário de Dados do Passageiro -->
-                <section id="booking-form-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 no-print">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
+                <!-- SEÇÃO 3: Formulário de Dados do Passageiro -->
+                <section id="passenger-form-section" class="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200/80 p-3.5 sm:p-6 scroll-mt-4">
+                    <div class="flex items-start justify-between gap-2 pb-3 mb-4 border-b border-slate-100">
                         <div>
                             <h2 class="text-base sm:text-lg font-bold text-slate-900">3. Dados do Passageiro</h2>
-                            <p class="text-xs text-slate-500">Preencha seus dados para emitir o comprovante completo</p>
+                            <p class="text-xs text-slate-500">Preencha para emitir seu cartão de embarque</p>
                         </div>
 
-                        <!-- Badges dinâmicos do assento e quarto selecionados -->
-                        <div class="flex flex-wrap items-center gap-2">
-                            <div id="selected-seat-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold">
-                                <span>Poltrona: —</span>
-                            </div>
-                            <div id="selected-room-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold">
-                                <span>Quarto: —</span>
-                            </div>
+                        <!-- Resumo da Poltrona e Quarto Selecionados -->
+                        <div id="selected-seat-badge" class="flex items-center gap-1.5 bg-slate-100 text-slate-500 px-2.5 py-1.5 rounded-xl text-xs font-semibold shrink-0">
+                            <span>Sem seleção</span>
                         </div>
                     </div>
 
@@ -453,7 +292,7 @@
                                 Nome Completo <span class="text-red-500">*</span>
                             </label>
                             <input type="text" id="passenger-name" required placeholder="Ex: Mariana Oliveira Santos"
-                                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
+                                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -461,365 +300,327 @@
                                 <label for="passenger-doc" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                                     CPF <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="passenger-doc" required maxlength="18" placeholder="000.000.000-00"
-                                    class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
+                                <input type="text" id="passenger-doc" inputmode="numeric" required maxlength="18" placeholder="000.000.000-00"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
                             </div>
 
                             <div>
                                 <label for="passenger-phone" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                                     Telefone / WhatsApp <span class="text-slate-400 font-normal">(Opcional)</span>
                                 </label>
-                                <input type="tel" id="passenger-phone" maxlength="15" placeholder="(11) 99999-9999"
-                                    class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
+                                <input type="tel" id="passenger-phone" inputmode="tel" maxlength="15" placeholder="(11) 99999-9999"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
                             </div>
                         </div>
 
-                        <div class="pt-2">
-                            <button type="submit" id="confirm-btn"
-                                class="w-full py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <div>
+                            <label for="boarding-point" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+                                Local de Embarque
+                            </label>
+                            <select id="boarding-point"
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/60 focus:bg-white text-slate-900 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
+                                <option value="Terminal Rodoviário Central — Plataforma 04">Terminal Rodoviário Central — Plataforma 04</option>
+                                <option value="Ponto de Apoio Sul — Av. Principal, 1200">Ponto de Apoio Sul — Av. Principal, 1200</option>
+                                <option value="Estação Norte — Embarque Expresso">Estação Norte — Embarque Expresso</option>
+                            </select>
+                        </div>
+
+                        <div class="pt-1">
+                            <button type="submit" id="submit-btn"
+                                class="w-full py-3.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                                 </svg>
-                                Confirmar Assento e Quarto
+                                <span>Confirmar Assento e Quarto</span>
                             </button>
                         </div>
                     </form>
                 </section>
-
             </div>
         </div>
+    </main>
 
-        <!-- TELA EXCLUSIVA DE CHECKOUT / CARTÃO DE EMBARQUE (Oculta até confirmar) -->
-        <section id="voucher-section" class="hidden max-w-lg mx-auto animate-fade-in">
-            <!-- Barra Superior do Checkout -->
-            <div class="flex items-center justify-between gap-3 mb-4 no-print">
-                <button type="button" onclick="startNewReservation()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm transition cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                        <path d="m15 18-6-6 6-6"/>
-                    </svg>
-                    Voltar / Nova Reserva
-                </button>
-                <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    Reserva Concluída
-                </span>
+    <!-- BARRA FLUTUANTE DE RESUMO RÁPIDO NO CELULAR (Evita rolagem longa perdida) -->
+    <div id="mobile-quick-bar" class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-md text-white px-4 py-3 border-t border-slate-800 shadow-2xl flex items-center justify-between gap-3 no-print">
+        <div class="min-w-0">
+            <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Sua Escolha</p>
+            <p id="mobile-bar-summary" class="text-xs font-bold text-white truncate">Poltrona: — • Quarto: —</p>
+        </div>
+        <button type="button" id="mobile-bar-action" onclick="handleMobileBarStep()"
+            class="shrink-0 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl transition cursor-pointer">
+            Escolher Quarto ↓
+        </button>
+    </div>
+
+    <!-- TELA EXCLUSIVA DE CHECKOUT / CARTÃO DE EMBARQUE -->
+    <section id="checkout-screen" class="hidden flex-1 max-w-xl w-full mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <div class="text-center mb-4 sm:mb-5 no-print">
+            <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full mb-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Reserva Confirmada com Sucesso
+            </span>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">Seu Cartão de Embarque</h2>
+            <p class="text-xs text-slate-500 mt-1">Salve a imagem abaixo ou apresente o QR Code no embarque</p>
+        </div>
+
+        <div id="printable-voucher-area" class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden relative">
+            <!-- Cabeçalho do Bilhete -->
+            <div class="bg-slate-900 text-white px-5 sm:px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                    <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Cartão de Embarque</span>
+                </div>
+                <span id="voucher-code" class="font-mono text-xs bg-slate-800 px-2.5 py-1 rounded-md text-slate-200">#BUS-0000</span>
             </div>
 
-            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-5 flex items-center gap-3 no-print">
-                <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                </div>
-                <div>
-                    <h3 class="text-sm font-bold text-emerald-950">Checkout finalizado com sucesso!</h3>
-                    <p class="text-xs text-emerald-800">Seu cartão de embarque está pronto. Salve a imagem PNG ou imprima para apresentar no embarque.</p>
-                </div>
-            </div>
-
-            <!-- Cartão Visual do Bilhete / Comprovante -->
-            <div id="printable-voucher-area" class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden max-w-md mx-auto">
-                <!-- Topo Azul Marinho do Bilhete -->
-                <div class="bg-slate-900 text-white px-6 py-5 flex items-center justify-between">
+            <!-- Corpo Superior: Poltrona, Quarto e Passageiro -->
+            <div class="p-5 sm:p-6 pb-5 relative">
+                <div class="grid grid-cols-2 gap-2.5 sm:gap-3 mb-4 bg-slate-50 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80">
                     <div>
-                        <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Comprovante de Viagem</span>
-                        <h4 class="text-lg font-extrabold tracking-tight">Cartão de Embarque</h4>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-[10px] text-slate-400 block">CÓDIGO</span>
-                        <span id="voucher-code" class="font-mono text-sm font-bold text-white bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">#BUS-0000</span>
-                    </div>
-                </div>
-
-                <!-- Destaque Principal da Poltrona e Quarto -->
-                <div class="px-6 py-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
-                    <div>
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Poltrona Reservada</span>
-                        <div class="flex items-baseline gap-2 mt-0.5">
-                            <span id="voucher-seat-number" class="text-4xl font-black text-slate-900 font-mono">00</span>
-                            <span id="voucher-seat-position" class="text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Janela</span>
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Poltrona</span>
+                        <div class="flex items-baseline gap-1.5 mt-0.5">
+                            <span id="voucher-seat" class="text-3xl sm:text-4xl font-extrabold text-slate-900 font-mono leading-none">00</span>
+                            <span id="voucher-position" class="text-[11px] sm:text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">Janela</span>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Quarto / Hospedagem</span>
-                        <span id="voucher-room-name" class="text-lg font-black text-slate-900 font-mono block">Quarto 00</span>
-                        <span id="voucher-room-type" class="text-xs font-semibold text-indigo-700 block">Triplo (3 lugares)</span>
+
+                    <div class="border-l border-slate-200 pl-3">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Hospedagem</span>
+                        <div class="mt-0.5">
+                            <span id="voucher-room" class="text-base sm:text-lg font-extrabold text-slate-900 block leading-tight">Quarto 01</span>
+                            <span id="voucher-room-type" class="text-[10px] sm:text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 inline-block mt-1">Triplo</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Dados do Passageiro -->
-                <div class="px-6 py-5 space-y-3.5 text-sm">
+                <div class="space-y-3 text-sm">
                     <div>
                         <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Passageiro(a)</span>
-                        <p id="voucher-name" class="font-bold text-slate-900 text-base break-words">—</p>
+                        <p id="voucher-name" class="font-bold text-slate-900 text-base leading-snug">—</p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Documento</span>
-                            <p id="voucher-doc" class="font-medium text-slate-800 font-mono text-xs sm:text-sm">Não informado</p>
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">CPF</span>
+                            <p id="voucher-doc" class="font-mono text-xs font-semibold text-slate-700">—</p>
                         </div>
                         <div>
-                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Telefone</span>
-                            <p id="voucher-phone" class="font-medium text-slate-800 text-xs sm:text-sm">Não informado</p>
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Emissão</span>
+                            <p id="voucher-datetime" class="text-xs font-medium text-slate-700">—</p>
                         </div>
                     </div>
 
                     <div>
                         <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Local de Embarque</span>
-                        <p id="voucher-boarding" class="font-semibold text-slate-800">—</p>
+                        <p id="voucher-boarding" class="text-xs font-medium text-slate-700">—</p>
                     </div>
-
-                    <div>
-                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Data e Hora da Emissão</span>
-                        <p id="voucher-datetime" class="font-mono text-xs text-slate-600">—</p>
-                    </div>
-                </div>
-
-                <!-- Linha Picotada com Recortes Laterais -->
-                <div class="relative flex items-center justify-center my-1">
-                    <div class="ticket-notch-left"></div>
-                    <div class="w-full border-t-2 border-dashed border-slate-200 mx-4"></div>
-                    <div class="ticket-notch-right"></div>
-                </div>
-
-                <!-- Rodapé com QR Code -->
-                <div class="px-6 py-5 bg-white flex items-center justify-between gap-4">
-                    <div class="space-y-1">
-                        <span class="text-xs font-bold text-slate-800 block">Validação de Embarque</span>
-                        <p class="text-[11px] text-slate-500 leading-relaxed">
-                            Apresente este cartão de embarque digital ou impresso ao coordenador antes de entrar no ônibus.
-                        </p>
-                    </div>
-                    <!-- Container do QR Code -->
-                    <div id="qrcode-container" class="p-2 bg-white border border-slate-200 rounded-xl shrink-0"></div>
                 </div>
             </div>
 
-            <!-- Botões de Download, Impressão e Nova Reserva -->
-            <div class="max-w-md mx-auto mt-5 space-y-3 no-print">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Linha Picotada Divisória -->
+            <div class="relative border-t-2 border-dashed border-slate-200 my-1">
+                <div class="ticket-notch-left"></div>
+                <div class="ticket-notch-right"></div>
+            </div>
+
+            <!-- Rodapé do Bilhete: QR Code e Ações -->
+            <div class="p-5 sm:p-6 pt-5 bg-slate-50/70 flex flex-col items-center text-center">
+                <div class="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-sm mb-2.5">
+                    <canvas id="qr-canvas" width="140" height="140" class="block"></canvas>
+                </div>
+                <p class="text-[11px] text-slate-500 max-w-xs leading-relaxed">
+                    Apresente este cartão no embarque para leitura do QR Code.
+                </p>
+
+                <!-- Botões de Ação -->
+                <div class="w-full grid grid-cols-2 gap-2.5 mt-4 no-print">
                     <button type="button" onclick="downloadVoucherPNG()"
-                        class="py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
+                        class="py-3 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
-                        Baixar Cartão (PNG)
+                        <span>Baixar Cartão (PNG)</span>
                     </button>
 
                     <button type="button" onclick="window.print()"
-                        class="py-3.5 px-4 rounded-xl bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-800 font-bold text-sm border border-slate-300 shadow-sm flex items-center justify-center gap-2 transition cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        class="py-3 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>
                         </svg>
-                        Imprimir / Salvar PDF
+                        <span>Imprimir / PDF</span>
                     </button>
                 </div>
 
-                <button type="button" onclick="startNewReservation()"
-                    class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer">
-                    Fazer Outra Reserva
+                <button type="button" onclick="returnToBookingFlow()"
+                    class="w-full mt-2.5 py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-bold transition cursor-pointer no-print">
+                    ← Voltar ao Mapa / Fazer Outra Reserva
                 </button>
             </div>
-        </section>
-    </main>
+        </div>
+    </section>
 
-    <!-- Canvas oculto utilizado para renderizar o comprovante em alta resolução (PNG) -->
-    <canvas id="export-canvas" class="hidden"></canvas>
-
+    <!-- Scripts da Aplicação -->
     <script>
         /**
-         * CONFIGURAÇÃO DO ÔNIBUS (1 ANDAR - 46 LUGARES EXECUTIVO SEMILEITO)
-         * Disposição 2x2:
-         * Lado Esquerdo (Motorista): Janela (ímpar), Corredor (par) -> Ex: 01, 02
-         * Lado Direito (Porta): Corredor (par), Janela (ímpar) -> Ex: 04, 03
+         * SENHA DO PAINEL DO COORDENADOR (padrão: '1234')
          */
+        const ADMIN_PASSWORD = '1234';
+
+        /**
+         * INTEGRAÇÃO OPCIONAL COM GOOGLE SHEETS (SINCRONIZAÇÃO AO VIVO)
+         * Cole abaixo a URL do seu Web App do Google Apps Script:
+         */
+        const GOOGLE_SHEETS_WEBHOOK_URL = '';
+
         const TOTAL_SEATS = 46;
-        const STORAGE_KEY = 'bus_3d_seat_reservations_v1';
-        const RECORDS_STORAGE_KEY = 'bus_3d_seat_records_v1';
-        const DEFAULT_BOARDING_POINT = 'Embarque Único — Saída Principal';
+        const STORAGE_KEY = 'bus_and_rooms_reservations_v1';
 
-        /**
-         * CONFIGURAÇÃO DOS QUARTOS (10 TRIPLOS + 5 DUPLOS = 15 QUARTOS / 40 VAGAS)
-         */
-        const ROOMS_CONFIG = [
-            ...Array.from({ length: 10 }, (_, i) => ({
-                id: i + 1,
-                label: `Quarto ${String(i + 1).padStart(2, '0')}`,
-                type: 'Triplo',
-                capacity: 3
-            })),
-            ...Array.from({ length: 5 }, (_, i) => ({
-                id: i + 11,
-                label: `Quarto ${String(i + 11).padStart(2, '0')}`,
-                type: 'Duplo',
-                capacity: 2
-            }))
-        ];
-        const TOTAL_ROOM_BEDS = ROOMS_CONFIG.reduce((sum, r) => sum + r.capacity, 0);
+        // Configuração dos 15 Quartos: 01 a 10 Triplos (3 vagas) | 11 a 15 Duplos (2 vagas)
+        const ROOMS_CONFIG = Array.from({ length: 15 }, (_, idx) => {
+            const id = idx + 1;
+            const isTriple = id <= 10;
+            return {
+                id,
+                label: `Quarto ${String(id).padStart(2, '0')}`,
+                type: isTriple ? 'Triplo' : 'Duplo',
+                capacity: isTriple ? 3 : 2
+            };
+        });
 
-        /**
-         * SENHA DO PAINEL DO COORDENADOR
-         * Altere o valor abaixo para definir a senha desejada (padrão: '1234')
-         */
-        const ADMIN_PASSWORD = '2307';
-
-        /**
-         * INTEGRAÇÃO OPCIONAL COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
-         * Cole abaixo a URL do seu Web App do Google Apps Script para sincronizar
-         * reservas de assentos e quartos em tempo real entre todos os aparelhos.
-         */
-        const GOOGLE_SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwWE_wGxR7UGrnPHO7sGJa-huIU8GURD7-4Gd7GWYKUAWI69kh9JUcR0k4aC5z_paKv/exec';
-
-        // Estado da aplicação
-        let occupiedSeats = [];
-        let seatRecords = {};
+        let occupiedRecords = {};
         let selectedSeat = null;
         let selectedRoomId = null;
         let currentTicketData = null;
+        let pendingQRValidation = null;
+        let syncIntervalId = null;
         let isSyncing = false;
 
-        /**
-         * Inicialização ao carregar a página
-         */
-        window.addEventListener('DOMContentLoaded', async () => {
-            loadOccupiedSeats();
+        document.addEventListener('DOMContentLoaded', async () => {
+            loadReservationsFromStorage();
             renderBusMap();
-            await syncFromCloudIfConfigured();
-            renderBusMap();
-            setupInputMasks();
+            renderRoomsGrid();
+            updateCounters();
+            updateSelectionSummary();
             setupFormListener();
-            setupAdminTrigger();
-            checkQRCodeValidationInURL();
+            setupInputMasks();
+            setupSecretAdminTrigger();
+            setupPasswordModalListener();
+            setupValidationAuthListener();
+            setupCrossTabSync();
 
-            // Sincronização automática silenciosa em tempo real a cada 3 segundos (sem recarregar a página)
             if (GOOGLE_SHEETS_WEBHOOK_URL) {
                 const liveBadge = document.getElementById('live-sync-badge');
                 if (liveBadge) liveBadge.classList.remove('hidden');
-
-                setInterval(async () => {
-                    if (document.hidden || isSyncing) return;
-                    await syncFromCloudIfConfigured();
-                }, 3000);
-
-                // Atualiza imediatamente quando o usuário volta para a aba do navegador
-                document.addEventListener('visibilitychange', () => {
-                    if (!document.hidden) syncFromCloudIfConfigured();
-                });
+                await syncFromCloudIfConfigured(true);
+                startRealtimeCloudPolling();
             }
 
-            // Sincronização instantânea entre abas no mesmo navegador
-            window.addEventListener('storage', (e) => {
-                if (e.key === STORAGE_KEY || e.key === RECORDS_STORAGE_KEY) {
-                    const prevSelected = selectedSeat;
-                    const prevRoomId = selectedRoomId;
-                    loadOccupiedSeats();
-                    if (prevSelected && occupiedSeats.includes(prevSelected)) {
-                        selectedSeat = null;
-                        updateSelectedBadge();
-                        showToast(`A poltrona ${formatSeatNum(prevSelected)} acabou de ser reservada por outra pessoa.`, 'error');
-                    }
-                    if (prevRoomId && isRoomFull(prevRoomId)) {
-                        const lostRoom = getRoomById(prevRoomId);
-                        selectedRoomId = null;
-                        updateSelectedRoomBadge();
-                        showToast(`O ${lostRoom ? lostRoom.label : 'quarto escolhido'} acabou de lotar.`, 'error');
-                    }
-                    renderBusMap();
-                    if (!document.getElementById('coordinator-modal').classList.contains('hidden')) {
-                        renderCoordinatorList();
+            checkQRCodeValidationInURL();
+        });
+
+        function setupCrossTabSync() {
+            window.addEventListener('storage', (event) => {
+                if (event.key === STORAGE_KEY) {
+                    const prev = JSON.stringify(occupiedRecords);
+                    loadReservationsFromStorage();
+                    if (prev !== JSON.stringify(occupiedRecords)) {
+                        handleLiveStateChange();
                     }
                 }
             });
-        });
+        }
 
-        /**
-         * Carrega assentos ocupados e registros detalhados do localStorage
-         */
-        function loadOccupiedSeats() {
+        function startRealtimeCloudPolling() {
+            if (!GOOGLE_SHEETS_WEBHOOK_URL) return;
+            if (syncIntervalId) clearInterval(syncIntervalId);
+
+            syncIntervalId = setInterval(() => {
+                if (!document.hidden) {
+                    syncFromCloudIfConfigured(false);
+                }
+            }, 3000);
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    syncFromCloudIfConfigured(false);
+                }
+            });
+        }
+
+        function handleLiveStateChange() {
+            if (selectedSeat && occupiedRecords[selectedSeat]) {
+                const takenSeat = String(selectedSeat).padStart(2, '0');
+                selectedSeat = null;
+                showToast(`A poltrona ${takenSeat} acabou de ser reservada por outra pessoa!`, 'error');
+            }
+
+            if (selectedRoomId) {
+                const room = ROOMS_CONFIG.find(r => r.id === selectedRoomId);
+                if (room && getRoomOccupants(room.id).length >= room.capacity) {
+                    selectedRoomId = null;
+                    showToast(`O ${room.label} acabou de lotar! Escolha outro quarto.`, 'error');
+                }
+            }
+
+            renderBusMap();
+            renderRoomsGrid();
+            updateCounters();
+            updateSelectionSummary();
+
+            const adminModal = document.getElementById('admin-panel-modal');
+            if (adminModal && !adminModal.classList.contains('hidden')) {
+                renderAdminPanel();
+            }
+        }
+
+        function loadReservationsFromStorage() {
             try {
                 const saved = localStorage.getItem(STORAGE_KEY);
-                const savedRecords = localStorage.getItem(RECORDS_STORAGE_KEY);
-                occupiedSeats = saved ? JSON.parse(saved) : [];
-                seatRecords = savedRecords ? JSON.parse(savedRecords) : {};
+                occupiedRecords = saved ? JSON.parse(saved) : {};
             } catch (e) {
-                occupiedSeats = [];
-                seatRecords = {};
+                occupiedRecords = {};
             }
         }
 
-        /**
-         * Salva lista de assentos e registros no localStorage
-         */
-        function saveOccupiedSeats() {
+        function saveReservationsToStorage() {
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(occupiedSeats));
-                localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify(seatRecords));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(occupiedRecords));
             } catch (e) {
-                console.warn('Não foi possível salvar no localStorage:', e);
+                console.warn('Erro ao salvar no navegador:', e);
             }
         }
 
-        /**
-         * Sincronização em nuvem (Google Sheets)
-         */
-        async function syncFromCloudIfConfigured() {
-            if (!GOOGLE_SHEETS_WEBHOOK_URL) return;
+        async function syncFromCloudIfConfigured(forceNotify = false) {
+            if (!GOOGLE_SHEETS_WEBHOOK_URL || isSyncing) return;
             isSyncing = true;
             try {
-                const sep = GOOGLE_SHEETS_WEBHOOK_URL.includes('?') ? '&' : '?';
-                const res = await fetch(`${GOOGLE_SHEETS_WEBHOOK_URL}${sep}t=${Date.now()}`, {
+                const separator = GOOGLE_SHEETS_WEBHOOK_URL.includes('?') ? '&' : '?';
+                const res = await fetch(`${GOOGLE_SHEETS_WEBHOOK_URL}${separator}t=${Date.now()}`, {
                     method: 'GET',
                     redirect: 'follow',
                     cache: 'no-store'
                 });
-                if (!res.ok) return;
                 const data = await res.json();
-                if (Array.isArray(data.records)) {
-                    const prevSelected = selectedSeat;
-                    const prevRoomId = selectedRoomId;
-                    const remoteRecords = {};
-                    const remoteSeats = [];
-
+                if (data && Array.isArray(data.records)) {
+                    const freshMap = {};
                     data.records.forEach(r => {
                         const seatNum = Number(r.seatRaw || r.seat);
                         if (seatNum >= 1 && seatNum <= TOTAL_SEATS) {
-                            remoteSeats.push(seatNum);
-                            remoteRecords[seatNum] = {
+                            freshMap[seatNum] = {
                                 ...r,
                                 seatRaw: seatNum,
-                                seat: formatSeatNum(seatNum),
+                                seat: String(seatNum).padStart(2, '0'),
                                 roomId: r.roomId ? Number(r.roomId) : null
                             };
                         }
                     });
 
-                    const changed =
-                        JSON.stringify([...occupiedSeats].sort()) !== JSON.stringify([...remoteSeats].sort()) ||
-                        JSON.stringify(seatRecords) !== JSON.stringify(remoteRecords);
-
-                    occupiedSeats = remoteSeats;
-                    seatRecords = remoteRecords;
-                    saveOccupiedSeats();
-
-                    if (prevSelected && occupiedSeats.includes(prevSelected)) {
-                        selectedSeat = null;
-                        updateSelectedBadge();
-                        showToast(`A poltrona ${formatSeatNum(prevSelected)} acabou de ser reservada por outra pessoa.`, 'error');
-                    }
-
-                    if (prevRoomId && isRoomFull(prevRoomId)) {
-                        const lostRoom = getRoomById(prevRoomId);
-                        selectedRoomId = null;
-                        updateSelectedRoomBadge();
-                        showToast(`O ${lostRoom ? lostRoom.label : 'quarto escolhido'} acabou de lotar.`, 'error');
-                    }
-
+                    const changed = JSON.stringify(occupiedRecords) !== JSON.stringify(freshMap);
                     if (changed) {
-                        renderBusMap();
-                        if (!document.getElementById('coordinator-modal').classList.contains('hidden')) {
-                            renderCoordinatorList();
-                        }
+                        occupiedRecords = freshMap;
+                        saveReservationsToStorage();
+                        handleLiveStateChange();
+                        if (forceNotify) showToast('Mapa atualizado em tempo real.', 'info');
                     }
                 }
             } catch (err) {
@@ -829,942 +630,969 @@
             }
         }
 
-        async function pushRecordToCloud(action, record) {
-            if (!GOOGLE_SHEETS_WEBHOOK_URL) return { ok: true };
-            try {
-                const res = await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
-                    method: 'POST',
-                    redirect: 'follow',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action, record })
-                });
-                if (res.ok) {
-                    const json = await res.json().catch(() => ({}));
-                    return { ok: true, status: json.status || 'OK' };
-                }
-            } catch (err) {
-                console.warn('Falha ao enviar registro para nuvem:', err);
-            }
-            return { ok: false };
+        function pushRecordToCloud(action, payload) {
+            if (!GOOGLE_SHEETS_WEBHOOK_URL) return Promise.resolve();
+            return fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action, record: payload })
+            }).catch(err => console.warn('Falha ao enviar para planilha:', err));
         }
 
-        /**
-         * Formata número do assento com dois dígitos (ex: 1 -> "01")
-         */
-        function formatSeatNum(num) {
-            return String(num).padStart(2, '0');
-        }
-
-        /**
-         * Retorna posição do assento (Janela ou Corredor)
-         */
-        function getSeatPosition(num) {
-            return num % 2 !== 0 ? 'Janela' : 'Corredor';
-        }
-
-        /**
-         * Auxiliares dos Quartos
-         */
-        function getRoomById(roomId) {
-            return ROOMS_CONFIG.find(r => r.id === Number(roomId)) || null;
+        function getSeatPositionLabel(seatNum) {
+            const remainder = seatNum % 4;
+            return (remainder === 1 || remainder === 0) ? 'Janela' : 'Corredor';
         }
 
         function getRoomOccupants(roomId) {
-            return Object.values(seatRecords).filter(r => Number(r.roomId) === Number(roomId));
+            return Object.values(occupiedRecords).filter(rec => Number(rec.roomId) === Number(roomId));
         }
 
-        function isRoomFull(roomId) {
-            const room = getRoomById(roomId);
-            if (!room) return true;
-            return getRoomOccupants(roomId).length >= room.capacity;
-        }
-
-        /**
-         * Atualiza os contadores de poltronas e vagas de quartos no topo
-         */
-        function updateAvailableCounter() {
-            const freeSeats = TOTAL_SEATS - occupiedSeats.length;
-            const seatCounterEl = document.getElementById('available-counter');
-            if (seatCounterEl) {
-                seatCounterEl.textContent = `${freeSeats} ${freeSeats === 1 ? 'poltrona' : 'poltronas'}`;
-            }
-
-            const totalOccupiedBeds = Object.values(seatRecords).filter(r => r.roomId).length;
-            const freeBeds = Math.max(0, TOTAL_ROOM_BEDS - totalOccupiedBeds);
-            const roomCounterEl = document.getElementById('available-rooms-counter');
-            if (roomCounterEl) {
-                roomCounterEl.textContent = `${freeBeds} ${freeBeds === 1 ? 'vaga em quarto' : 'vagas em quartos'}`;
-            }
-        }
-
-        /**
-         * Renderiza todas as 46 poltronas do ônibus (2x2) e os 15 quartos
-         */
         function renderBusMap() {
             const grid = document.getElementById('bus-seats-grid');
-            if (grid) {
-                grid.innerHTML = '';
+            grid.innerHTML = '';
 
-                // 11 fileiras completas (01 a 44) + 1 fileira final com 2 poltronas (45, 46)
-                const totalRows = Math.ceil(TOTAL_SEATS / 4);
+            const totalRows = Math.ceil(TOTAL_SEATS / 4);
 
-                for (let row = 0; row < totalRows; row++) {
-                    const base = row * 4;
-                    const leftWindow = base + 1;
-                    const leftAisle = base + 2;
-                    const rightWindow = base + 3;
-                    const rightAisle = base + 4;
+            for (let row = 0; row < totalRows; row++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'grid grid-cols-5 gap-1.5 sm:gap-2 items-center';
 
-                    const rowEl = document.createElement('div');
-                    rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
+                const base = row * 4;
+                const seatsInRow = [
+                    base + 1 <= TOTAL_SEATS ? base + 1 : null,
+                    base + 2 <= TOTAL_SEATS ? base + 2 : null,
+                    'AISLE',
+                    base + 4 <= TOTAL_SEATS ? base + 4 : null,
+                    base + 3 <= TOTAL_SEATS ? base + 3 : null
+                ];
 
-                    rowEl.appendChild(createSeatButton(leftWindow));
-                    rowEl.appendChild(createSeatButton(leftAisle));
+                seatsInRow.forEach(item => {
+                    if (item === 'AISLE') {
+                        const aisle = document.createElement('div');
+                        aisle.className = 'flex items-center justify-center text-[9px] sm:text-[10px] font-mono text-slate-400 select-none';
+                        aisle.textContent = String(row + 1).padStart(2, '0');
+                        rowDiv.appendChild(aisle);
+                        return;
+                    }
 
-                    // Corredor central
-                    const aisleEl = document.createElement('div');
-                    aisleEl.className = 'flex items-center justify-center text-[10px] font-mono text-slate-300 select-none';
-                    aisleEl.textContent = `${row + 1}`;
-                    rowEl.appendChild(aisleEl);
+                    if (item === null) {
+                        const emptySlot = document.createElement('div');
+                        emptySlot.className = 'h-10 sm:h-11';
+                        rowDiv.appendChild(emptySlot);
+                        return;
+                    }
 
-                    rowEl.appendChild(rightAisle <= TOTAL_SEATS ? createSeatButton(rightAisle) : createEmptySpacer());
-                    rowEl.appendChild(rightWindow <= TOTAL_SEATS ? createSeatButton(rightWindow) : createEmptySpacer());
+                    const seatNum = item;
+                    const isOccupied = Boolean(occupiedRecords[seatNum]);
+                    const isSelected = selectedSeat === seatNum;
+                    const formattedNum = String(seatNum).padStart(2, '0');
 
-                    grid.appendChild(rowEl);
-                }
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.dataset.seat = seatNum;
+                    btn.textContent = formattedNum;
+                    btn.setAttribute('aria-label', `Poltrona ${formattedNum} - ${getSeatPositionLabel(seatNum)}`);
+
+                    if (isOccupied) {
+                        btn.className = 'seat-btn seat-occupied h-10 sm:h-11 rounded-xl font-mono text-xs sm:text-sm font-bold flex items-center justify-center';
+                        btn.disabled = true;
+                        btn.title = `Poltrona ${formattedNum} — Ocupada`;
+                    } else if (isSelected) {
+                        btn.className = 'seat-btn seat-selected h-10 sm:h-11 rounded-xl font-mono text-xs sm:text-sm font-bold flex items-center justify-center cursor-pointer';
+                        btn.title = `Poltrona ${formattedNum} (${getSeatPositionLabel(seatNum)}) — Selecionada`;
+                    } else {
+                        btn.className = 'seat-btn seat-available h-10 sm:h-11 rounded-xl font-mono text-xs sm:text-sm font-bold flex items-center justify-center cursor-pointer';
+                        btn.title = `Poltrona ${formattedNum} (${getSeatPositionLabel(seatNum)}) — Livre`;
+                    }
+
+                    if (!isOccupied) {
+                        btn.addEventListener('click', () => handleSeatSelection(seatNum));
+                    }
+
+                    rowDiv.appendChild(btn);
+                });
+
+                grid.appendChild(rowDiv);
             }
-
-            renderRoomsGrid();
-            updateAvailableCounter();
         }
 
-        /**
-         * Cria o elemento visual de cada poltrona
-         */
-        function createSeatButton(seatNumber) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.dataset.seat = seatNumber;
-
-            const isOccupied = occupiedSeats.includes(seatNumber);
-            const isSelected = selectedSeat === seatNumber;
-            const formatted = formatSeatNum(seatNumber);
-            const position = getSeatPosition(seatNumber);
-
-            let stateClass = 'seat-available';
-            if (isOccupied) {
-                stateClass = 'seat-occupied';
-            } else if (isSelected) {
-                stateClass = 'seat-selected';
+        function handleSeatSelection(seatNum) {
+            if (occupiedRecords[seatNum]) {
+                showToast('Esta poltrona já está ocupada.', 'error');
+                return;
             }
-
-            btn.className = `seat-btn ${stateClass} h-11 rounded-xl flex flex-col items-center justify-center font-mono text-xs sm:text-sm font-bold leading-none`;
-            btn.innerHTML = `<span>${formatted}</span>`;
-            btn.title = isOccupied
-                ? `Poltrona ${formatted} (${position}) — Ocupada`
-                : `Poltrona ${formatted} (${position}) — Livre`;
-            btn.setAttribute('aria-label', btn.title);
-
-            if (isOccupied) {
-                btn.disabled = true;
-            } else {
-                btn.addEventListener('click', () => handleSeatClick(seatNumber));
-            }
-
-            return btn;
+            selectedSeat = (selectedSeat === seatNum) ? null : seatNum;
+            renderBusMap();
+            updateSelectionSummary();
         }
 
-        function createEmptySpacer() {
-            const div = document.createElement('div');
-            div.className = 'h-11';
-            return div;
-        }
-
-        /**
-         * Renderiza os 15 quartos (10 Triplos e 5 Duplos)
-         */
         function renderRoomsGrid() {
-            const roomsGrid = document.getElementById('rooms-grid');
-            if (!roomsGrid) return;
-            roomsGrid.innerHTML = '';
+            const container = document.getElementById('rooms-grid');
+            container.innerHTML = '';
 
             ROOMS_CONFIG.forEach(room => {
                 const occupants = getRoomOccupants(room.id);
                 const freeSpots = room.capacity - occupants.length;
-                const full = freeSpots <= 0;
+                const isFull = freeSpots <= 0;
                 const isSelected = selectedRoomId === room.id;
 
                 const card = document.createElement('button');
                 card.type = 'button';
-                card.disabled = full;
+                card.disabled = isFull;
 
-                if (full) {
-                    card.className = 'text-left p-3 rounded-xl border-2 border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed flex flex-col justify-between gap-2';
+                let stateClasses = 'bg-white border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/40 cursor-pointer';
+                if (isFull) {
+                    stateClasses = 'bg-slate-100 border-slate-200 opacity-75 cursor-not-allowed';
                 } else if (isSelected) {
-                    card.className = 'text-left p-3 rounded-xl border-2 border-slate-900 bg-slate-900 text-white shadow-md flex flex-col justify-between gap-2 cursor-pointer transition';
-                } else {
-                    card.className = 'text-left p-3 rounded-xl border-2 border-slate-200 hover:border-emerald-500 bg-white hover:bg-emerald-50/40 text-slate-800 flex flex-col justify-between gap-2 cursor-pointer transition';
+                    stateClasses = 'bg-slate-900 border-slate-900 text-white shadow-md ring-2 ring-slate-900/20 cursor-pointer';
                 }
 
-                // Indicador visual de camas ocupadas/livres
-                let bedsDots = '';
-                for (let b = 0; b < room.capacity; b++) {
-                    const filled = b < occupants.length;
+                card.className = `p-2.5 sm:p-3 rounded-2xl border-2 text-left transition flex flex-col justify-between gap-2 ${stateClasses}`;
+
+                let dotsHTML = '';
+                for (let i = 0; i < room.capacity; i++) {
+                    const filled = i < occupants.length;
                     if (isSelected) {
-                        bedsDots += `<span class="w-2.5 h-2.5 rounded-full ${filled ? 'bg-amber-400' : 'bg-emerald-400'}"></span>`;
+                        dotsHTML += `<span class="w-2 h-2 rounded-full ${filled ? 'bg-amber-400' : 'bg-emerald-400'}"></span>`;
                     } else {
-                        bedsDots += `<span class="w-2.5 h-2.5 rounded-full ${filled ? 'bg-slate-400' : 'bg-emerald-500'}"></span>`;
+                        dotsHTML += `<span class="w-2 h-2 rounded-full ${filled ? 'bg-slate-400' : 'bg-emerald-500'}"></span>`;
                     }
                 }
 
-                const badgeClass = room.type === 'Triplo'
-                    ? (isSelected ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-50 text-emerald-700')
-                    : (isSelected ? 'bg-indigo-500/30 text-indigo-200' : 'bg-indigo-50 text-indigo-700');
-
-                const namesList = occupants.length > 0
-                    ? occupants.map(o => o.name.split(' ')[0]).join(', ')
-                    : 'Quarto vazio';
+                const namesList = occupants.map(o => o.name.split(' ')[0]).join(', ');
+                const statusBadge = isFull
+                    ? `<span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-slate-200 text-slate-600">Lotado</span>`
+                    : `<span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${isSelected ? 'bg-emerald-500 text-slate-950' : 'bg-emerald-50 text-emerald-700'}">${freeSpots} livre${freeSpots > 1 ? 's' : ''}</span>`;
 
                 card.innerHTML = `
-                    <div class="flex items-center justify-between gap-1 w-full">
-                        <span class="font-bold text-xs sm:text-sm">${room.label}</span>
-                        <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${badgeClass}">${room.type}</span>
+                    <div class="flex items-start justify-between gap-1 w-full">
+                        <div>
+                            <span class="text-xs font-extrabold block leading-tight ${isSelected ? 'text-white' : 'text-slate-900'}">${room.label}</span>
+                            <span class="text-[10px] font-medium ${isSelected ? 'text-slate-300' : 'text-slate-500'}">${room.type} (${room.capacity} lug.)</span>
+                        </div>
+                        ${statusBadge}
                     </div>
-                    <div class="flex items-center justify-between w-full">
-                        <div class="flex items-center gap-1">${bedsDots}</div>
-                        <span class="text-[11px] font-semibold ${full ? 'text-red-500' : (isSelected ? 'text-emerald-300' : 'text-emerald-700')}">
-                            ${full ? 'Lotado' : `${freeSpots} ${freeSpots === 1 ? 'vaga' : 'vagas'}`}
+                    <div class="w-full pt-1 border-t ${isSelected ? 'border-slate-700' : 'border-slate-100'} flex items-center justify-between gap-1">
+                        <div class="flex items-center gap-1">${dotsHTML}</div>
+                        <span class="text-[10px] truncate max-w-[85px] sm:max-w-[95px] ${isSelected ? 'text-slate-300' : 'text-slate-500'}">
+                            ${namesList || 'Disponível'}
                         </span>
                     </div>
-                    <p class="text-[11px] truncate w-full ${isSelected ? 'text-slate-300' : 'text-slate-500'}" title="${namesList}">
-                        ${namesList}
-                    </p>
                 `;
 
-                if (!full) {
-                    card.addEventListener('click', () => handleRoomClick(room.id));
+                if (!isFull) {
+                    card.addEventListener('click', () => handleRoomSelection(room.id));
                 }
 
-                roomsGrid.appendChild(card);
+                container.appendChild(card);
             });
         }
 
-        /**
-         * Trata o clique do usuário em um assento livre
-         */
-        function handleSeatClick(seatNumber) {
-            if (occupiedSeats.includes(seatNumber)) {
-                showToast(`A poltrona ${formatSeatNum(seatNumber)} já está ocupada.`, 'error');
+        function handleRoomSelection(roomId) {
+            const room = ROOMS_CONFIG.find(r => r.id === roomId);
+            if (!room || getRoomOccupants(roomId).length >= room.capacity) {
+                showToast('Este quarto já está lotado.', 'error');
                 return;
             }
-
-            selectedSeat = selectedSeat === seatNumber ? null : seatNumber;
-            renderBusMap();
-            updateSelectedBadge();
-        }
-
-        /**
-         * Trata o clique do usuário em um quarto com vagas
-         */
-        function handleRoomClick(roomId) {
-            if (isRoomFull(roomId)) {
-                showToast('Este quarto já está com todas as vagas preenchidas.', 'error');
-                return;
-            }
-
-            selectedRoomId = selectedRoomId === roomId ? null : roomId;
+            selectedRoomId = (selectedRoomId === roomId) ? null : roomId;
             renderRoomsGrid();
-            updateSelectedRoomBadge();
+            updateSelectionSummary();
         }
 
-        /**
-         * Atualiza o indicador visual do assento selecionado no formulário
-         */
-        function updateSelectedBadge() {
+        function updateCounters() {
+            const totalReserved = Object.keys(occupiedRecords).length;
+            const freeSeats = TOTAL_SEATS - totalReserved;
+            const seatCounterEl = document.getElementById('available-counter');
+            if (seatCounterEl) {
+                seatCounterEl.textContent =
+                    `${freeSeats} ${freeSeats === 1 ? 'poltrona' : 'poltronas'}`;
+            }
+
+            const totalRoomSpots = ROOMS_CONFIG.reduce((sum, r) => sum + r.capacity, 0);
+            const occupiedRoomSpots = Object.values(occupiedRecords).filter(r => r.roomId).length;
+            const freeRoomSpots = Math.max(0, totalRoomSpots - occupiedRoomSpots);
+            const roomCounterEl = document.getElementById('available-rooms-counter');
+            if (roomCounterEl) {
+                roomCounterEl.textContent =
+                    `${freeRoomSpots} vaga${freeRoomSpots === 1 ? '' : 's'} em quartos`;
+            }
+        }
+
+        function updateSelectionSummary() {
             const badge = document.getElementById('selected-seat-badge');
-            if (!badge) return;
+            const roomPill = document.getElementById('selected-room-pill');
+            const room = ROOMS_CONFIG.find(r => r.id === selectedRoomId);
 
+            if (room) {
+                roomPill.className = 'text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-900 text-white shrink-0';
+                roomPill.textContent = `${room.label} (${room.type})`;
+            } else {
+                roomPill.className = 'text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 shrink-0';
+                roomPill.textContent = 'Nenhum quarto';
+            }
+
+            if (!selectedSeat && !room) {
+                badge.className = 'flex items-center gap-1.5 bg-slate-100 text-slate-500 px-2.5 py-1.5 rounded-xl text-xs font-semibold shrink-0';
+                badge.innerHTML = '<span>Sem seleção</span>';
+            } else {
+                const seatText = selectedSeat ? `Polt. ${String(selectedSeat).padStart(2, '0')}` : 'Sem poltrona';
+                const roomText = room ? room.label : 'Sem quarto';
+                badge.className = 'flex items-center gap-1.5 bg-slate-900 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold shadow-sm shrink-0';
+                badge.innerHTML = `<span class="text-emerald-400 font-mono">${seatText}</span> • <span>${roomText}</span>`;
+            }
+
+            // Atualiza a barra fixa inferior no celular
+            const mobileSummary = document.getElementById('mobile-bar-summary');
+            const mobileBtn = document.getElementById('mobile-bar-action');
+            if (mobileSummary && mobileBtn) {
+                const sLabel = selectedSeat ? String(selectedSeat).padStart(2, '0') : '—';
+                const rLabel = room ? `${room.label} (${room.type})` : '—';
+                mobileSummary.textContent = `Poltrona: ${sLabel} • Quarto: ${rLabel}`;
+
+                if (!selectedSeat) {
+                    mobileBtn.textContent = '1. Escolha Poltrona ↑';
+                } else if (!room) {
+                    mobileBtn.textContent = '2. Escolher Quarto ↓';
+                } else {
+                    mobileBtn.textContent = '3. Preencher Dados ↓';
+                }
+            }
+        }
+
+        function handleMobileBarStep() {
             if (!selectedSeat) {
-                badge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold';
-                badge.innerHTML = '<span>Poltrona: —</span>';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 return;
             }
-
-            const formatted = formatSeatNum(selectedSeat);
-            const pos = getSeatPosition(selectedSeat);
-            badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold shadow-sm';
-            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Poltrona ${formatted} (${pos})</span>`;
-        }
-
-        /**
-         * Atualiza o indicador visual do quarto selecionado no formulário
-         */
-        function updateSelectedRoomBadge() {
-            const badge = document.getElementById('selected-room-badge');
-            if (!badge) return;
-
             if (!selectedRoomId) {
-                badge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold';
-                badge.innerHTML = '<span>Quarto: —</span>';
+                document.getElementById('rooms-section')?.scrollIntoView({ behavior: 'smooth' });
                 return;
             }
-
-            const room = getRoomById(selectedRoomId);
-            badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-950 text-white text-xs font-bold shadow-sm';
-            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>${room.label} (${room.type})</span>`;
+            document.getElementById('passenger-form-section')?.scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => document.getElementById('passenger-name')?.focus(), 350);
         }
 
-        /**
-         * Processa a confirmação da reserva e gera o comprovante
-         */
+        function normalizeCPF(value) {
+            return (value || '').replace(/\D/g, '');
+        }
+
+        function setupInputMasks() {
+            const cpfInput = document.getElementById('passenger-doc');
+            cpfInput.addEventListener('input', (e) => {
+                let digits = e.target.value.replace(/\D/g, '').slice(0, 11);
+                digits = digits.replace(/(\d{3})(\d)/, '$1.$2');
+                digits = digits.replace(/(\d{3})(\d)/, '$1.$2');
+                digits = digits.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                e.target.value = digits;
+            });
+        }
+
         function setupFormListener() {
             const form = document.getElementById('reservation-form');
+
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
                 if (!selectedSeat) {
-                    showToast('Por favor, selecione uma poltrona livre no mapa do ônibus antes de confirmar.', 'error');
+                    showToast('Selecione uma poltrona livre no mapa do ônibus.', 'error');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
 
                 if (!selectedRoomId) {
-                    showToast('Por favor, selecione um quarto disponível no Passo 2 antes de confirmar.', 'error');
-                    document.getElementById('room-selection-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    showToast('Selecione um quarto disponível antes de confirmar.', 'error');
+                    document.getElementById('rooms-section')?.scrollIntoView({ behavior: 'smooth' });
                     return;
                 }
 
                 const nameInput = document.getElementById('passenger-name');
                 const docInput = document.getElementById('passenger-doc');
                 const phoneInput = document.getElementById('passenger-phone');
-                const submitBtn = document.getElementById('confirm-btn');
+                const boardingInput = document.getElementById('boarding-point');
 
-                const name = nameInput.value.trim();
-                const doc = docInput.value.trim();
-                const phone = phoneInput.value.trim() || 'Não informado';
-                const boarding = DEFAULT_BOARDING_POINT;
+                const fullName = nameInput.value.trim();
+                const cpfDigits = normalizeCPF(docInput.value);
 
-                if (!name || name.length < 3) {
+                if (fullName.length < 3) {
                     showToast('Informe o nome completo do passageiro.', 'error');
                     nameInput.focus();
                     return;
                 }
 
-                const normalizedCpf = doc.replace(/\D/g, '');
-                if (normalizedCpf.length !== 11) {
+                if (cpfDigits.length !== 11) {
                     showToast('Informe um CPF válido com 11 dígitos.', 'error');
                     docInput.focus();
                     return;
                 }
 
-                // Checagem instantânea na nuvem antes de gravar para evitar duplo agendamento no mesmo segundo
-                const seatToReserve = selectedSeat;
-                const roomToReserveId = selectedRoomId;
-                const originalBtnHTML = submitBtn.innerHTML;
-                if (GOOGLE_SHEETS_WEBHOOK_URL) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span>Verificando poltrona e quarto...</span>';
-                    await syncFromCloudIfConfigured();
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnHTML;
+                const submitBtn = document.getElementById('submit-btn');
+                submitBtn.disabled = true;
 
-                    if (occupiedSeats.includes(seatToReserve) || isRoomFull(roomToReserveId)) {
+                try {
+                    if (GOOGLE_SHEETS_WEBHOOK_URL) {
+                        await syncFromCloudIfConfigured(false);
+                    }
+
+                    if (!selectedSeat || occupiedRecords[selectedSeat]) {
+                        showToast('Esta poltrona acabou de ser ocupada por outra pessoa. Escolha outra.', 'error');
+                        selectedSeat = null;
+                        renderBusMap();
+                        updateSelectionSummary();
                         return;
                     }
-                }
 
-                // Verifica se o CPF já possui alguma poltrona reservada
-                const existingReservation = Object.values(seatRecords).find(record => {
-                    const recordCpf = String(record.doc || '').replace(/\D/g, '');
-                    return recordCpf && recordCpf === normalizedCpf;
-                });
+                    const selectedRoom = ROOMS_CONFIG.find(r => r.id === selectedRoomId);
+                    if (!selectedRoom || getRoomOccupants(selectedRoom.id).length >= selectedRoom.capacity) {
+                        showToast('Este quarto acabou de preencher todas as vagas. Escolha outro quarto.', 'error');
+                        selectedRoomId = null;
+                        renderRoomsGrid();
+                        updateSelectionSummary();
+                        return;
+                    }
 
-                if (existingReservation) {
-                    showToast(
-                        `Este CPF já possui reserva na Poltrona ${existingReservation.seat} (${existingReservation.name}). Cada CPF pode reservar apenas 1 lugar.`,
-                        'error'
+                    const existingReservation = Object.values(occupiedRecords).find(
+                        record => normalizeCPF(record.doc) === cpfDigits
                     );
-                    docInput.focus();
-                    return;
-                }
 
-                if (occupiedSeats.includes(selectedSeat)) {
-                    showToast('Ops! Essa poltrona acabou de ser ocupada. Escolha outra.', 'error');
+                    if (existingReservation) {
+                        showToast(
+                            `Este CPF já possui reserva na Poltrona ${existingReservation.seat} (${existingReservation.roomLabel || 'sem quarto'}).`,
+                            'error'
+                        );
+                        docInput.focus();
+                        return;
+                    }
+
+                    const now = new Date();
+                    const formattedDate = now.toLocaleDateString('pt-BR');
+                    const formattedTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    const bookingCode = `#BUS-${Math.floor(1000 + Math.random() * 9000)}`;
+
+                    const ticketData = {
+                        code: bookingCode,
+                        seat: String(selectedSeat).padStart(2, '0'),
+                        seatRaw: selectedSeat,
+                        position: getSeatPositionLabel(selectedSeat),
+                        roomId: selectedRoom.id,
+                        roomLabel: selectedRoom.label,
+                        roomType: selectedRoom.type,
+                        name: fullName,
+                        doc: docInput.value.trim(),
+                        phone: phoneInput.value.trim() || 'Não informado',
+                        boarding: boardingInput.value,
+                        datetime: `${formattedDate} às ${formattedTime}`,
+                        boarded: false,
+                        boardedAt: ''
+                    };
+
+                    occupiedRecords[selectedSeat] = ticketData;
+                    saveReservationsToStorage();
+                    pushRecordToCloud('RESERVE', ticketData);
+
                     selectedSeat = null;
-                    renderBusMap();
-                    updateSelectedBadge();
-                    return;
-                }
-
-                if (isRoomFull(selectedRoomId)) {
-                    showToast('Ops! Esse quarto acabou de lotar. Escolha outro quarto.', 'error');
                     selectedRoomId = null;
+                    renderBusMap();
                     renderRoomsGrid();
-                    updateSelectedRoomBadge();
-                    return;
+                    updateCounters();
+                    updateSelectionSummary();
+                    form.reset();
+
+                    openCheckoutScreen(ticketData);
+                    showToast(`Reserva confirmada! Poltrona ${ticketData.seat} e ${ticketData.roomLabel}.`, 'success');
+                } finally {
+                    submitBtn.disabled = false;
                 }
-
-                // Gera dados únicos do bilhete
-                const now = new Date();
-                const formattedDate = now.toLocaleDateString('pt-BR');
-                const formattedTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                const randomCode = 'BUS-' + Math.floor(1000 + Math.random() * 9000);
-                const selectedRoom = getRoomById(selectedRoomId);
-
-                const ticketData = {
-                    code: randomCode,
-                    seat: formatSeatNum(selectedSeat),
-                    seatRaw: selectedSeat,
-                    position: getSeatPosition(selectedSeat),
-                    roomId: selectedRoom.id,
-                    roomLabel: selectedRoom.label,
-                    roomType: `${selectedRoom.type} (${selectedRoom.capacity} lugares)`,
-                    name,
-                    doc,
-                    phone,
-                    boarding,
-                    datetime: `${formattedDate} às ${formattedTime}`,
-                    boarded: false,
-                    boardedAt: ''
-                };
-
-                // Ocupa a poltrona e salva registro detalhado
-                occupiedSeats.push(selectedSeat);
-                seatRecords[selectedSeat] = ticketData;
-                saveOccupiedSeats();
-
-                // Envia para nuvem (se Google Sheets estiver configurado)
-                const cloudRes = await pushRecordToCloud('RESERVE', ticketData);
-                if (cloudRes && cloudRes.status === 'SEAT_CONFLICT') {
-                    showToast('Esta poltrona acabou de ser reservada por outro passageiro. Escolha outra.', 'error');
-                    await syncFromCloudIfConfigured();
-                    selectedSeat = null;
-                    updateSelectedBadge();
-                    renderBusMap();
-                    return;
-                }
-                if (cloudRes && cloudRes.status === 'ROOM_FULL') {
-                    showToast('Este quarto acabou de preencher a última vaga. Escolha outro quarto.', 'error');
-                    await syncFromCloudIfConfigured();
-                    selectedRoomId = null;
-                    updateSelectedRoomBadge();
-                    renderBusMap();
-                    return;
-                }
-
-                // Limpa seleção atual e atualiza mapa
-                selectedSeat = null;
-                selectedRoomId = null;
-                updateSelectedBadge();
-                updateSelectedRoomBadge();
-                renderBusMap();
-
-                // Exibe comprovante
-                currentTicketData = ticketData;
-                renderVoucher(ticketData);
-                showToast(`Poltrona ${ticketData.seat} e ${ticketData.roomLabel} reservados!`, 'success');
             });
         }
 
-        /**
-         * Preenche o cartão visual do comprovante e gera o QR Code
-         */
+        function openCheckoutScreen(data) {
+            currentTicketData = data;
+            renderVoucher(data);
+
+            document.getElementById('booking-flow-container').classList.add('hidden');
+            const mobileBar = document.getElementById('mobile-quick-bar');
+            if (mobileBar) mobileBar.classList.add('hidden');
+            document.getElementById('checkout-screen').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function returnToBookingFlow() {
+            document.getElementById('checkout-screen').classList.add('hidden');
+            document.getElementById('booking-flow-container').classList.remove('hidden');
+            const mobileBar = document.getElementById('mobile-quick-bar');
+            if (mobileBar) mobileBar.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function renderVoucher(data) {
-            document.getElementById('voucher-code').textContent = `#${data.code}`;
-            document.getElementById('voucher-seat-number').textContent = data.seat;
-            document.getElementById('voucher-seat-position').textContent = data.position;
-            document.getElementById('voucher-room-name').textContent = data.roomLabel || 'Sem quarto';
-            document.getElementById('voucher-room-type').textContent = data.roomType || '';
+            document.getElementById('voucher-code').textContent = data.code;
+            document.getElementById('voucher-seat').textContent = data.seat;
+            document.getElementById('voucher-position').textContent = data.position;
+            document.getElementById('voucher-room').textContent = data.roomLabel || 'Não selecionado';
+            document.getElementById('voucher-room-type').textContent = data.roomType || '—';
             document.getElementById('voucher-name').textContent = data.name;
             document.getElementById('voucher-doc').textContent = data.doc;
-            document.getElementById('voucher-phone').textContent = data.phone;
             document.getElementById('voucher-boarding').textContent = data.boarding;
             document.getElementById('voucher-datetime').textContent = data.datetime;
 
-            const qrContainer = document.getElementById('qrcode-container');
-            qrContainer.innerHTML = '';
+            const baseUrl = window.location.href.split('?')[0];
+            const checkinUrl = `${baseUrl}?validar=${encodeURIComponent(data.code)}&p=${encodeURIComponent(data.seat)}&q=${encodeURIComponent(data.roomLabel || '')}&n=${encodeURIComponent(data.name)}`;
+            const qrPayload = baseUrl.startsWith('http')
+                ? checkinUrl
+                : `${data.code} | Poltrona ${data.seat} | ${data.roomLabel} | ${data.name}`;
 
-            // Monta link inteligente de check-in para validação direta pela câmera do celular
-            const qrPayload = buildValidationURL(data);
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=4&data=${encodeURIComponent(qrPayload)}`;
-
-            const img = document.createElement('img');
-            img.src = qrUrl;
-            img.alt = `QR Code bilhete ${data.code}`;
-            img.className = 'w-24 h-24 sm:w-28 sm:h-28 object-contain rounded';
-            img.crossOrigin = 'anonymous';
-            img.onerror = function () {
-                this.onerror = null;
-                this.src = `https://placehold.co/112x112/0f172a/ffffff?text=${data.code}`;
-            };
-            qrContainer.appendChild(img);
-
-            // Alterna para a tela exclusiva de Checkout com o Cartão de Embarque
-            document.getElementById('selection-screen-view').classList.add('hidden');
-            const voucherSection = document.getElementById('voucher-section');
-            voucherSection.classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            drawQRCodeOnCanvas('qr-canvas', qrPayload);
         }
 
-        /**
-         * Prepara o formulário para uma nova reserva e retorna à tela de seleção
-         */
-        function startNewReservation() {
-            document.getElementById('reservation-form').reset();
-            document.getElementById('voucher-section').classList.add('hidden');
-            document.getElementById('selection-screen-view').classList.remove('hidden');
-            selectedSeat = null;
-            selectedRoomId = null;
-            updateSelectedBadge();
-            updateSelectedRoomBadge();
-            renderBusMap();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        // =========================================================================
+        // VALIDAÇÃO VIA QR CODE & PAINEL DO COORDENADOR (COM SENHA)
+        // =========================================================================
+
+        function isCoordinatorAuthenticated() {
+            return sessionStorage.getItem('bus_admin_authenticated') === 'true';
         }
 
-        /**
-         * Máscaras automáticas para CPF e Telefone
-         */
-        function setupInputMasks() {
-            const docInput = document.getElementById('passenger-doc');
-            const phoneInput = document.getElementById('passenger-phone');
-
-            if (docInput) {
-                docInput.addEventListener('input', (e) => {
-                    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
-                    if (v.length > 9) {
-                        v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
-                    } else if (v.length > 6) {
-                        v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
-                    } else if (v.length > 3) {
-                        v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
-                    }
-                    e.target.value = v;
-                });
-            }
-
-            if (phoneInput) {
-                phoneInput.addEventListener('input', (e) => {
-                    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
-                    if (v.length > 10) {
-                        v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                    } else if (v.length > 6) {
-                        v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-                    } else if (v.length > 2) {
-                        v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
-                    }
-                    e.target.value = v;
-                });
-            }
-        }
-
-        /**
-         * Monta o link de check-in que será codificado no QR Code
-         */
-        function buildValidationURL(data) {
-            const currentUrl = window.location.href.split('?')[0];
-            if (currentUrl.startsWith('http://') || currentUrl.startsWith('https://')) {
-                const params = new URLSearchParams({
-                    validar: data.code,
-                    p: data.seat,
-                    n: data.name,
-                    q: data.roomLabel || ''
-                });
-                return `${currentUrl}?${params.toString()}`;
-            }
-            return `BILHETE:${data.code}|POLTRONA:${data.seat}|QUARTO:${data.roomLabel || ''}|PASSAGEIRO:${data.name}`;
-        }
-
-        /**
-         * Verifica se a página foi aberta através da leitura de um QR Code (?validar=...)
-         */
-        function checkQRCodeValidationInURL() {
-            const params = new URLSearchParams(window.location.search);
-            const ticketCode = params.get('validar');
-            if (!ticketCode) return;
-
-            const seatParam = params.get('p') || '00';
-            const nameParam = params.get('n') || 'Passageiro';
-            const seatNum = parseInt(seatParam, 10);
-            const record = seatRecords[seatNum];
-
-            const modal = document.getElementById('qr-validation-modal');
-            const valHeader = document.getElementById('val-header');
-            const valBadge = document.getElementById('val-badge');
-            const valTitle = document.getElementById('val-title');
-            const valMessage = document.getElementById('val-message');
-            const authForm = document.getElementById('val-auth-form');
-
-            document.getElementById('val-seat').textContent = formatSeatNum(seatNum || seatParam);
-            document.getElementById('val-code').textContent = `#${ticketCode}`;
-            document.getElementById('val-name').textContent = record ? record.name : nameParam;
-
-            modal.classList.remove('hidden');
-
-            if (record && record.boarded) {
-                valHeader.className = 'bg-amber-600 text-white px-6 py-5 text-center';
-                valBadge.textContent = 'Bilhete Já Validado';
-                valTitle.textContent = 'Embarque Já Confirmado';
-                valMessage.textContent = `Este QR Code já teve embarque confirmado às ${record.boardedAt}.`;
-                authForm.classList.add('hidden');
-                return;
-            }
-
-            const isCoordAuthenticated = sessionStorage.getItem('coord_auth_ok') === '1';
-            if (isCoordAuthenticated) {
-                confirmCheckinRecord(seatNum, ticketCode, nameParam);
-            } else {
-                authForm.classList.remove('hidden');
-                authForm.onsubmit = (e) => {
-                    e.preventDefault();
-                    const passInput = document.getElementById('val-password-input');
-                    const errEl = document.getElementById('val-password-error');
-                    if (passInput.value === ADMIN_PASSWORD) {
-                        sessionStorage.setItem('coord_auth_ok', '1');
-                        errEl.classList.add('hidden');
-                        authForm.classList.add('hidden');
-                        confirmCheckinRecord(seatNum, ticketCode, nameParam);
-                    } else {
-                        errEl.classList.remove('hidden');
-                        passInput.focus();
-                    }
-                };
-            }
-        }
-
-        async function confirmCheckinRecord(seatNum, ticketCode, fallbackName) {
-            const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            if (seatRecords[seatNum]) {
-                seatRecords[seatNum].boarded = true;
-                seatRecords[seatNum].boardedAt = nowTime;
-                saveOccupiedSeats();
-                await pushRecordToCloud('CHECKIN', seatRecords[seatNum]);
-            }
-
-            const valHeader = document.getElementById('val-header');
-            const valBadge = document.getElementById('val-badge');
-            const valTitle = document.getElementById('val-title');
-            const valMessage = document.getElementById('val-message');
-
-            valHeader.className = 'bg-emerald-600 text-white px-6 py-5 text-center';
-            valBadge.textContent = 'Check-in Realizado';
-            valTitle.textContent = 'Embarque Liberado!';
-            valMessage.textContent = `Presença confirmada às ${nowTime} para ${seatRecords[seatNum] ? seatRecords[seatNum].name : fallbackName}.`;
-            showToast(`Embarque da poltrona ${formatSeatNum(seatNum)} confirmado!`, 'success');
-        }
-
-        function closeValidationModal() {
-            document.getElementById('qr-validation-modal').classList.add('hidden');
-            const cleanUrl = window.location.href.split('?')[0];
-            window.history.replaceState({}, document.title, cleanUrl);
-        }
-
-        /**
-         * Acesso secreto ao Painel do Coordenador (3 cliques no ícone do ônibus ou ?admin=1)
-         */
-        function setupAdminTrigger() {
-            const trigger = document.getElementById('admin-secret-trigger');
-            let clickCount = 0;
-            let clickTimer = null;
-
-            if (trigger) {
-                trigger.addEventListener('click', () => {
-                    clickCount++;
-                    clearTimeout(clickTimer);
-                    clickTimer = setTimeout(() => { clickCount = 0; }, 1200);
-                    if (clickCount >= 3) {
-                        clickCount = 0;
-                        requestCoordinatorAccess();
-                    }
-                });
-            }
-
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('admin') === '1') {
-                requestCoordinatorAccess();
-            }
-
-            const passForm = document.getElementById('admin-password-form');
-            if (passForm) {
-                passForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const input = document.getElementById('admin-password-input');
-                    const errorEl = document.getElementById('admin-password-error');
-                    if (input.value === ADMIN_PASSWORD) {
-                        sessionStorage.setItem('coord_auth_ok', '1');
-                        errorEl.classList.add('hidden');
-                        input.value = '';
-                        closePasswordModal();
-                        openCoordinatorPanel();
-                    } else {
-                        errorEl.classList.remove('hidden');
-                        input.focus();
-                    }
-                });
-            }
+        function setCoordinatorAuthenticated() {
+            sessionStorage.setItem('bus_admin_authenticated', 'true');
         }
 
         function requestCoordinatorAccess() {
-            if (sessionStorage.getItem('coord_auth_ok') === '1') {
-                openCoordinatorPanel();
+            if (isCoordinatorAuthenticated()) {
+                openAdminPanel();
                 return;
             }
             const modal = document.getElementById('admin-password-modal');
             const input = document.getElementById('admin-password-input');
-            document.getElementById('admin-password-error').classList.add('hidden');
+            const errorMsg = document.getElementById('admin-password-error');
+            errorMsg.classList.add('hidden');
             input.value = '';
             modal.classList.remove('hidden');
-            setTimeout(() => input.focus(), 80);
+            setTimeout(() => input.focus(), 50);
         }
 
         function closePasswordModal() {
             document.getElementById('admin-password-modal').classList.add('hidden');
         }
 
-        function openCoordinatorPanel() {
-            renderCoordinatorList();
-            document.getElementById('coordinator-modal').classList.remove('hidden');
-        }
+        function setupPasswordModalListener() {
+            const form = document.getElementById('admin-password-form');
+            const input = document.getElementById('admin-password-input');
+            const errorMsg = document.getElementById('admin-password-error');
 
-        function closeCoordinatorPanel() {
-            document.getElementById('coordinator-modal').classList.add('hidden');
-        }
-
-        function renderCoordinatorList() {
-            const listEl = document.getElementById('coordinator-list');
-            const records = Object.values(seatRecords).sort((a, b) => a.seatRaw - b.seatRaw);
-            const boardedCount = records.filter(r => r.boarded).length;
-
-            document.getElementById('coord-total-reserved').textContent = records.length;
-            document.getElementById('coord-total-boarded').textContent = boardedCount;
-            document.getElementById('coord-total-free').textContent = TOTAL_SEATS - records.length;
-
-            if (records.length === 0) {
-                listEl.innerHTML = '<p class="text-center text-xs text-slate-400 py-8">Nenhuma reserva realizada até o momento.</p>';
-                return;
-            }
-
-            listEl.innerHTML = '';
-            records.forEach(r => {
-                const item = document.createElement('div');
-                item.className = 'p-3 rounded-2xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2';
-                item.innerHTML = `
-                    <div class="flex items-start gap-3">
-                        <span class="px-2.5 py-1.5 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs shrink-0">${r.seat}</span>
-                        <div>
-                            <p class="text-xs sm:text-sm font-bold text-slate-900">${r.name}</p>
-                            <p class="text-[11px] text-slate-500 font-mono">CPF: ${r.doc} • ${r.roomLabel || 'Sem quarto'} • #${r.code}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 self-end sm:self-center">
-                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${r.boarded ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
-                            ${r.boarded ? `Embarcado (${r.boardedAt})` : 'Aguardando'}
-                        </span>
-                        <button type="button" onclick="releaseSingleSeat(${r.seatRaw})" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[11px] border border-red-200 cursor-pointer">
-                            Liberar
-                        </button>
-                    </div>
-                `;
-                listEl.appendChild(item);
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (input.value === ADMIN_PASSWORD) {
+                    setCoordinatorAuthenticated();
+                    closePasswordModal();
+                    openAdminPanel();
+                } else {
+                    errorMsg.classList.remove('hidden');
+                    input.value = '';
+                    input.focus();
+                }
             });
         }
 
+        function setupValidationAuthListener() {
+            const form = document.getElementById('val-auth-form');
+            const input = document.getElementById('val-password-input');
+            const errorMsg = document.getElementById('val-password-error');
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (!pendingQRValidation) return;
+
+                if (input.value === ADMIN_PASSWORD) {
+                    setCoordinatorAuthenticated();
+                    errorMsg.classList.add('hidden');
+                    const { code, seatParam, nameParam } = pendingQRValidation;
+                    completeQRCodeCheckin(code, seatParam, nameParam);
+                } else {
+                    errorMsg.classList.remove('hidden');
+                    input.value = '';
+                    input.focus();
+                }
+            });
+        }
+
+        function checkQRCodeValidationInURL() {
+            const params = new URLSearchParams(window.location.search);
+
+            if (params.get('admin') === '1') {
+                window.history.replaceState({}, document.title, window.location.pathname);
+                requestCoordinatorAccess();
+                return;
+            }
+
+            const code = params.get('validar');
+            if (!code) return;
+
+            const seatParam = params.get('p') || '00';
+            const nameParam = params.get('n') || 'Passageiro';
+            const seatNum = parseInt(seatParam, 10);
+            const record = occupiedRecords[seatNum];
+
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            if (isCoordinatorAuthenticated()) {
+                completeQRCodeCheckin(code, seatParam, nameParam);
+                return;
+            }
+
+            pendingQRValidation = { code, seatParam, nameParam };
+            const modal = document.getElementById('qr-validation-modal');
+            const header = document.getElementById('val-header');
+            const badge = document.getElementById('val-badge');
+            const title = document.getElementById('val-title');
+            const message = document.getElementById('val-message');
+            const authForm = document.getElementById('val-auth-form');
+
+            document.getElementById('val-seat').textContent = String(seatParam).padStart(2, '0');
+            document.getElementById('val-code').textContent = code;
+            document.getElementById('val-name').textContent = record ? record.name : nameParam;
+
+            if (record && record.boarded) {
+                header.className = 'bg-amber-500 text-slate-950 px-6 py-5 text-center';
+                badge.textContent = 'Atenção • Bilhete Já Lido';
+                title.textContent = 'Check-in Já Realizado';
+                message.textContent = `Este QR Code já foi validado anteriormente às ${record.boardedAt}.`;
+                authForm.classList.add('hidden');
+            } else {
+                header.className = 'bg-slate-900 text-white px-6 py-5 text-center';
+                badge.textContent = 'Aguardando Coordenador';
+                title.textContent = 'Confirmar Embarque';
+                message.textContent = 'Somente o coordenador pode liberar o embarque. Digite a senha abaixo para registrar a entrada.';
+                authForm.classList.remove('hidden');
+                document.getElementById('val-password-input').value = '';
+                document.getElementById('val-password-error').classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function completeQRCodeCheckin(code, seatParam, nameParam) {
+            const seatNum = parseInt(seatParam, 10);
+            const record = occupiedRecords[seatNum];
+
+            const modal = document.getElementById('qr-validation-modal');
+            const header = document.getElementById('val-header');
+            const badge = document.getElementById('val-badge');
+            const title = document.getElementById('val-title');
+            const message = document.getElementById('val-message');
+            const authForm = document.getElementById('val-auth-form');
+
+            authForm.classList.add('hidden');
+            pendingQRValidation = null;
+
+            document.getElementById('val-seat').textContent = String(seatParam).padStart(2, '0');
+            document.getElementById('val-code').textContent = code;
+            document.getElementById('val-name').textContent = record ? record.name : nameParam;
+
+            const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            if (record && record.boarded) {
+                header.className = 'bg-amber-500 text-slate-950 px-6 py-5 text-center';
+                badge.textContent = 'Atenção • Bilhete Já Lido';
+                title.textContent = 'Check-in Já Realizado';
+                message.textContent = `Este QR Code já foi validado anteriormente às ${record.boardedAt}. Verifique a identidade antes de liberar.`;
+            } else {
+                header.className = 'bg-emerald-600 text-white px-6 py-5 text-center';
+                badge.textContent = 'QR Code Válido';
+                title.textContent = 'Embarque Liberado!';
+                message.textContent = `Presença confirmada às ${nowTime}. Poltrona ${String(seatParam).padStart(2, '0')}${record && record.roomLabel ? ` • ${record.roomLabel}` : ''}.`;
+
+                if (record) {
+                    record.boarded = true;
+                    record.boardedAt = nowTime;
+                    occupiedRecords[seatNum] = record;
+                    saveReservationsToStorage();
+                    pushRecordToCloud('CHECKIN', record);
+                } else if (seatNum >= 1 && seatNum <= TOTAL_SEATS) {
+                    const importedRecord = {
+                        code,
+                        seat: String(seatNum).padStart(2, '0'),
+                        seatRaw: seatNum,
+                        position: getSeatPositionLabel(seatNum),
+                        roomId: null,
+                        roomLabel: '',
+                        roomType: '',
+                        name: nameParam,
+                        doc: 'Via QR Code',
+                        phone: '—',
+                        boarding: 'Validado no embarque',
+                        datetime: nowTime,
+                        boarded: true,
+                        boardedAt: nowTime
+                    };
+                    occupiedRecords[seatNum] = importedRecord;
+                    saveReservationsToStorage();
+                    renderBusMap();
+                    updateCounters();
+                }
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeValidationModal() {
+            pendingQRValidation = null;
+            document.getElementById('qr-validation-modal').classList.add('hidden');
+        }
+
+        function setupSecretAdminTrigger() {
+            const trigger = document.getElementById('admin-secret-trigger');
+            if (!trigger) return;
+            let clicks = 0;
+            let timer = null;
+
+            trigger.addEventListener('click', () => {
+                clicks++;
+                clearTimeout(timer);
+                if (clicks >= 3) {
+                    clicks = 0;
+                    requestCoordinatorAccess();
+                } else {
+                    timer = setTimeout(() => { clicks = 0; }, 900);
+                }
+            });
+        }
+
+        function openAdminPanel() {
+            renderAdminPanel();
+            document.getElementById('admin-panel-modal').classList.remove('hidden');
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('admin-panel-modal').classList.add('hidden');
+        }
+
+        function renderAdminPanel() {
+            const listEl = document.getElementById('admin-passengers-list');
+            const records = Object.values(occupiedRecords).sort((a, b) => a.seatRaw - b.seatRaw);
+            const boardedCount = records.filter(r => r.boarded).length;
+
+            document.getElementById('admin-stat-reserved').textContent = records.length;
+            document.getElementById('admin-stat-boarded').textContent = boardedCount;
+            document.getElementById('admin-stat-free').textContent = TOTAL_SEATS - records.length;
+
+            if (records.length === 0) {
+                listEl.innerHTML = `<p class="text-center text-sm text-slate-400 py-8">Nenhuma poltrona reservada até o momento.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = records.map(r => `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 rounded-2xl border ${r.boarded ? 'bg-emerald-50/70 border-emerald-200' : 'bg-white border-slate-200'}">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-10 h-10 rounded-xl bg-slate-900 text-white font-mono font-bold text-sm flex items-center justify-center shrink-0">
+                            ${r.seat}
+                        </span>
+                        <div class="min-w-0">
+                            <p class="font-bold text-sm text-slate-900 truncate">${r.name}</p>
+                            <p class="text-[11px] text-slate-500 font-mono truncate">CPF: ${r.doc} • ${r.roomLabel || 'Sem quarto'} • ${r.code}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-end gap-2 shrink-0">
+                        ${r.boarded
+                            ? `<span class="text-[11px] font-bold bg-emerald-600 text-white px-2.5 py-1 rounded-lg">Embarcado (${r.boardedAt})</span>`
+                            : `<button type="button" onclick="manualCheckin(${r.seatRaw})" class="text-[11px] font-bold bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 px-2.5 py-1.5 rounded-lg transition cursor-pointer">Confirmar Embarque</button>`
+                        }
+                        <button type="button" onclick="releaseSingleSeat(${r.seatRaw})" title="Liberar poltrona e vaga do quarto" class="text-[11px] font-bold bg-red-50 hover:bg-red-100 text-red-600 px-2.5 py-1.5 rounded-lg transition cursor-pointer">
+                            Liberar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function manualCheckin(seatNum) {
+            const rec = occupiedRecords[seatNum];
+            if (!rec) return;
+            rec.boarded = true;
+            rec.boardedAt = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            saveReservationsToStorage();
+            pushRecordToCloud('CHECKIN', rec);
+            renderAdminPanel();
+            showToast(`Embarque da poltrona ${rec.seat} confirmado!`, 'success');
+        }
+
         async function releaseSingleSeat(seatNum) {
-            const record = seatRecords[seatNum];
+            const rec = occupiedRecords[seatNum];
+            if (!rec) return;
+
             isSyncing = true;
             try {
-                occupiedSeats = occupiedSeats.filter(s => s !== seatNum);
-                delete seatRecords[seatNum];
-                saveOccupiedSeats();
+                delete occupiedRecords[seatNum];
+                saveReservationsToStorage();
                 renderBusMap();
-                renderCoordinatorList();
-                if (record) {
-                    await pushRecordToCloud('RELEASE', record);
-                }
-                showToast(`Poltrona ${formatSeatNum(seatNum)} e vaga do quarto liberadas.`, 'info');
+                renderRoomsGrid();
+                updateCounters();
+                updateSelectionSummary();
+                renderAdminPanel();
+
+                await pushRecordToCloud('RELEASE', {
+                    seatRaw: seatNum,
+                    code: rec.code || ''
+                });
+
+                showToast(`Poltrona ${String(seatNum).padStart(2, '0')} e vaga do quarto liberadas.`, 'info');
             } finally {
-                isSyncing = false;
+                setTimeout(() => { isSyncing = false; }, 1500);
             }
+        }
+
+        function exportManifestCSV() {
+            const records = Object.values(occupiedRecords).sort((a, b) => a.seatRaw - b.seatRaw);
+            if (records.length === 0) {
+                showToast('Não há passageiros reservados para exportar.', 'error');
+                return;
+            }
+            const header = ['Poltrona', 'Posicao', 'Quarto', 'Tipo_Quarto', 'Codigo', 'Passageiro', 'CPF', 'Telefone', 'Embarque', 'Status_QR', 'Horario_Checkin'];
+            const rows = records.map(r => [
+                r.seat,
+                r.position,
+                `"${r.roomLabel || ''}"`,
+                `"${r.roomType || ''}"`,
+                r.code,
+                `"${r.name}"`,
+                `"${r.doc}"`,
+                `"${r.phone}"`,
+                `"${r.boarding}"`,
+                r.boarded ? 'EMBARCADO' : 'AGUARDANDO',
+                r.boardedAt || '-'
+            ]);
+            const csvContent = '\uFEFF' + [header.join(';'), ...rows.map(e => e.join(';'))].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Lista_Onibus_Quartos_${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
         }
 
         async function resetDemoData() {
             isSyncing = true;
             try {
-                occupiedSeats = [];
-                seatRecords = {};
+                occupiedRecords = {};
                 selectedSeat = null;
                 selectedRoomId = null;
-                saveOccupiedSeats();
-                updateSelectedBadge();
-                updateSelectedRoomBadge();
+                localStorage.removeItem(STORAGE_KEY);
                 renderBusMap();
-                renderCoordinatorList();
+                renderRoomsGrid();
+                updateCounters();
+                updateSelectionSummary();
+                renderAdminPanel();
+
                 await pushRecordToCloud('CLEAR_ALL', {});
-                showToast('Todos os assentos e quartos foram zerados.', 'info');
+                showToast('Todas as poltronas e quartos foram liberados.', 'info');
             } finally {
-                isSyncing = false;
+                setTimeout(() => { isSyncing = false; }, 1500);
             }
         }
 
-        function exportManifestCSV() {
-            const records = Object.values(seatRecords).sort((a, b) => a.seatRaw - b.seatRaw);
-            const headers = ['Poltrona', 'Posicao', 'Quarto', 'TipoQuarto', 'Codigo', 'Nome', 'CPF', 'Telefone', 'Embarcado', 'HoraCheckin'];
-            const lines = [headers.join(';')];
-
-            records.forEach(r => {
-                lines.push([
-                    r.seat,
-                    r.position,
-                    r.roomLabel || '',
-                    r.roomType || '',
-                    r.code,
-                    `"${r.name}"`,
-                    r.doc,
-                    r.phone,
-                    r.boarded ? 'SIM' : 'NAO',
-                    r.boardedAt || ''
-                ].join(';'));
-            });
-
-            const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `lista-embarque-quartos-${new Date().toISOString().slice(0, 10)}.csv`;
-            link.click();
-            URL.revokeObjectURL(url);
-        }
-
-        /**
-         * Gera e baixa o Cartão de Embarque em alta resolução (PNG)
-         */
-        function downloadVoucherPNG() {
-            if (!currentTicketData) return;
-
-            const canvas = document.getElementById('export-canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 720;
-            canvas.height = 960;
-
-            // Fundo branco
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Cabeçalho escuro
-            ctx.fillStyle = '#0f172a';
-            ctx.fillRect(0, 0, canvas.width, 150);
-
-            ctx.fillStyle = '#34d399';
-            ctx.font = 'bold 18px Inter, sans-serif';
-            ctx.fillText('COMPROVANTE DE VIAGEM', 48, 56);
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 34px Inter, sans-serif';
-            ctx.fillText('Cartão de Embarque', 48, 104);
-
-            ctx.fillStyle = '#cbd5e1';
-            ctx.font = 'bold 22px monospace';
-            ctx.textAlign = 'right';
-            ctx.fillText(`#${currentTicketData.code}`, canvas.width - 48, 92);
-            ctx.textAlign = 'left';
-
-            // Faixa de destaque Poltrona & Quarto
-            ctx.fillStyle = '#f8fafc';
-            ctx.fillRect(0, 150, canvas.width, 165);
-
-            ctx.fillStyle = '#64748b';
-            ctx.font = 'bold 16px Inter, sans-serif';
-            ctx.fillText('POLTRONA RESERVADA', 48, 195);
-
-            ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 68px monospace';
-            ctx.fillText(`${currentTicketData.seat} (${currentTicketData.position})`, 48, 268);
-
-            ctx.fillStyle = '#64748b';
-            ctx.font = 'bold 16px Inter, sans-serif';
-            ctx.textAlign = 'right';
-            ctx.fillText('QUARTO / HOSPEDAGEM', canvas.width - 48, 195);
-
-            ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 30px monospace';
-            ctx.fillText(currentTicketData.roomLabel || 'Sem quarto', canvas.width - 48, 240);
-
-            ctx.fillStyle = '#4338ca';
-            ctx.font = 'bold 18px Inter, sans-serif';
-            ctx.fillText(currentTicketData.roomType || '', canvas.width - 48, 272);
-            ctx.textAlign = 'left';
-
-            // Dados do passageiro
-            const fields = [
-                { label: 'PASSAGEIRO(A)', value: currentTicketData.name, y: 380 },
-                { label: 'DOCUMENTO (CPF)', value: currentTicketData.doc, y: 470 },
-                { label: 'TELEFONE', value: currentTicketData.phone, y: 560 },
-                { label: 'LOCAL DE EMBARQUE', value: currentTicketData.boarding, y: 650 },
-                { label: 'DATA E HORA DA EMISSÃO', value: currentTicketData.datetime, y: 740 }
-            ];
-
-            fields.forEach(f => {
-                ctx.fillStyle = '#94a3b8';
-                ctx.font = 'bold 15px Inter, sans-serif';
-                ctx.fillText(f.label, 48, f.y);
-
-                ctx.fillStyle = '#0f172a';
-                ctx.font = 'bold 24px Inter, sans-serif';
-                ctx.fillText(String(f.value).slice(0, 44), 48, f.y + 34);
-            });
-
-            // Rodapé
-            ctx.strokeStyle = '#cbd5e1';
-            ctx.setLineDash([10, 8]);
-            ctx.beginPath();
-            ctx.moveTo(48, 815);
-            ctx.lineTo(canvas.width - 48, 815);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            ctx.fillStyle = '#475569';
-            ctx.font = '18px Inter, sans-serif';
-            ctx.fillText('Apresente este cartão ao coordenador no embarque.', 48, 875);
-
-            const qrImg = document.querySelector('#qrcode-container img');
-            const triggerDownload = () => {
-                const link = document.createElement('a');
-                link.download = `cartao-embarque-${currentTicketData.seat}-${currentTicketData.code}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                showToast('Cartão de embarque salvo em PNG!', 'success');
-            };
-
-            if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) {
-                try {
-                    ctx.drawImage(qrImg, canvas.width - 168, 830, 115, 115);
-                } catch (e) {
-                    // Ignora tainted canvas caso o servidor externo bloqueie CORS
-                }
-            }
-            triggerDownload();
-        }
-
-        /**
-         * Exibe notificações toast na tela
-         */
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
-            if (!container) return;
-
             const toast = document.createElement('div');
-            const bgColors = {
-                success: 'bg-emerald-900 text-white border-emerald-700',
-                error: 'bg-red-900 text-white border-red-700',
-                info: 'bg-slate-900 text-white border-slate-700'
+
+            const styles = {
+                success: 'bg-slate-900 text-white border-l-4 border-emerald-400',
+                error: 'bg-red-950 text-white border-l-4 border-red-400',
+                info: 'bg-slate-800 text-white border-l-4 border-sky-400'
             };
 
-            toast.className = `${bgColors[type] || bgColors.info} pointer-events-auto border px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-medium flex items-center justify-between gap-3 transition-all`;
+            toast.className = `${styles[type] || styles.info} px-4 py-3 rounded-xl shadow-xl text-xs font-medium flex items-center justify-between gap-3 pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
             toast.innerHTML = `<span>${message}</span>`;
 
             container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
             setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 250);
-            }, 4200);
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3400);
+        }
+
+        function drawQRCodeOnCanvas(canvasId, text) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const size = canvas.width;
+            const modules = 25;
+            const cellSize = Math.floor(size / modules);
+            const offset = Math.floor((size - cellSize * modules) / 2);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+
+            let hash = 2166136261;
+            for (let i = 0; i < text.length; i++) {
+                hash ^= text.charCodeAt(i);
+                hash = Math.imul(hash, 16777619);
+            }
+
+            const isFinderArea = (r, c) => {
+                if (r < 8 && c < 8) return true;
+                if (r < 8 && c >= modules - 8) return true;
+                if (r >= modules - 8 && c < 8) return true;
+                return false;
+            };
+
+            ctx.fillStyle = '#0f172a';
+            for (let r = 0; r < modules; r++) {
+                for (let c = 0; c < modules; c++) {
+                    if (isFinderArea(r, c)) continue;
+                    const seed = (hash ^ (r * 73856093) ^ (c * 19349663) ^ (text.charCodeAt((r + c) % text.length) * 83492791)) >>> 0;
+                    if (seed % 100 < 46) {
+                        ctx.fillRect(offset + c * cellSize, offset + r * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+
+            const drawFinder = (startR, startC) => {
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(offset + startC * cellSize, offset + startR * cellSize, 7 * cellSize, 7 * cellSize);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(offset + (startC + 1) * cellSize, offset + (startR + 1) * cellSize, 5 * cellSize, 5 * cellSize);
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(offset + (startC + 2) * cellSize, offset + (startR + 2) * cellSize, 3 * cellSize, 3 * cellSize);
+            };
+
+            drawFinder(0, 0);
+            drawFinder(0, modules - 7);
+            drawFinder(modules - 7, 0);
+        }
+
+        function downloadVoucherPNG() {
+            if (!currentTicketData) return;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 760;
+            canvas.height = 1040;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#f1f5f9';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const cardX = 50, cardY = 40, cardW = 660, cardH = 960;
+            roundRect(ctx, cardX, cardY, cardW, cardH, 32, '#ffffff', '#cbd5e1', 2);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cardX + 32, cardY);
+            ctx.lineTo(cardX + cardW - 32, cardY);
+            ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + 32);
+            ctx.lineTo(cardX + cardW, cardY + 110);
+            ctx.lineTo(cardX, cardY + 110);
+            ctx.lineTo(cardX, cardY + 32);
+            ctx.quadraticCurveTo(cardX, cardY, cardX + 32, cardY);
+            ctx.closePath();
+            ctx.fillStyle = '#0f172a';
+            ctx.fill();
+            ctx.restore();
+
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 20px Inter, sans-serif';
+            ctx.fillText('● CARTÃO DE EMBARQUE DIGITAL', cardX + 36, cardY + 64);
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = 'bold 20px monospace';
+            ctx.textAlign = 'right';
+            ctx.fillText(currentTicketData.code, cardX + cardW - 36, cardY + 64);
+            ctx.textAlign = 'left';
+
+            roundRect(ctx, cardX + 36, cardY + 140, 285, 135, 20, '#f8fafc', '#e2e8f0', 2);
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'bold 15px Inter, sans-serif';
+            ctx.fillText('POLTRONA', cardX + 56, cardY + 172);
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 58px monospace';
+            ctx.fillText(currentTicketData.seat, cardX + 56, cardY + 236);
+            ctx.fillStyle = '#047857';
+            ctx.font = 'bold 18px Inter, sans-serif';
+            ctx.fillText(currentTicketData.position, cardX + 150, cardY + 232);
+
+            roundRect(ctx, cardX + 339, cardY + 140, 285, 135, 20, '#f8fafc', '#e2e8f0', 2);
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'bold 15px Inter, sans-serif';
+            ctx.fillText('HOSPEDAGEM', cardX + 359, cardY + 172);
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 30px Inter, sans-serif';
+            ctx.fillText(currentTicketData.roomLabel || '—', cardX + 359, cardY + 216);
+            ctx.fillStyle = '#b45309';
+            ctx.font = 'bold 18px Inter, sans-serif';
+            ctx.fillText(currentTicketData.roomType || '', cardX + 359, cardY + 246);
+
+            const drawField = (label, value, yPos) => {
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = 'bold 15px Inter, sans-serif';
+                ctx.fillText(label.toUpperCase(), cardX + 36, yPos);
+
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 23px Inter, sans-serif';
+                ctx.fillText(value, cardX + 36, yPos + 32);
+            };
+
+            drawField('Passageiro(a)', currentTicketData.name, cardY + 325);
+            drawField('CPF', currentTicketData.doc, cardY + 410);
+            drawField('Data / Hora da Reserva', currentTicketData.datetime, cardY + 495);
+            drawField('Local de Embarque', currentTicketData.boarding, cardY + 580);
+
+            const dashY = cardY + 660;
+            ctx.save();
+            ctx.setLineDash([10, 10]);
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cardX + 20, dashY);
+            ctx.lineTo(cardX + cardW - 20, dashY);
+            ctx.stroke();
+            ctx.restore();
+
+            const qrSource = document.getElementById('qr-canvas');
+            if (qrSource) {
+                ctx.drawImage(qrSource, cardX + (cardW - 180) / 2, dashY + 35, 180, 180);
+            }
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '16px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Apresente este cartão no embarque para validação.', cardX + cardW / 2, dashY + 245);
+            ctx.textAlign = 'left';
+
+            const link = document.createElement('a');
+            link.download = `Cartao_Poltrona_${currentTicketData.seat}_${(currentTicketData.roomLabel || 'Quarto').replace(/\s+/g, '')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            showToast('Imagem do cartão de embarque salva!', 'success');
+        }
+
+        function roundRect(ctx, x, y, width, height, radius, fill, stroke, lineWidth = 1) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            if (fill) {
+                ctx.fillStyle = fill;
+                ctx.fill();
+            }
+            if (stroke) {
+                ctx.strokeStyle = stroke;
+                ctx.lineWidth = lineWidth;
+                ctx.stroke();
+            }
+            ctx.restore();
         }
     </script>
 </body>
