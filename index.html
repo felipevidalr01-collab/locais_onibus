@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expresso Viação — Escolha de Poltronas e Comprovante</title>
+    <title>Expresso Viação — Escolha de Poltronas e Quartos</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter & JetBrains Mono -->
@@ -144,19 +142,23 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-lg sm:text-xl font-bold tracking-tight leading-tight">Reserva de Assentos</h1>
-                    <p class="text-xs text-slate-400">Ônibus Executivo Semileito • 46 Lugares</p>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight leading-tight">Reserva de Assentos e Quartos</h1>
+                    <p class="text-xs text-slate-400">Ônibus Executivo (46 Lugares) • 15 Quartos</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 self-start sm:self-auto">
+            <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
                 <span id="live-sync-badge" class="hidden inline-flex items-center gap-1.5 text-[11px] font-medium bg-slate-800/80 text-slate-300 px-2.5 py-1.5 rounded-full border border-slate-700" title="Mapa atualizado automaticamente sem recarregar">
                     <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
                     <span>Ao vivo</span>
                 </span>
                 <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-slate-800 text-emerald-400 px-3 py-1.5 rounded-full border border-slate-700">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span id="available-counter">46 livres</span>
+                    <span id="available-counter">46 poltronas</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-slate-800 text-amber-300 px-3 py-1.5 rounded-full border border-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span id="available-rooms-counter">40 vagas em quartos</span>
                 </span>
             </div>
         </div>
@@ -310,7 +312,7 @@
     <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-            <!-- COLUNA ESQUERDA: Mapa Interativo do Ônibus -->
+            <!-- COLUNA ESQUERDA: Mapa Interativo do Ônibus (1 Andar - 46 Lugares) -->
             <section class="lg:col-span-6 xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 no-print">
                 <div class="flex items-center justify-between mb-4">
                     <div>
@@ -348,7 +350,6 @@
                         <!-- Motorista -->
                         <div class="bg-slate-200/90 rounded-xl p-2.5 flex items-center gap-2 border border-slate-300">
                             <div class="w-7 h-7 rounded-full bg-slate-700 text-white flex items-center justify-center shrink-0">
-                                <!-- Volante SVG -->
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 14v7"/><path d="M10 12 3.5 9.5"/><path d="M14 12l6.5-2.5"/>
                                 </svg>
@@ -387,7 +388,7 @@
                         <!-- As fileiras serão inseridas aqui -->
                     </div>
 
-                    <!-- Fundos: Banheiro e Cafeteira/Frigobar -->
+                    <!-- Fundos: Banheiro e Água / Café -->
                     <div class="grid grid-cols-2 gap-3 pt-3 mt-3 border-t-2 border-dashed border-slate-300">
                         <div class="bg-slate-200/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-300 text-slate-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -405,20 +406,43 @@
                 </div>
             </section>
 
-            <!-- COLUNA DIREITA: Formulário e Comprovante Gerado -->
+            <!-- COLUNA DIREITA: Escolha de Quarto, Formulário e Comprovante Gerado -->
             <div class="lg:col-span-6 xl:col-span-7 flex flex-col gap-6">
+
+                <!-- PASSO 2: Escolha de Quarto (10 Triplos + 5 Duplos) -->
+                <section id="room-selection-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 no-print">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-slate-900">2. Escolha seu Quarto</h2>
+                            <p class="text-xs text-slate-500">10 quartos Triplos (3 vagas) e 5 quartos Duplos (2 vagas)</p>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-[11px] font-semibold">
+                            <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">01–10 Triplo</span>
+                            <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200">11–15 Duplo</span>
+                        </div>
+                    </div>
+
+                    <div id="rooms-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 max-h-[340px] overflow-y-auto pr-1">
+                        <!-- Cards dos 15 quartos gerados via JS -->
+                    </div>
+                </section>
 
                 <!-- Cartão do Formulário de Dados do Passageiro -->
                 <section id="booking-form-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 no-print">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
                         <div>
-                            <h2 class="text-base sm:text-lg font-bold text-slate-900">2. Dados do Passageiro</h2>
-                            <p class="text-xs text-slate-500">Preencha seus dados para emitir o comprovante de assento</p>
+                            <h2 class="text-base sm:text-lg font-bold text-slate-900">3. Dados do Passageiro</h2>
+                            <p class="text-xs text-slate-500">Preencha seus dados para emitir o comprovante completo</p>
                         </div>
 
-                        <!-- Badge dinâmico do assento selecionado -->
-                        <div id="selected-seat-badge" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold">
-                            <span>Nenhuma poltrona selecionada</span>
+                        <!-- Badges dinâmicos do assento e quarto selecionados -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div id="selected-seat-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold">
+                                <span>Poltrona: —</span>
+                            </div>
+                            <div id="selected-room-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold">
+                                <span>Quarto: —</span>
+                            </div>
                         </div>
                     </div>
 
@@ -455,14 +479,14 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                                 </svg>
-                                Confirmar Assento e Gerar Comprovante
+                                Confirmar Assento e Quarto
                             </button>
                         </div>
                     </form>
                 </section>
 
                 <!-- ÁREA DO COMPROVANTE GERADO (Oculta até confirmar) -->
-                <section id="voucher-section" class="hidden">
+                <section id="voucher-section" class="hidden animate-fade-in">
                     <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-4 flex items-center justify-between gap-3 no-print">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
@@ -471,7 +495,7 @@
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-sm font-bold text-emerald-950">Assento reservado com sucesso!</h3>
+                                <h3 class="text-sm font-bold text-emerald-950">Reserva confirmada com sucesso!</h3>
                                 <p class="text-xs text-emerald-800">Baixe a imagem abaixo para guardar ou apresentar no embarque.</p>
                             </div>
                         </div>
@@ -485,7 +509,7 @@
                         <!-- Topo Azul Marinho do Bilhete -->
                         <div class="bg-slate-900 text-white px-6 py-5 flex items-center justify-between">
                             <div>
-                                <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Comprovante de Assento</span>
+                                <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Comprovante de Viagem</span>
                                 <h4 class="text-lg font-extrabold tracking-tight">Bilhete de Embarque</h4>
                             </div>
                             <div class="text-right">
@@ -494,8 +518,8 @@
                             </div>
                         </div>
 
-                        <!-- Destaque Principal da Poltrona -->
-                        <div class="px-6 py-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                        <!-- Destaque Principal da Poltrona e Quarto -->
+                        <div class="px-6 py-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
                             <div>
                                 <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Poltrona Reservada</span>
                                 <div class="flex items-baseline gap-2 mt-0.5">
@@ -504,9 +528,9 @@
                                 </div>
                             </div>
                             <div class="text-right">
-                                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Categoria</span>
-                                <span class="text-sm font-bold text-slate-800">Executivo Semileito</span>
-                                <span class="text-xs text-slate-500 block">46 Lugares</span>
+                                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Quarto / Hospedagem</span>
+                                <span id="voucher-room-name" class="text-lg font-black text-slate-900 font-mono block">Quarto 00</span>
+                                <span id="voucher-room-type" class="text-xs font-semibold text-indigo-700 block">Triplo (3 lugares)</span>
                             </div>
                         </div>
 
@@ -588,15 +612,34 @@
 
     <script>
         /**
-         * CONFIGURAÇÃO DO ÔNIBUS (46 LUGARES - PADRÃO EXECUTIVO)
-         * Disposição realista:
+         * CONFIGURAÇÃO DO ÔNIBUS (1 ANDAR - 46 LUGARES EXECUTIVO SEMILEITO)
+         * Disposição 2x2:
          * Lado Esquerdo (Motorista): Janela (ímpar), Corredor (par) -> Ex: 01, 02
          * Lado Direito (Porta): Corredor (par), Janela (ímpar) -> Ex: 04, 03
          */
         const TOTAL_SEATS = 46;
-        const STORAGE_KEY = 'bus_seat_reservations_v3';
-        const RECORDS_STORAGE_KEY = 'bus_seat_records_v3';
+        const STORAGE_KEY = 'bus_3d_seat_reservations_v1';
+        const RECORDS_STORAGE_KEY = 'bus_3d_seat_records_v1';
         const DEFAULT_BOARDING_POINT = 'Embarque Único — Saída Principal';
+
+        /**
+         * CONFIGURAÇÃO DOS QUARTOS (10 TRIPLOS + 5 DUPLOS = 15 QUARTOS / 40 VAGAS)
+         */
+        const ROOMS_CONFIG = [
+            ...Array.from({ length: 10 }, (_, i) => ({
+                id: i + 1,
+                label: `Quarto ${String(i + 1).padStart(2, '0')}`,
+                type: 'Triplo',
+                capacity: 3
+            })),
+            ...Array.from({ length: 5 }, (_, i) => ({
+                id: i + 11,
+                label: `Quarto ${String(i + 11).padStart(2, '0')}`,
+                type: 'Duplo',
+                capacity: 2
+            }))
+        ];
+        const TOTAL_ROOM_BEDS = ROOMS_CONFIG.reduce((sum, r) => sum + r.capacity, 0);
 
         /**
          * SENHA DO PAINEL DO COORDENADOR
@@ -607,7 +650,7 @@
         /**
          * INTEGRAÇÃO OPCIONAL COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
          * Cole abaixo a URL do seu Web App do Google Apps Script para sincronizar
-         * reservas e leituras de QR Code em tempo real entre todos os aparelhos.
+         * reservas de assentos e quartos em tempo real entre todos os aparelhos.
          */
         const GOOGLE_SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwWE_wGxR7UGrnPHO7sGJa-huIU8GURD7-4Gd7GWYKUAWI69kh9JUcR0k4aC5z_paKv/exec';
 
@@ -615,6 +658,7 @@
         let occupiedSeats = [];
         let seatRecords = {};
         let selectedSeat = null;
+        let selectedRoomId = null;
         let currentTicketData = null;
         let isSyncing = false;
 
@@ -651,11 +695,18 @@
             window.addEventListener('storage', (e) => {
                 if (e.key === STORAGE_KEY || e.key === RECORDS_STORAGE_KEY) {
                     const prevSelected = selectedSeat;
+                    const prevRoomId = selectedRoomId;
                     loadOccupiedSeats();
                     if (prevSelected && occupiedSeats.includes(prevSelected)) {
                         selectedSeat = null;
                         updateSelectedBadge();
                         showToast(`A poltrona ${formatSeatNum(prevSelected)} acabou de ser reservada por outra pessoa.`, 'error');
+                    }
+                    if (prevRoomId && isRoomFull(prevRoomId)) {
+                        const lostRoom = getRoomById(prevRoomId);
+                        selectedRoomId = null;
+                        updateSelectedRoomBadge();
+                        showToast(`O ${lostRoom ? lostRoom.label : 'quarto escolhido'} acabou de lotar.`, 'error');
                     }
                     renderBusMap();
                     if (!document.getElementById('coordinator-modal').classList.contains('hidden')) {
@@ -670,72 +721,82 @@
          */
         function loadOccupiedSeats() {
             try {
-                const savedSeats = localStorage.getItem(STORAGE_KEY);
+                const saved = localStorage.getItem(STORAGE_KEY);
                 const savedRecords = localStorage.getItem(RECORDS_STORAGE_KEY);
-                if (savedSeats) {
-                    const parsed = JSON.parse(savedSeats);
-                    if (Array.isArray(parsed)) occupiedSeats = parsed;
-                }
-                if (savedRecords) {
-                    const parsedRec = JSON.parse(savedRecords);
-                    if (parsedRec && typeof parsedRec === 'object') seatRecords = parsedRec;
-                }
-            } catch (err) {
-                console.warn('Erro ao ler armazenamento local:', err);
+                occupiedSeats = saved ? JSON.parse(saved) : [];
+                seatRecords = savedRecords ? JSON.parse(savedRecords) : {};
+            } catch (e) {
+                occupiedSeats = [];
+                seatRecords = {};
             }
         }
 
         /**
-         * Salva assentos ocupados e registros no localStorage
+         * Salva lista de assentos e registros no localStorage
          */
         function saveOccupiedSeats() {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(occupiedSeats));
                 localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify(seatRecords));
-            } catch (err) {
-                console.warn('Erro ao salvar no armazenamento local:', err);
+            } catch (e) {
+                console.warn('Não foi possível salvar no localStorage:', e);
             }
         }
 
         /**
-         * Sincronização em tempo real com Google Sheets (sem recarregar a página)
+         * Sincronização em nuvem (Google Sheets)
          */
         async function syncFromCloudIfConfigured() {
-            if (!GOOGLE_SHEETS_WEBHOOK_URL) return false;
+            if (!GOOGLE_SHEETS_WEBHOOK_URL) return;
             isSyncing = true;
             try {
-                const separator = GOOGLE_SHEETS_WEBHOOK_URL.includes('?') ? '&' : '?';
-                const res = await fetch(`${GOOGLE_SHEETS_WEBHOOK_URL}${separator}t=${Date.now()}`, {
+                const sep = GOOGLE_SHEETS_WEBHOOK_URL.includes('?') ? '&' : '?';
+                const res = await fetch(`${GOOGLE_SHEETS_WEBHOOK_URL}${sep}t=${Date.now()}`, {
                     method: 'GET',
                     redirect: 'follow',
                     cache: 'no-store'
                 });
+                if (!res.ok) return;
                 const data = await res.json();
                 if (Array.isArray(data.records)) {
-                    const newOccupied = [];
-                    const newRecords = {};
-                    data.records.forEach(rec => {
-                        const sNum = Number(rec.seatRaw);
-                        if (sNum >= 1 && sNum <= TOTAL_SEATS) {
-                            newOccupied.push(sNum);
-                            newRecords[sNum] = rec;
+                    const prevSelected = selectedSeat;
+                    const prevRoomId = selectedRoomId;
+                    const remoteRecords = {};
+                    const remoteSeats = [];
+
+                    data.records.forEach(r => {
+                        const seatNum = Number(r.seatRaw || r.seat);
+                        if (seatNum >= 1 && seatNum <= TOTAL_SEATS) {
+                            remoteSeats.push(seatNum);
+                            remoteRecords[seatNum] = {
+                                ...r,
+                                seatRaw: seatNum,
+                                seat: formatSeatNum(seatNum),
+                                roomId: r.roomId ? Number(r.roomId) : null
+                            };
                         }
                     });
 
-                    const changed = JSON.stringify(newOccupied.sort((a, b) => a - b)) !== JSON.stringify([...occupiedSeats].sort((a, b) => a - b))
-                        || JSON.stringify(newRecords) !== JSON.stringify(seatRecords);
+                    const changed =
+                        JSON.stringify([...occupiedSeats].sort()) !== JSON.stringify([...remoteSeats].sort()) ||
+                        JSON.stringify(seatRecords) !== JSON.stringify(remoteRecords);
 
-                    occupiedSeats = newOccupied;
-                    seatRecords = newRecords;
+                    occupiedSeats = remoteSeats;
+                    seatRecords = remoteRecords;
+                    saveOccupiedSeats();
 
-                    if (selectedSeat && occupiedSeats.includes(selectedSeat)) {
-                        const lostSeat = selectedSeat;
+                    if (prevSelected && occupiedSeats.includes(prevSelected)) {
                         selectedSeat = null;
                         updateSelectedBadge();
-                        showToast(`Ops! A poltrona ${formatSeatNum(lostSeat)} acabou de ser escolhida por outra pessoa. Selecione outra.`, 'error');
+                        showToast(`A poltrona ${formatSeatNum(prevSelected)} acabou de ser reservada por outra pessoa.`, 'error');
                     }
 
-                    saveOccupiedSeats();
+                    if (prevRoomId && isRoomFull(prevRoomId)) {
+                        const lostRoom = getRoomById(prevRoomId);
+                        selectedRoomId = null;
+                        updateSelectedRoomBadge();
+                        showToast(`O ${lostRoom ? lostRoom.label : 'quarto escolhido'} acabou de lotar.`, 'error');
+                    }
 
                     if (changed) {
                         renderBusMap();
@@ -743,259 +804,459 @@
                             renderCoordinatorList();
                         }
                     }
-                    return true;
                 }
-            } catch (e) {
-                console.warn('Falha na sincronização com Google Sheets:', e);
+            } catch (err) {
+                console.warn('Sincronização em nuvem indisponível no momento.');
             } finally {
                 isSyncing = false;
             }
-            return false;
         }
 
         async function pushRecordToCloud(action, record) {
-            if (!GOOGLE_SHEETS_WEBHOOK_URL) return;
+            if (!GOOGLE_SHEETS_WEBHOOK_URL) return { ok: true };
             try {
-                await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+                const res = await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     redirect: 'follow',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action, record })
                 });
-            } catch (e) {
-                console.warn('Erro ao enviar registro para nuvem:', e);
+                if (res.ok) {
+                    const json = await res.json().catch(() => ({}));
+                    return { ok: true, status: json.status || 'OK' };
+                }
+            } catch (err) {
+                console.warn('Falha ao enviar registro para nuvem:', err);
             }
+            return { ok: false };
         }
 
+        /**
+         * Formata número do assento com dois dígitos (ex: 1 -> "01")
+         */
         function formatSeatNum(num) {
             return String(num).padStart(2, '0');
         }
 
-        function getSeatPosition(seatNum) {
-            return seatNum % 2 !== 0 ? 'Janela' : 'Corredor';
+        /**
+         * Retorna posição do assento (Janela ou Corredor)
+         */
+        function getSeatPosition(num) {
+            return num % 2 !== 0 ? 'Janela' : 'Corredor';
         }
 
         /**
-         * Renderiza a grade interativa das 46 poltronas do ônibus
+         * Auxiliares dos Quartos
+         */
+        function getRoomById(roomId) {
+            return ROOMS_CONFIG.find(r => r.id === Number(roomId)) || null;
+        }
+
+        function getRoomOccupants(roomId) {
+            return Object.values(seatRecords).filter(r => Number(r.roomId) === Number(roomId));
+        }
+
+        function isRoomFull(roomId) {
+            const room = getRoomById(roomId);
+            if (!room) return true;
+            return getRoomOccupants(roomId).length >= room.capacity;
+        }
+
+        /**
+         * Atualiza os contadores de poltronas e vagas de quartos no topo
+         */
+        function updateAvailableCounter() {
+            const freeSeats = TOTAL_SEATS - occupiedSeats.length;
+            const seatCounterEl = document.getElementById('available-counter');
+            if (seatCounterEl) {
+                seatCounterEl.textContent = `${freeSeats} ${freeSeats === 1 ? 'poltrona' : 'poltronas'}`;
+            }
+
+            const totalOccupiedBeds = Object.values(seatRecords).filter(r => r.roomId).length;
+            const freeBeds = Math.max(0, TOTAL_ROOM_BEDS - totalOccupiedBeds);
+            const roomCounterEl = document.getElementById('available-rooms-counter');
+            if (roomCounterEl) {
+                roomCounterEl.textContent = `${freeBeds} ${freeBeds === 1 ? 'vaga em quarto' : 'vagas em quartos'}`;
+            }
+        }
+
+        /**
+         * Renderiza todas as 46 poltronas do ônibus (2x2) e os 15 quartos
          */
         function renderBusMap() {
             const grid = document.getElementById('bus-seats-grid');
-            grid.innerHTML = '';
+            if (grid) {
+                grid.innerHTML = '';
 
-            const totalRows = Math.ceil(TOTAL_SEATS / 4);
+                // 11 fileiras completas (01 a 44) + 1 fileira final com 2 poltronas (45, 46)
+                const totalRows = Math.ceil(TOTAL_SEATS / 4);
 
-            for (let row = 0; row < totalRows; row++) {
-                const base = row * 4;
-                const leftWindow = base + 1;
-                const leftAisle = base + 2;
-                const rightAisle = base + 4;
-                const rightWindow = base + 3;
+                for (let row = 0; row < totalRows; row++) {
+                    const base = row * 4;
+                    const leftWindow = base + 1;
+                    const leftAisle = base + 2;
+                    const rightWindow = base + 3;
+                    const rightAisle = base + 4;
 
-                const rowEl = document.createElement('div');
-                rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
+                    const rowEl = document.createElement('div');
+                    rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
 
-                rowEl.appendChild(createSeatElement(leftWindow));
-                rowEl.appendChild(createSeatElement(leftAisle));
+                    rowEl.appendChild(createSeatButton(leftWindow));
+                    rowEl.appendChild(createSeatButton(leftAisle));
 
-                const aisleEl = document.createElement('div');
-                aisleEl.className = 'text-center text-[10px] font-mono text-slate-400 select-none';
-                aisleEl.textContent = `F${row + 1}`;
-                rowEl.appendChild(aisleEl);
+                    // Corredor central
+                    const aisleEl = document.createElement('div');
+                    aisleEl.className = 'flex items-center justify-center text-[10px] font-mono text-slate-300 select-none';
+                    aisleEl.textContent = `${row + 1}`;
+                    rowEl.appendChild(aisleEl);
 
-                if (rightAisle <= TOTAL_SEATS) {
-                    rowEl.appendChild(createSeatElement(rightAisle));
-                } else {
-                    rowEl.appendChild(document.createElement('div'));
+                    rowEl.appendChild(rightAisle <= TOTAL_SEATS ? createSeatButton(rightAisle) : createEmptySpacer());
+                    rowEl.appendChild(rightWindow <= TOTAL_SEATS ? createSeatButton(rightWindow) : createEmptySpacer());
+
+                    grid.appendChild(rowEl);
                 }
-
-                if (rightWindow <= TOTAL_SEATS) {
-                    rowEl.appendChild(createSeatElement(rightWindow));
-                } else {
-                    rowEl.appendChild(document.createElement('div'));
-                }
-
-                grid.appendChild(rowEl);
             }
 
+            renderRoomsGrid();
             updateAvailableCounter();
         }
 
-        function createSeatElement(seatNum) {
-            if (seatNum > TOTAL_SEATS) return document.createElement('div');
-
+        /**
+         * Cria o elemento visual de cada poltrona
+         */
+        function createSeatButton(seatNumber) {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.textContent = formatSeatNum(seatNum);
-            btn.setAttribute('aria-label', `Poltrona ${formatSeatNum(seatNum)} - ${getSeatPosition(seatNum)}`);
+            btn.dataset.seat = seatNumber;
 
-            const isOccupied = occupiedSeats.includes(seatNum);
-            const isSelected = selectedSeat === seatNum;
+            const isOccupied = occupiedSeats.includes(seatNumber);
+            const isSelected = selectedSeat === seatNumber;
+            const formatted = formatSeatNum(seatNumber);
+            const position = getSeatPosition(seatNumber);
 
-            btn.className = 'seat-btn h-10 rounded-lg font-mono text-xs font-bold flex items-center justify-center';
+            let stateClass = 'seat-available';
+            if (isOccupied) {
+                stateClass = 'seat-occupied';
+            } else if (isSelected) {
+                stateClass = 'seat-selected';
+            }
+
+            btn.className = `seat-btn ${stateClass} h-11 rounded-xl flex flex-col items-center justify-center font-mono text-xs sm:text-sm font-bold leading-none`;
+            btn.innerHTML = `<span>${formatted}</span>`;
+            btn.title = isOccupied
+                ? `Poltrona ${formatted} (${position}) — Ocupada`
+                : `Poltrona ${formatted} (${position}) — Livre`;
+            btn.setAttribute('aria-label', btn.title);
 
             if (isOccupied) {
-                btn.classList.add('seat-occupied');
                 btn.disabled = true;
-                btn.title = `Poltrona ${formatSeatNum(seatNum)} (Ocupada)`;
-            } else if (isSelected) {
-                btn.classList.add('seat-selected');
-                btn.title = `Poltrona ${formatSeatNum(seatNum)} (Selecionada)`;
-                btn.addEventListener('click', () => handleSeatClick(seatNum));
             } else {
-                btn.classList.add('seat-available');
-                btn.title = `Poltrona ${formatSeatNum(seatNum)} — ${getSeatPosition(seatNum)} (Livre)`;
-                btn.addEventListener('click', () => handleSeatClick(seatNum));
+                btn.addEventListener('click', () => handleSeatClick(seatNumber));
             }
 
             return btn;
         }
 
-        function handleSeatClick(seatNum) {
-            if (occupiedSeats.includes(seatNum)) return;
-            selectedSeat = selectedSeat === seatNum ? null : seatNum;
-            updateSelectedBadge();
-            renderBusMap();
-        }
-
-        function updateSelectedBadge() {
-            const badge = document.getElementById('selected-seat-badge');
-            if (!selectedSeat) {
-                badge.className = 'inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold';
-                badge.innerHTML = '<span>Nenhuma poltrona selecionada</span>';
-            } else {
-                const pos = getSeatPosition(selectedSeat);
-                badge.className = 'inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold';
-                badge.innerHTML = `
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span>Poltrona ${formatSeatNum(selectedSeat)} (${pos})</span>
-                `;
-            }
-        }
-
-        function updateAvailableCounter() {
-            const freeCount = Math.max(0, TOTAL_SEATS - occupiedSeats.length);
-            const counterEl = document.getElementById('available-counter');
-            if (counterEl) {
-                counterEl.textContent = `${freeCount} ${freeCount === 1 ? 'livre' : 'livres'}`;
-            }
+        function createEmptySpacer() {
+            const div = document.createElement('div');
+            div.className = 'h-11';
+            return div;
         }
 
         /**
-         * Submissão do formulário e geração do comprovante
+         * Renderiza os 15 quartos (10 Triplos e 5 Duplos)
+         */
+        function renderRoomsGrid() {
+            const roomsGrid = document.getElementById('rooms-grid');
+            if (!roomsGrid) return;
+            roomsGrid.innerHTML = '';
+
+            ROOMS_CONFIG.forEach(room => {
+                const occupants = getRoomOccupants(room.id);
+                const freeSpots = room.capacity - occupants.length;
+                const full = freeSpots <= 0;
+                const isSelected = selectedRoomId === room.id;
+
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.disabled = full;
+
+                if (full) {
+                    card.className = 'text-left p-3 rounded-xl border-2 border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed flex flex-col justify-between gap-2';
+                } else if (isSelected) {
+                    card.className = 'text-left p-3 rounded-xl border-2 border-slate-900 bg-slate-900 text-white shadow-md flex flex-col justify-between gap-2 cursor-pointer transition';
+                } else {
+                    card.className = 'text-left p-3 rounded-xl border-2 border-slate-200 hover:border-emerald-500 bg-white hover:bg-emerald-50/40 text-slate-800 flex flex-col justify-between gap-2 cursor-pointer transition';
+                }
+
+                // Indicador visual de camas ocupadas/livres
+                let bedsDots = '';
+                for (let b = 0; b < room.capacity; b++) {
+                    const filled = b < occupants.length;
+                    if (isSelected) {
+                        bedsDots += `<span class="w-2.5 h-2.5 rounded-full ${filled ? 'bg-amber-400' : 'bg-emerald-400'}"></span>`;
+                    } else {
+                        bedsDots += `<span class="w-2.5 h-2.5 rounded-full ${filled ? 'bg-slate-400' : 'bg-emerald-500'}"></span>`;
+                    }
+                }
+
+                const badgeClass = room.type === 'Triplo'
+                    ? (isSelected ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-50 text-emerald-700')
+                    : (isSelected ? 'bg-indigo-500/30 text-indigo-200' : 'bg-indigo-50 text-indigo-700');
+
+                const namesList = occupants.length > 0
+                    ? occupants.map(o => o.name.split(' ')[0]).join(', ')
+                    : 'Quarto vazio';
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-1 w-full">
+                        <span class="font-bold text-xs sm:text-sm">${room.label}</span>
+                        <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${badgeClass}">${room.type}</span>
+                    </div>
+                    <div class="flex items-center justify-between w-full">
+                        <div class="flex items-center gap-1">${bedsDots}</div>
+                        <span class="text-[11px] font-semibold ${full ? 'text-red-500' : (isSelected ? 'text-emerald-300' : 'text-emerald-700')}">
+                            ${full ? 'Lotado' : `${freeSpots} ${freeSpots === 1 ? 'vaga' : 'vagas'}`}
+                        </span>
+                    </div>
+                    <p class="text-[11px] truncate w-full ${isSelected ? 'text-slate-300' : 'text-slate-500'}" title="${namesList}">
+                        ${namesList}
+                    </p>
+                `;
+
+                if (!full) {
+                    card.addEventListener('click', () => handleRoomClick(room.id));
+                }
+
+                roomsGrid.appendChild(card);
+            });
+        }
+
+        /**
+         * Trata o clique do usuário em um assento livre
+         */
+        function handleSeatClick(seatNumber) {
+            if (occupiedSeats.includes(seatNumber)) {
+                showToast(`A poltrona ${formatSeatNum(seatNumber)} já está ocupada.`, 'error');
+                return;
+            }
+
+            selectedSeat = selectedSeat === seatNumber ? null : seatNumber;
+            renderBusMap();
+            updateSelectedBadge();
+        }
+
+        /**
+         * Trata o clique do usuário em um quarto com vagas
+         */
+        function handleRoomClick(roomId) {
+            if (isRoomFull(roomId)) {
+                showToast('Este quarto já está com todas as vagas preenchidas.', 'error');
+                return;
+            }
+
+            selectedRoomId = selectedRoomId === roomId ? null : roomId;
+            renderRoomsGrid();
+            updateSelectedRoomBadge();
+        }
+
+        /**
+         * Atualiza o indicador visual do assento selecionado no formulário
+         */
+        function updateSelectedBadge() {
+            const badge = document.getElementById('selected-seat-badge');
+            if (!badge) return;
+
+            if (!selectedSeat) {
+                badge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold';
+                badge.innerHTML = '<span>Poltrona: —</span>';
+                return;
+            }
+
+            const formatted = formatSeatNum(selectedSeat);
+            const pos = getSeatPosition(selectedSeat);
+            badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold shadow-sm';
+            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Poltrona ${formatted} (${pos})</span>`;
+        }
+
+        /**
+         * Atualiza o indicador visual do quarto selecionado no formulário
+         */
+        function updateSelectedRoomBadge() {
+            const badge = document.getElementById('selected-room-badge');
+            if (!badge) return;
+
+            if (!selectedRoomId) {
+                badge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold';
+                badge.innerHTML = '<span>Quarto: —</span>';
+                return;
+            }
+
+            const room = getRoomById(selectedRoomId);
+            badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-950 text-white text-xs font-bold shadow-sm';
+            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>${room.label} (${room.type})</span>`;
+        }
+
+        /**
+         * Processa a confirmação da reserva e gera o comprovante
          */
         function setupFormListener() {
             const form = document.getElementById('reservation-form');
-            const submitBtn = document.getElementById('confirm-btn');
-
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
+
+                if (!selectedSeat) {
+                    showToast('Por favor, selecione uma poltrona livre no mapa do ônibus antes de confirmar.', 'error');
+                    return;
+                }
+
+                if (!selectedRoomId) {
+                    showToast('Por favor, selecione um quarto disponível no Passo 2 antes de confirmar.', 'error');
+                    document.getElementById('room-selection-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
 
                 const nameInput = document.getElementById('passenger-name');
                 const docInput = document.getElementById('passenger-doc');
                 const phoneInput = document.getElementById('passenger-phone');
+                const submitBtn = document.getElementById('confirm-btn');
 
                 const name = nameInput.value.trim();
-                const rawDoc = docInput.value.trim();
-                const normalizedDoc = rawDoc.replace(/\D/g, '');
+                const doc = docInput.value.trim();
+                const phone = phoneInput.value.trim() || 'Não informado';
+                const boarding = DEFAULT_BOARDING_POINT;
 
-                if (!selectedSeat) {
-                    showToast('Por favor, selecione uma poltrona livre no mapa do ônibus.', 'error');
-                    return;
-                }
-
-                if (name.length < 3) {
-                    showToast('Por favor, informe o nome completo do passageiro.', 'error');
+                if (!name || name.length < 3) {
+                    showToast('Informe o nome completo do passageiro.', 'error');
                     nameInput.focus();
                     return;
                 }
 
-                if (normalizedDoc.length < 11) {
-                    showToast('Por favor, informe um CPF válido com 11 dígitos.', 'error');
+                const normalizedCpf = doc.replace(/\D/g, '');
+                if (normalizedCpf.length !== 11) {
+                    showToast('Informe um CPF válido com 11 dígitos.', 'error');
                     docInput.focus();
                     return;
                 }
 
                 // Checagem instantânea na nuvem antes de gravar para evitar duplo agendamento no mesmo segundo
                 const seatToReserve = selectedSeat;
+                const roomToReserveId = selectedRoomId;
                 const originalBtnHTML = submitBtn.innerHTML;
                 if (GOOGLE_SHEETS_WEBHOOK_URL) {
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span>Verificando disponibilidade...</span>';
+                    submitBtn.innerHTML = '<span>Verificando poltrona e quarto...</span>';
                     await syncFromCloudIfConfigured();
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnHTML;
 
-                    if (occupiedSeats.includes(seatToReserve)) {
-                        return; // O syncFromCloudIfConfigured já limpou e avisou o usuário
+                    if (occupiedSeats.includes(seatToReserve) || isRoomFull(roomToReserveId)) {
+                        return;
                     }
                 }
 
                 // Verifica se o CPF já possui alguma poltrona reservada
-                const existingSeatForCpf = Object.values(seatRecords).find(rec => {
-                    const recDigits = (rec.doc || '').replace(/\D/g, '');
-                    return recDigits.length > 0 && recDigits === normalizedDoc;
+                const existingReservation = Object.values(seatRecords).find(record => {
+                    const recordCpf = String(record.doc || '').replace(/\D/g, '');
+                    return recordCpf && recordCpf === normalizedCpf;
                 });
 
-                if (existingSeatForCpf) {
-                    showToast(`Este CPF já possui uma reserva ativa na Poltrona ${existingSeatForCpf.seat} (${existingSeatForCpf.code}).`, 'error');
+                if (existingReservation) {
+                    showToast(
+                        `Este CPF já possui reserva na Poltrona ${existingReservation.seat} (${existingReservation.name}). Cada CPF pode reservar apenas 1 lugar.`,
+                        'error'
+                    );
                     docInput.focus();
                     return;
                 }
 
-                const randomCode = Math.floor(1000 + Math.random() * 9000);
-                const code = `#BUS-${randomCode}`;
+                if (occupiedSeats.includes(selectedSeat)) {
+                    showToast('Ops! Essa poltrona acabou de ser ocupada. Escolha outra.', 'error');
+                    selectedSeat = null;
+                    renderBusMap();
+                    updateSelectedBadge();
+                    return;
+                }
 
+                if (isRoomFull(selectedRoomId)) {
+                    showToast('Ops! Esse quarto acabou de lotar. Escolha outro quarto.', 'error');
+                    selectedRoomId = null;
+                    renderRoomsGrid();
+                    updateSelectedRoomBadge();
+                    return;
+                }
+
+                // Gera dados únicos do bilhete
                 const now = new Date();
-                const formattedDate = now.toLocaleDateString('pt-BR', {
-                    day: '2-digit', month: '2-digit', year: 'numeric'
-                });
-                const formattedTime = now.toLocaleTimeString('pt-BR', {
-                    hour: '2-digit', minute: '2-digit', second: '2-digit'
-                });
+                const formattedDate = now.toLocaleDateString('pt-BR');
+                const formattedTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const randomCode = 'BUS-' + Math.floor(1000 + Math.random() * 9000);
+                const selectedRoom = getRoomById(selectedRoomId);
 
                 const ticketData = {
-                    code,
-                    seat: formatSeatNum(seatToReserve),
-                    seatRaw: seatToReserve,
-                    position: getSeatPosition(seatToReserve),
+                    code: randomCode,
+                    seat: formatSeatNum(selectedSeat),
+                    seatRaw: selectedSeat,
+                    position: getSeatPosition(selectedSeat),
+                    roomId: selectedRoom.id,
+                    roomLabel: selectedRoom.label,
+                    roomType: `${selectedRoom.type} (${selectedRoom.capacity} lugares)`,
                     name,
-                    doc: rawDoc,
-                    phone: phoneInput.value.trim() || 'Não informado',
-                    boarding: DEFAULT_BOARDING_POINT,
+                    doc,
+                    phone,
+                    boarding,
                     datetime: `${formattedDate} às ${formattedTime}`,
                     boarded: false,
                     boardedAt: ''
                 };
 
-                occupiedSeats.push(seatToReserve);
-                seatRecords[seatToReserve] = ticketData;
+                // Ocupa a poltrona e salva registro detalhado
+                occupiedSeats.push(selectedSeat);
+                seatRecords[selectedSeat] = ticketData;
                 saveOccupiedSeats();
-                pushRecordToCloud('RESERVE', ticketData);
 
-                currentTicketData = ticketData;
-                renderVoucher(ticketData);
+                // Envia para nuvem (se Google Sheets estiver configurado)
+                const cloudRes = await pushRecordToCloud('RESERVE', ticketData);
+                if (cloudRes && cloudRes.status === 'SEAT_CONFLICT') {
+                    showToast('Esta poltrona acabou de ser reservada por outro passageiro. Escolha outra.', 'error');
+                    await syncFromCloudIfConfigured();
+                    selectedSeat = null;
+                    updateSelectedBadge();
+                    renderBusMap();
+                    return;
+                }
+                if (cloudRes && cloudRes.status === 'ROOM_FULL') {
+                    showToast('Este quarto acabou de preencher a última vaga. Escolha outro quarto.', 'error');
+                    await syncFromCloudIfConfigured();
+                    selectedRoomId = null;
+                    updateSelectedRoomBadge();
+                    renderBusMap();
+                    return;
+                }
 
+                // Limpa seleção atual e atualiza mapa
                 selectedSeat = null;
+                selectedRoomId = null;
                 updateSelectedBadge();
+                updateSelectedRoomBadge();
                 renderBusMap();
 
-                document.getElementById('booking-form-card').classList.add('hidden');
-                const voucherSec = document.getElementById('voucher-section');
-                voucherSec.classList.remove('hidden');
-                voucherSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-                showToast('Reserva confirmada! Seu comprovante está pronto.', 'success');
+                // Exibe comprovante
+                currentTicketData = ticketData;
+                renderVoucher(ticketData);
+                showToast(`Poltrona ${ticketData.seat} e ${ticketData.roomLabel} reservados!`, 'success');
             });
         }
 
         /**
-         * Preenche os dados no cartão visual do comprovante e gera o QR Code
+         * Preenche o cartão visual do comprovante e gera o QR Code
          */
         function renderVoucher(data) {
-            document.getElementById('voucher-code').textContent = data.code;
+            document.getElementById('voucher-code').textContent = `#${data.code}`;
             document.getElementById('voucher-seat-number').textContent = data.seat;
             document.getElementById('voucher-seat-position').textContent = data.position;
+            document.getElementById('voucher-room-name').textContent = data.roomLabel || 'Sem quarto';
+            document.getElementById('voucher-room-type').textContent = data.roomType || '';
             document.getElementById('voucher-name').textContent = data.name;
             document.getElementById('voucher-doc').textContent = data.doc;
             document.getElementById('voucher-phone').textContent = data.phone;
@@ -1005,197 +1266,276 @@
             const qrContainer = document.getElementById('qrcode-container');
             qrContainer.innerHTML = '';
 
-            const isWebHosted = window.location.protocol.startsWith('http');
-            const cleanCode = data.code.replace('#', '');
-            const qrPayload = isWebHosted
-                ? `${window.location.origin}${window.location.pathname}?validar=${encodeURIComponent(cleanCode)}&p=${data.seat}&n=${encodeURIComponent(data.name.slice(0, 28))}`
-                : `${data.code} | Poltrona ${data.seat} | ${data.name.slice(0, 28)}`;
+            // Monta link inteligente de check-in para validação direta pela câmera do celular
+            const qrPayload = buildValidationURL(data);
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=4&data=${encodeURIComponent(qrPayload)}`;
 
-            const qrCanvas = createNativeQRCanvas(qrPayload, 112);
-            qrContainer.appendChild(qrCanvas);
+            const img = document.createElement('img');
+            img.src = qrUrl;
+            img.alt = `QR Code bilhete ${data.code}`;
+            img.className = 'w-24 h-24 sm:w-28 sm:h-28 object-contain rounded';
+            img.crossOrigin = 'anonymous';
+            img.onerror = function () {
+                this.onerror = null;
+                this.src = `https://placehold.co/112x112/0f172a/ffffff?text=${data.code}`;
+            };
+            qrContainer.appendChild(img);
+
+            const voucherSection = document.getElementById('voucher-section');
+            voucherSection.classList.remove('hidden');
+            voucherSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         /**
-         * Verifica se a URL atual veio da leitura de um QR Code (?validar=...)
-         * Exige autenticação do coordenador antes de confirmar o embarque
+         * Prepara o formulário para uma nova reserva
          */
-        let pendingValidationData = null;
+        function startNewReservation() {
+            document.getElementById('reservation-form').reset();
+            document.getElementById('voucher-section').classList.add('hidden');
+            selectedSeat = null;
+            selectedRoomId = null;
+            updateSelectedBadge();
+            updateSelectedRoomBadge();
+            renderBusMap();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
+        /**
+         * Limpa todas as reservas e deixa todas as 46 poltronas e 15 quartos livres
+         */
+        function resetDemoData() {
+            occupiedSeats = [];
+            seatRecords = {};
+            selectedSeat = null;
+            selectedRoomId = null;
+            saveOccupiedSeats();
+            pushRecordToCloud('CLEAR_ALL', {});
+            updateSelectedBadge();
+            updateSelectedRoomBadge();
+            renderBusMap();
+            renderCoordinatorList();
+            startNewReservation();
+            showToast('Mapa limpo! Todas as 46 poltronas e 15 quartos estão livres.', 'info');
+        }
+
+        /**
+         * Máscaras leves para CPF e telefone
+         */
+        function setupInputMasks() {
+            const docInput = document.getElementById('passenger-doc');
+            const phoneInput = document.getElementById('passenger-phone');
+
+            docInput.addEventListener('input', (e) => {
+                let digits = e.target.value.replace(/\D/g, '');
+                if (digits.length <= 11) {
+                    digits = digits.replace(/(\d{3})(\d)/, '$1.$2');
+                    digits = digits.replace(/(\d{3})(\d)/, '$1.$2');
+                    digits = digits.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                    e.target.value = digits;
+                }
+            });
+
+            phoneInput.addEventListener('input', (e) => {
+                let digits = e.target.value.replace(/\D/g, '').slice(0, 11);
+                if (digits.length > 6) {
+                    digits = digits.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+                } else if (digits.length > 2) {
+                    digits = digits.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+                } else if (digits.length > 0) {
+                    digits = digits.replace(/^(\d*)/, '($1');
+                }
+                e.target.value = digits;
+            });
+        }
+
+        /**
+         * Constrói a URL que será embutida no QR Code para leitura via câmera
+         */
+        function buildValidationURL(data) {
+            const baseUrl = window.location.origin && window.location.origin !== 'null'
+                ? `${window.location.origin}${window.location.pathname}`
+                : 'https://embarque.local/';
+            const params = new URLSearchParams({
+                validar: data.code,
+                p: data.seat,
+                q: data.roomLabel || '',
+                n: data.name
+            });
+            return `${baseUrl}?${params.toString()}`;
+        }
+
+        /**
+         * Verifica se a página foi aberta através da leitura do QR Code (?validar=...)
+         */
         function checkQRCodeValidationInURL() {
             const params = new URLSearchParams(window.location.search);
-            const validarCode = params.get('validar');
-            if (!validarCode) return;
 
-            const seatParam = Number(params.get('p') || 0);
+            if (params.get('admin') === '1') {
+                requestCoordinatorAccess();
+            }
+
+            const ticketCode = params.get('validar');
+            if (!ticketCode) return;
+
+            const seatParam = params.get('p') || '00';
+            const roomParam = params.get('q') || '';
             const nameParam = params.get('n') || 'Passageiro';
-            const fullCode = validarCode.startsWith('#') ? validarCode : `#${validarCode}`;
+            const seatNum = parseInt(seatParam, 10);
 
-            pendingValidationData = {
-                seatParam,
-                nameParam,
-                fullCode
-            };
-
+            const record = seatRecords[seatNum];
             const modal = document.getElementById('qr-validation-modal');
             const header = document.getElementById('val-header');
             const badge = document.getElementById('val-badge');
             const title = document.getElementById('val-title');
             const msg = document.getElementById('val-message');
             const authForm = document.getElementById('val-auth-form');
-            const pwdError = document.getElementById('val-password-error');
-            const pwdInput = document.getElementById('val-password-input');
+            const actionsDiv = document.getElementById('val-actions');
 
-            document.getElementById('val-seat').textContent = formatSeatNum(seatParam);
-            document.getElementById('val-code').textContent = fullCode;
+            document.getElementById('val-seat').textContent = formatSeatNum(seatNum);
+            document.getElementById('val-code').textContent = `#${ticketCode}`;
+            document.getElementById('val-name').textContent = record
+                ? `${record.name}${record.roomLabel ? ` • ${record.roomLabel}` : ''}`
+                : `${nameParam}${roomParam ? ` • ${roomParam}` : ''}`;
 
-            const existing = seatRecords[seatParam];
-            document.getElementById('val-name').textContent = existing?.name || nameParam;
-
-            if (existing && existing.boarded) {
-                authForm.classList.add('hidden');
+            if (record && record.boarded) {
                 header.className = 'bg-amber-500 text-slate-950 px-6 py-5 text-center';
-                badge.textContent = 'Atenção • Leitura Repetida';
-                title.textContent = 'Bilhete Já Utilizado!';
-                msg.textContent = `Este QR Code já teve o embarque registrado anteriormente às ${existing.boardedAt}.`;
-            } else if (isAdminAuthenticated) {
-                executeAuthorizedCheckIn();
+                badge.textContent = 'Atenção • Já Validado';
+                title.textContent = 'Bilhete Já Utilizado';
+                msg.textContent = `Este QR Code já realizou check-in anteriormente às ${record.boardedAt}. Confira o documento do passageiro.`;
+                authForm.classList.add('hidden');
+                actionsDiv.classList.remove('hidden');
+            } else if (isCoordinatorAuthenticated()) {
+                completeQRCheckin(seatNum, ticketCode, nameParam);
             } else {
                 header.className = 'bg-slate-900 text-white px-6 py-5 text-center';
-                badge.textContent = 'Acesso Restrito • Coordenador';
-                title.textContent = 'Validar Bilhete';
-                msg.textContent = 'Somente o coordenador pode confirmar o embarque. Digite a senha acima para registrar a entrada.';
-                pwdError.classList.add('hidden');
-                pwdInput.value = '';
+                badge.textContent = 'Acesso Restrito ao Coordenador';
+                title.textContent = 'Validar Embarque';
+                msg.textContent = 'Apenas o coordenador pode confirmar a entrada no ônibus. Digite a senha abaixo para registrar o embarque.';
                 authForm.classList.remove('hidden');
-                setTimeout(() => pwdInput.focus(), 80);
+                actionsDiv.classList.add('hidden');
+
+                const passInput = document.getElementById('val-password-input');
+                const passError = document.getElementById('val-password-error');
+                passInput.value = '';
+                passError.classList.add('hidden');
+
+                authForm.onsubmit = (e) => {
+                    e.preventDefault();
+                    if (passInput.value === ADMIN_PASSWORD) {
+                        sessionStorage.setItem('coordinator_authenticated', '1');
+                        completeQRCheckin(seatNum, ticketCode, nameParam);
+                    } else {
+                        passError.classList.remove('hidden');
+                        passInput.value = '';
+                        passInput.focus();
+                    }
+                };
             }
 
             modal.classList.remove('hidden');
 
-            try {
+            if (window.history && window.history.replaceState) {
                 window.history.replaceState({}, document.title, window.location.pathname);
-            } catch (e) {}
+            }
         }
 
-        function executeAuthorizedCheckIn() {
-            if (!pendingValidationData) return;
-            const { seatParam, nameParam, fullCode } = pendingValidationData;
-            const existing = seatRecords[seatParam];
-
+        function completeQRCheckin(seatNum, ticketCode, nameParam) {
             const header = document.getElementById('val-header');
             const badge = document.getElementById('val-badge');
             const title = document.getElementById('val-title');
             const msg = document.getElementById('val-message');
             const authForm = document.getElementById('val-auth-form');
-
-            authForm.classList.add('hidden');
-
-            if (existing && existing.boarded) {
-                header.className = 'bg-amber-500 text-slate-950 px-6 py-5 text-center';
-                badge.textContent = 'Atenção • Leitura Repetida';
-                title.textContent = 'Bilhete Já Utilizado!';
-                msg.textContent = `Este QR Code já teve o embarque registrado anteriormente às ${existing.boardedAt}.`;
-                return;
-            }
+            const actionsDiv = document.getElementById('val-actions');
 
             const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            if (!occupiedSeats.includes(seatParam) && seatParam >= 1 && seatParam <= TOTAL_SEATS) {
-                occupiedSeats.push(seatParam);
+            const record = seatRecords[seatNum];
+
+            if (record) {
+                record.boarded = true;
+                record.boardedAt = nowTime;
+                seatRecords[seatNum] = record;
+                saveOccupiedSeats();
+                pushRecordToCloud('CHECKIN', record);
+            } else if (seatNum >= 1 && seatNum <= TOTAL_SEATS) {
+                if (!occupiedSeats.includes(seatNum)) {
+                    occupiedSeats.push(seatNum);
+                }
+                seatRecords[seatNum] = {
+                    code: ticketCode,
+                    seat: formatSeatNum(seatNum),
+                    seatRaw: seatNum,
+                    position: getSeatPosition(seatNum),
+                    name: nameParam,
+                    doc: 'Via QR Code',
+                    phone: 'Não informado',
+                    boarding: DEFAULT_BOARDING_POINT,
+                    datetime: nowTime,
+                    boarded: true,
+                    boardedAt: nowTime
+                };
+                saveOccupiedSeats();
+                renderBusMap();
             }
-            seatRecords[seatParam] = {
-                ...(existing || {}),
-                code: fullCode,
-                seat: formatSeatNum(seatParam),
-                seatRaw: seatParam,
-                position: getSeatPosition(seatParam),
-                name: existing?.name || nameParam,
-                boarded: true,
-                boardedAt: nowTime
-            };
-            saveOccupiedSeats();
-            pushRecordToCloud('CHECKIN', seatRecords[seatParam]);
-            renderBusMap();
 
             header.className = 'bg-emerald-600 text-white px-6 py-5 text-center';
-            badge.textContent = `Check-in às ${nowTime}`;
+            badge.textContent = 'Check-in Confirmado';
             title.textContent = 'Embarque Liberado!';
-            document.getElementById('val-name').textContent = seatRecords[seatParam].name;
-            msg.textContent = 'Passageiro validado com sucesso e marcado como presente no controle do ônibus.';
-            pendingValidationData = null;
+            msg.textContent = `Presença registrada às ${nowTime}. Poltrona ${formatSeatNum(seatNum)} confirmada a bordo.`;
+            authForm.classList.add('hidden');
+            actionsDiv.classList.remove('hidden');
         }
 
         function closeValidationModal() {
             document.getElementById('qr-validation-modal').classList.add('hidden');
-            pendingValidationData = null;
         }
 
         /**
-         * Acesso discreto e protegido por senha ao Painel do Coordenador (3 cliques no ícone do ônibus ou ?admin=1)
+         * Gatilho discreto (3 cliques rápidos no ícone do ônibus no topo) + Autenticação por Senha
          */
-        let isAdminAuthenticated = sessionStorage.getItem('bus_coord_auth') === '1';
-
         function setupAdminTrigger() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('admin') === '1') {
-                requestCoordinatorAccess();
-            }
-
             const trigger = document.getElementById('admin-secret-trigger');
+            const passForm = document.getElementById('admin-password-form');
             let clicks = 0;
             let timer = null;
-            trigger.addEventListener('click', () => {
-                clicks++;
-                clearTimeout(timer);
-                if (clicks >= 3) {
-                    clicks = 0;
-                    requestCoordinatorAccess();
-                } else {
-                    timer = setTimeout(() => { clicks = 0; }, 900);
-                }
-            });
 
-            const pwdForm = document.getElementById('admin-password-form');
-            pwdForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const input = document.getElementById('admin-password-input');
-                const errorEl = document.getElementById('admin-password-error');
+            if (trigger) {
+                trigger.addEventListener('click', () => {
+                    clicks++;
+                    clearTimeout(timer);
+                    timer = setTimeout(() => { clicks = 0; }, 800);
+                    if (clicks >= 3) {
+                        clicks = 0;
+                        requestCoordinatorAccess();
+                    }
+                });
+            }
 
-                if (input.value === ADMIN_PASSWORD) {
-                    isAdminAuthenticated = true;
-                    sessionStorage.setItem('bus_coord_auth', '1');
-                    errorEl.classList.add('hidden');
-                    input.value = '';
-                    closePasswordModal();
-                    openCoordinatorPanel();
-                } else {
-                    errorEl.classList.remove('hidden');
-                    input.value = '';
-                    input.focus();
-                }
-            });
+            if (passForm) {
+                passForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const input = document.getElementById('admin-password-input');
+                    const errorEl = document.getElementById('admin-password-error');
+                    if (input.value === ADMIN_PASSWORD) {
+                        sessionStorage.setItem('coordinator_authenticated', '1');
+                        errorEl.classList.add('hidden');
+                        input.value = '';
+                        closePasswordModal();
+                        openCoordinatorPanel();
+                    } else {
+                        errorEl.classList.remove('hidden');
+                        input.value = '';
+                        input.focus();
+                    }
+                });
+            }
+        }
 
-            const valAuthForm = document.getElementById('val-auth-form');
-            valAuthForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const input = document.getElementById('val-password-input');
-                const errorEl = document.getElementById('val-password-error');
-
-                if (input.value === ADMIN_PASSWORD) {
-                    isAdminAuthenticated = true;
-                    sessionStorage.setItem('bus_coord_auth', '1');
-                    errorEl.classList.add('hidden');
-                    input.value = '';
-                    executeAuthorizedCheckIn();
-                } else {
-                    errorEl.classList.remove('hidden');
-                    input.value = '';
-                    input.focus();
-                }
-            });
+        function isCoordinatorAuthenticated() {
+            return sessionStorage.getItem('coordinator_authenticated') === '1';
         }
 
         function requestCoordinatorAccess() {
-            if (isAdminAuthenticated) {
+            if (isCoordinatorAuthenticated()) {
                 openCoordinatorPanel();
                 return;
             }
@@ -1223,64 +1563,81 @@
 
         function renderCoordinatorList() {
             const listEl = document.getElementById('coordinator-list');
-            const sortedSeats = [...occupiedSeats].sort((a, b) => a - b);
+            const records = Object.values(seatRecords).sort((a, b) => a.seatRaw - b.seatRaw);
+            const boardedCount = records.filter(r => r.boarded).length;
 
-            let boardedCount = 0;
-            sortedSeats.forEach(s => {
-                if (seatRecords[s]?.boarded) boardedCount++;
-            });
-
-            document.getElementById('coord-total-reserved').textContent = sortedSeats.length;
+            document.getElementById('coord-total-reserved').textContent = occupiedSeats.length;
             document.getElementById('coord-total-boarded').textContent = boardedCount;
-            document.getElementById('coord-total-free').textContent = Math.max(0, TOTAL_SEATS - sortedSeats.length);
+            document.getElementById('coord-total-free').textContent = TOTAL_SEATS - occupiedSeats.length;
 
-            if (sortedSeats.length === 0) {
-                listEl.innerHTML = '<p class="text-center text-sm text-slate-400 py-8">Nenhuma poltrona reservada até o momento.</p>';
+            if (occupiedSeats.length === 0) {
+                listEl.innerHTML = `<p class="text-center text-sm text-slate-400 py-8">Nenhuma poltrona reservada ainda.</p>`;
                 return;
             }
 
-            listEl.innerHTML = sortedSeats.map(seatNum => {
+            listEl.innerHTML = '';
+            const allSeats = [...occupiedSeats].sort((a, b) => a - b);
+
+            allSeats.forEach(seatNum => {
                 const rec = seatRecords[seatNum] || {
-                    code: '#BUS-LOCAL',
                     seat: formatSeatNum(seatNum),
+                    seatRaw: seatNum,
                     position: getSeatPosition(seatNum),
-                    name: 'Passageiro',
+                    roomLabel: 'Sem quarto',
+                    name: 'Reserva Anterior',
+                    code: '—',
                     boarded: false
                 };
 
-                const statusBadge = rec.boarded
-                    ? `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">Embarcado (${rec.boardedAt || 'OK'})</span>`
-                    : `<button type="button" onclick="manualCheckIn(${seatNum})" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 hover:bg-emerald-600 text-white transition cursor-pointer">Confirmar Embarque</button>`;
-
-                return `
-                    <div class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 bg-white">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <span class="w-10 h-10 rounded-xl bg-slate-900 text-white font-mono font-bold text-sm flex items-center justify-center shrink-0">${formatSeatNum(seatNum)}</span>
-                            <div class="min-w-0">
-                                <p class="text-sm font-bold text-slate-900 truncate">${rec.name}</p>
-                                <p class="text-[11px] text-slate-500 font-mono">${rec.code} • ${rec.position} • ${rec.phone || ''}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            ${statusBadge}
-                            <button type="button" onclick="releaseSingleSeat(${seatNum})" title="Liberar poltrona" class="p-1.5 text-slate-400 hover:text-red-600 rounded-lg cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-                            </button>
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between gap-3 p-3 rounded-2xl border border-slate-200 bg-white';
+                row.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-10 h-10 rounded-xl bg-slate-900 text-white font-mono font-bold text-sm flex items-center justify-center shrink-0">
+                            ${rec.seat}
+                        </span>
+                        <div class="min-w-0">
+                            <p class="text-sm font-bold text-slate-900 truncate">${rec.name}</p>
+                            <p class="text-[11px] text-slate-500 font-mono">#${rec.code} • ${rec.position} • <strong class="text-indigo-700">${rec.roomLabel || 'Sem quarto'}</strong></p>
                         </div>
                     </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" onclick="toggleManualCheckin(${seatNum})"
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${rec.boarded
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
+                            ${rec.boarded ? `Embarcado (${rec.boardedAt})` : 'Confirmar Embarque'}
+                        </button>
+                        <button type="button" onclick="releaseSingleSeat(${seatNum})" title="Liberar poltrona e quarto"
+                            class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 transition cursor-pointer">
+                            Liberar
+                        </button>
+                    </div>
                 `;
-            }).join('');
+                listEl.appendChild(row);
+            });
         }
 
-        function manualCheckIn(seatNum) {
-            if (!seatRecords[seatNum]) return;
-            const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            seatRecords[seatNum].boarded = true;
-            seatRecords[seatNum].boardedAt = nowTime;
+        function toggleManualCheckin(seatNum) {
+            if (!seatRecords[seatNum]) {
+                seatRecords[seatNum] = {
+                    code: 'MANUAL',
+                    seat: formatSeatNum(seatNum),
+                    seatRaw: seatNum,
+                    position: getSeatPosition(seatNum),
+                    name: 'Passageiro Confirmado',
+                    boarded: false,
+                    boardedAt: ''
+                };
+            }
+            const rec = seatRecords[seatNum];
+            rec.boarded = !rec.boarded;
+            rec.boardedAt = rec.boarded
+                ? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                : '';
             saveOccupiedSeats();
-            pushRecordToCloud('CHECKIN', seatRecords[seatNum]);
+            if (rec.boarded) pushRecordToCloud('CHECKIN', rec);
             renderCoordinatorList();
-            showToast(`Poltrona ${formatSeatNum(seatNum)} marcada como embarcada!`, 'success');
         }
 
         function releaseSingleSeat(seatNum) {
@@ -1290,221 +1647,44 @@
             pushRecordToCloud('RELEASE', { seatRaw: seatNum });
             renderBusMap();
             renderCoordinatorList();
-            showToast(`Poltrona ${formatSeatNum(seatNum)} liberada novamente.`, 'info');
+            showToast(`Poltrona ${formatSeatNum(seatNum)} e vaga do quarto liberadas.`, 'info');
         }
 
         function exportManifestCSV() {
-            const sortedSeats = [...occupiedSeats].sort((a, b) => a - b);
-            if (sortedSeats.length === 0) {
-                showToast('Não há passageiros reservados para exportar.', 'error');
-                return;
-            }
-            const lines = ['Poltrona;Posicao;Codigo;Nome;Documento;Telefone;Embarcado;Horario_Checkin'];
-            sortedSeats.forEach(s => {
-                const r = seatRecords[s] || {};
-                lines.push(`${formatSeatNum(s)};${r.position || ''};${r.code || ''};"${r.name || ''}";"${r.doc || ''}";"${r.phone || ''}";${r.boarded ? 'SIM' : 'NAO'};${r.boardedAt || ''}`);
+            const header = ['Poltrona', 'Posicao', 'Quarto', 'TipoQuarto', 'Codigo', 'Passageiro', 'CPF', 'Telefone', 'StatusEmbarque', 'HorarioCheckin'];
+            const rows = [...occupiedSeats].sort((a, b) => a - b).map(seatNum => {
+                const r = seatRecords[seatNum] || {};
+                return [
+                    formatSeatNum(seatNum),
+                    getSeatPosition(seatNum),
+                    `"${(r.roomLabel || 'Sem quarto').replace(/"/g, '""')}"`,
+                    `"${(r.roomType || '').replace(/"/g, '""')}"`,
+                    r.code || '',
+                    `"${(r.name || 'Ocupada').replace(/"/g, '""')}"`,
+                    r.doc || '',
+                    r.phone || '',
+                    r.boarded ? 'EMBARCADO' : 'PENDENTE',
+                    r.boardedAt || ''
+                ].join(';');
             });
-            const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+
+            const csvContent = '\uFEFF' + [header.join(';'), ...rows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'lista_passageiros_onibus.csv';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Lista_Embarque_Quartos_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
 
         /**
-         * Gerador QR Code ISO/IEC 18004 (Byte Mode, Versões 1-6, ECC Level L) 100% nativo em JS
+         * Gera uma imagem PNG de alta resolução do comprovante e inicia o download
          */
-        function createNativeQRCanvas(text, pixelSize) {
-            const bytes = new TextEncoder().encode(text);
-            const len = bytes.length;
-
-            const capacities = [17, 32, 53, 78, 106, 134];
-            let version = capacities.findIndex(c => len <= c) + 1;
-            if (version === 0) version = 6;
-
-            const totalCodewords = [26, 44, 70, 100, 134, 172][version - 1];
-            const ecCodewords = [7, 10, 15, 20, 26, 36][version - 1];
-            const dataCapacity = totalCodewords - ecCodewords;
-
-            const bits = [];
-            const pushBits = (val, n) => {
-                for (let i = n - 1; i >= 0; i--) bits.push((val >>> i) & 1);
-            };
-            pushBits(0b0100, 4);
-            const safeLen = Math.min(len, dataCapacity - 2);
-            pushBits(safeLen, 8);
-            for (let i = 0; i < safeLen; i++) pushBits(bytes[i], 8);
-            pushBits(0, Math.min(4, dataCapacity * 8 - bits.length));
-            while (bits.length % 8 !== 0) bits.push(0);
-
-            const dataBytes = [];
-            for (let i = 0; i < bits.length; i += 8) {
-                let b = 0;
-                for (let j = 0; j < 8; j++) b = (b << 1) | bits[i + j];
-                dataBytes.push(b);
-            }
-            const padBytes = [0xec, 0x11];
-            let padIdx = 0;
-            while (dataBytes.length < dataCapacity) {
-                dataBytes.push(padBytes[padIdx % 2]);
-                padIdx++;
-            }
-
-            const exp = new Uint8Array(512);
-            const log = new Uint8Array(256);
-            let x = 1;
-            for (let i = 0; i < 255; i++) {
-                exp[i] = x;
-                log[x] = i;
-                x <<= 1;
-                if (x & 0x100) x ^= 0x11d;
-            }
-            for (let i = 255; i < 512; i++) exp[i] = exp[i - 255];
-            const gfMul = (a, b) => (a === 0 || b === 0) ? 0 : exp[log[a] + log[b]];
-
-            let gen = [1];
-            for (let i = 0; i < ecCodewords; i++) {
-                const next = new Array(gen.length + 1).fill(0);
-                for (let j = 0; j < gen.length; j++) {
-                    next[j] ^= gen[j];
-                    next[j + 1] ^= gfMul(gen[j], exp[i]);
-                }
-                gen = next;
-            }
-
-            const rem = new Array(ecCodewords).fill(0);
-            for (const b of dataBytes) {
-                const factor = b ^ rem.shift();
-                rem.push(0);
-                for (let j = 0; j < ecCodewords; j++) {
-                    rem[j] ^= gfMul(gen[j + 1], factor);
-                }
-            }
-
-            const allCodewords = dataBytes.concat(rem);
-            const size = version * 4 + 17;
-            const modules = Array.from({ length: size }, () => new Array(size).fill(null));
-            const isFunction = Array.from({ length: size }, () => new Array(size).fill(false));
-
-            const setFunc = (r, c, dark) => {
-                if (r >= 0 && r < size && c >= 0 && c < size) {
-                    modules[r][c] = dark;
-                    isFunction[r][c] = true;
-                }
-            };
-
-            const drawFinder = (r, c) => {
-                for (let dr = -1; dr <= 7; dr++) {
-                    for (let dc = -1; dc <= 7; dc++) {
-                        const inOuter = dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6;
-                        const inInner = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4;
-                        const onBorder = dr === 0 || dr === 6 || dc === 0 || dc === 6;
-                        setFunc(r + dr, c + dc, inOuter && (onBorder || inInner));
-                    }
-                }
-            };
-            drawFinder(0, 0);
-            drawFinder(0, size - 7);
-            drawFinder(size - 7, 0);
-
-            if (version >= 2) {
-                const pos = size - 7;
-                for (let dr = -2; dr <= 2; dr++) {
-                    for (let dc = -2; dc <= 2; dc++) {
-                        const dark = Math.max(Math.abs(dr), Math.abs(dc)) !== 1;
-                        setFunc(pos + dr, pos + dc, dark);
-                    }
-                }
-            }
-
-            for (let i = 8; i < size - 8; i++) {
-                setFunc(6, i, i % 2 === 0);
-                setFunc(i, 6, i % 2 === 0);
-            }
-
-            setFunc(size - 8, 8, true);
-            for (let i = 0; i < 9; i++) {
-                if (!isFunction[8][i]) setFunc(8, i, false);
-                if (!isFunction[i][8]) setFunc(i, 8, false);
-            }
-            for (let i = 0; i < 8; i++) {
-                setFunc(8, size - 1 - i, false);
-                setFunc(size - 1 - i, 8, false);
-            }
-
-            let bitIdx = 0;
-            const totalBits = allCodewords.length * 8;
-            let upward = true;
-            for (let right = size - 1; right >= 1; right -= 2) {
-                if (right === 6) right = 5;
-                for (let vert = 0; vert < size; vert++) {
-                    const r = upward ? size - 1 - vert : vert;
-                    for (let j = 0; j < 2; j++) {
-                        const c = right - j;
-                        if (!isFunction[r][c]) {
-                            let dark = false;
-                            if (bitIdx < totalBits) {
-                                dark = ((allCodewords[bitIdx >>> 3] >>> (7 - (bitIdx & 7))) & 1) === 1;
-                                bitIdx++;
-                            }
-                            if ((r + c) % 2 === 0) dark = !dark;
-                            modules[r][c] = dark;
-                        }
-                    }
-                }
-                upward = !upward;
-            }
-
-            const fmtBits = 0x77c4;
-            for (let i = 0; i < 15; i++) {
-                const bit = ((fmtBits >>> i) & 1) === 1;
-                if (i < 6) setFunc(i, 8, bit);
-                else if (i < 8) setFunc(i + 1, 8, bit);
-                else setFunc(size - 15 + i, 8, bit);
-
-                if (i < 8) setFunc(8, size - 1 - i, bit);
-                else if (i < 9) setFunc(8, 15 - i, bit);
-                else setFunc(8, 14 - i, bit);
-            }
-
-            const quiet = 2;
-            const fullModules = size + quiet * 2;
-            const scale = Math.max(3, Math.floor(pixelSize / fullModules));
-            const finalDim = fullModules * scale;
-
-            const canvas = document.createElement('canvas');
-            canvas.width = finalDim;
-            canvas.height = finalDim;
-            canvas.style.width = `${pixelSize}px`;
-            canvas.style.height = `${pixelSize}px`;
-
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, finalDim, finalDim);
-
-            ctx.fillStyle = '#000000';
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    if (modules[r][c]) {
-                        ctx.fillRect((c + quiet) * scale, (r + quiet) * scale, scale, scale);
-                    }
-                }
-            }
-            return canvas;
-        }
-
-        /**
-         * Gera e baixa uma imagem PNG de alta resolução do comprovante via Canvas
-         */
-        function downloadVoucherPNG() {
-            if (!currentTicketData) {
-                showToast('Nenhum comprovante disponível para download.', 'error');
-                return;
-            }
+        async function downloadVoucherPNG() {
+            if (!currentTicketData) return;
 
             const canvas = document.getElementById('export-canvas');
             const ctx = canvas.getContext('2d');
@@ -1514,204 +1694,152 @@
             canvas.width = width;
             canvas.height = height;
 
-            ctx.fillStyle = '#f1f5f9';
+            // Fundo branco
+            ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, width, height);
 
-            const cardX = 40;
-            const cardY = 40;
-            const cardW = width - 80;
-            const cardH = height - 80;
-
-            drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 28, '#ffffff');
-            ctx.strokeStyle = '#cbd5e1';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(cardX + 28, cardY);
-            ctx.lineTo(cardX + cardW - 28, cardY);
-            ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + 28);
-            ctx.lineTo(cardX + cardW, cardY + 150);
-            ctx.lineTo(cardX, cardY + 150);
-            ctx.lineTo(cardX, cardY + 28);
-            ctx.quadraticCurveTo(cardX, cardY, cardX + 28, cardY);
-            ctx.closePath();
+            // Cabeçalho Azul Marinho
             ctx.fillStyle = '#0f172a';
-            ctx.fill();
-            ctx.restore();
+            ctx.fillRect(0, 0, width, 165);
 
             ctx.fillStyle = '#34d399';
-            ctx.font = 'bold 18px Inter, sans-serif';
-            ctx.fillText('COMPROVANTE DE ASSENTO', cardX + 40, cardY + 55);
+            ctx.font = 'bold 20px Inter, sans-serif';
+            ctx.fillText('COMPROVANTE DE RESERVA E HOSPEDAGEM', 48, 58);
 
             ctx.fillStyle = '#ffffff';
-            ctx.font = '800 34px Inter, sans-serif';
-            ctx.fillText('Bilhete de Embarque', cardX + 40, cardY + 102);
+            ctx.font = 'bold 38px Inter, sans-serif';
+            ctx.fillText('Bilhete de Embarque', 48, 112);
 
+            // Código no canto direito do cabeçalho
             ctx.fillStyle = '#94a3b8';
-            ctx.font = 'bold 15px Inter, sans-serif';
+            ctx.font = 'bold 16px Inter, sans-serif';
             ctx.textAlign = 'right';
-            ctx.fillText('CÓDIGO', cardX + cardW - 40, cardY + 55);
-
+            ctx.fillText('CÓDIGO', width - 48, 60);
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 24px monospace';
-            ctx.fillText(currentTicketData.code, cardX + cardW - 40, cardY + 95);
+            ctx.font = 'bold 26px monospace';
+            ctx.fillText(`#${currentTicketData.code}`, width - 48, 102);
             ctx.textAlign = 'left';
 
-            const seatBoxY = cardY + 150;
+            // Faixa de Destaque da Poltrona e Quarto
             ctx.fillStyle = '#f8fafc';
-            ctx.fillRect(cardX + 2, seatBoxY, cardW - 4, 175);
-
-            ctx.beginPath();
-            ctx.moveTo(cardX, seatBoxY + 175);
-            ctx.lineTo(cardX + cardW, seatBoxY + 175);
+            ctx.fillRect(0, 165, width, 175);
             ctx.strokeStyle = '#e2e8f0';
             ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 340);
+            ctx.lineTo(width, 340);
             ctx.stroke();
 
             ctx.fillStyle = '#64748b';
             ctx.font = 'bold 18px Inter, sans-serif';
-            ctx.fillText('POLTRONA RESERVADA', cardX + 40, seatBoxY + 48);
+            ctx.fillText('POLTRONA RESERVADA', 48, 212);
 
             ctx.fillStyle = '#0f172a';
-            ctx.font = '900 76px monospace';
-            ctx.fillText(currentTicketData.seat, cardX + 40, seatBoxY + 132);
+            ctx.font = 'bold 76px monospace';
+            ctx.fillText(currentTicketData.seat, 48, 295);
 
-            drawRoundedRect(ctx, cardX + 165, seatBoxY + 86, 145, 42, 21, '#d1fae5');
+            // Badge Posição
+            ctx.fillStyle = '#d1fae5';
+            roundRect(ctx, 165, 245, 145, 44, 22, true, false);
             ctx.fillStyle = '#065f46';
             ctx.font = 'bold 20px Inter, sans-serif';
-            ctx.fillText(currentTicketData.position.toUpperCase(), cardX + 188, seatBoxY + 114);
+            ctx.textAlign = 'center';
+            ctx.fillText(currentTicketData.position.toUpperCase(), 237, 274);
 
+            // Quarto à direita
             ctx.textAlign = 'right';
             ctx.fillStyle = '#64748b';
             ctx.font = 'bold 18px Inter, sans-serif';
-            ctx.fillText('CATEGORIA', cardX + cardW - 40, seatBoxY + 48);
-
-            ctx.fillStyle = '#1e293b';
-            ctx.font = 'bold 24px Inter, sans-serif';
-            ctx.fillText('Executivo Semileito', cardX + cardW - 40, seatBoxY + 88);
-
-            ctx.fillStyle = '#64748b';
-            ctx.font = '500 20px Inter, sans-serif';
-            ctx.fillText('46 Lugares', cardX + cardW - 40, seatBoxY + 120);
-            ctx.textAlign = 'left';
-
-            let cursorY = seatBoxY + 235;
-
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'bold 17px Inter, sans-serif';
-            ctx.fillText('PASSAGEIRO(A)', cardX + 40, cursorY);
+            ctx.fillText('QUARTO / HOSPEDAGEM', width - 48, 212);
 
             ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 28px Inter, sans-serif';
-            const displayName = currentTicketData.name.length > 34
-                ? currentTicketData.name.substring(0, 34) + '...'
-                : currentTicketData.name;
-            ctx.fillText(displayName, cardX + 40, cursorY + 38);
+            ctx.font = 'bold 34px monospace';
+            ctx.fillText(currentTicketData.roomLabel || 'Sem quarto', width - 48, 262);
 
-            cursorY += 105;
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'bold 17px Inter, sans-serif';
-            ctx.fillText('DOCUMENTO', cardX + 40, cursorY);
-            ctx.fillText('TELEFONE', cardX + 360, cursorY);
+            ctx.fillStyle = '#4338ca';
+            ctx.font = 'bold 20px Inter, sans-serif';
+            ctx.fillText(currentTicketData.roomType || '', width - 48, 298);
+            ctx.textAlign = 'left';
 
-            ctx.fillStyle = '#1e293b';
-            ctx.font = '600 23px monospace';
-            ctx.fillText(currentTicketData.doc, cardX + 40, cursorY + 35);
-            ctx.font = '600 23px Inter, sans-serif';
-            ctx.fillText(currentTicketData.phone, cardX + 360, cursorY + 35);
+            // Campos do Passageiro
+            let y = 400;
+            drawTicketField(ctx, 'PASSAGEIRO(A)', currentTicketData.name, 48, y, 30);
+            y += 105;
+            drawTicketField(ctx, 'DOCUMENTO', currentTicketData.doc, 48, y, 24);
+            drawTicketField(ctx, 'TELEFONE', currentTicketData.phone, 400, y, 24);
+            y += 105;
+            drawTicketField(ctx, 'LOCAL DE EMBARQUE', currentTicketData.boarding, 48, y, 24);
+            y += 105;
+            drawTicketField(ctx, 'EMISSÃO', currentTicketData.datetime, 48, y, 22);
 
-            cursorY += 100;
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'bold 17px Inter, sans-serif';
-            ctx.fillText('LOCAL DE EMBARQUE', cardX + 40, cursorY);
-
-            ctx.fillStyle = '#1e293b';
-            ctx.font = 'bold 23px Inter, sans-serif';
-            ctx.fillText(currentTicketData.boarding, cardX + 40, cursorY + 35);
-
-            cursorY += 95;
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'bold 17px Inter, sans-serif';
-            ctx.fillText('DATA E HORA DA EMISSÃO', cardX + 40, cursorY);
-
-            ctx.fillStyle = '#475569';
-            ctx.font = '600 21px monospace';
-            ctx.fillText(currentTicketData.datetime, cardX + 40, cursorY + 34);
-
-            const tearY = cardY + cardH - 195;
-            ctx.save();
-            ctx.setLineDash([10, 10]);
-            ctx.beginPath();
-            ctx.moveTo(cardX + 30, tearY);
-            ctx.lineTo(cardX + cardW - 30, tearY);
+            // Linha Tracejada
+            y += 75;
             ctx.strokeStyle = '#cbd5e1';
             ctx.lineWidth = 3;
+            ctx.setLineDash([12, 10]);
+            ctx.beginPath();
+            ctx.moveTo(48, y);
+            ctx.lineTo(width - 48, y);
             ctx.stroke();
-            ctx.restore();
+            ctx.setLineDash([]);
 
-            ctx.fillStyle = '#f1f5f9';
-            ctx.beginPath();
-            ctx.arc(cardX, tearY, 22, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(cardX + cardW, tearY, 22, 0, Math.PI * 2);
-            ctx.fill();
-
-            const footerY = tearY + 42;
-            ctx.fillStyle = '#1e293b';
-            ctx.font = 'bold 21px Inter, sans-serif';
-            ctx.fillText('Validação de Embarque', cardX + 40, footerY + 18);
+            // Texto de instrução e QR Code
+            y += 55;
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 22px Inter, sans-serif';
+            ctx.fillText('Validação de Embarque', 48, y + 20);
 
             ctx.fillStyle = '#64748b';
-            ctx.font = '400 18px Inter, sans-serif';
-            ctx.fillText('Apresente este comprovante digital ou impresso', cardX + 40, footerY + 52);
-            ctx.fillText('ao motorista ou coordenador antes de embarcar.', cardX + 40, footerY + 78);
+            ctx.font = '19px Inter, sans-serif';
+            ctx.fillText('Apresente este bilhete digital ou', 48, y + 58);
+            ctx.fillText('impresso no momento do embarque.', 48, y + 86);
 
-            const qrCanvas = document.querySelector('#qrcode-container canvas');
-            const qrSize = 132;
-            const qrX = cardX + cardW - 40 - qrSize;
-            const qrY = tearY + 20;
-
-            drawRoundedRect(ctx, qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 14, '#ffffff');
-            ctx.strokeStyle = '#cbd5e1';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            ctx.save();
-            ctx.imageSmoothingEnabled = false;
-            if (qrCanvas) {
-                ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+            // Tenta desenhar o QR Code carregado na tela
+            const qrImg = document.querySelector('#qrcode-container img');
+            if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) {
+                try {
+                    ctx.drawImage(qrImg, width - 210, y - 15, 160, 160);
+                } catch (err) {
+                    drawFallbackCodeBox(ctx, width - 210, y - 15, currentTicketData.code);
+                }
+            } else {
+                drawFallbackCodeBox(ctx, width - 210, y - 15, currentTicketData.code);
             }
-            ctx.restore();
 
-            try {
-                const dataUrl = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                const safeName = currentTicketData.name
-                    .normalize('NFD')
-                    .replace(/[\u0300-\u036f]/g, '')
-                    .replace(/[^a-zA-Z0-9]/g, '_')
-                    .toLowerCase();
+            // Dispara o download do arquivo PNG
+            const link = document.createElement('a');
+            link.download = `Comprovante_Poltrona_${currentTicketData.seat}_${currentTicketData.roomLabel.replace(/\s+/g, '_')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
 
-                link.download = `comprovante_poltrona_${currentTicketData.seat}_${safeName}.png`;
-                link.href = dataUrl;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                showToast('Download da imagem PNG iniciado!', 'success');
-            } catch (err) {
-                console.error('Erro ao exportar PNG:', err);
-                showToast('Não foi possível baixar a imagem. Tente usar "Imprimir / Salvar PDF".', 'error');
-            }
+            showToast('Imagem PNG do comprovante baixada!', 'success');
         }
 
-        /**
-         * Auxiliar para desenhar retângulos com cantos arredondados no Canvas
-         */
-        function drawRoundedRect(ctx, x, y, width, height, radius, fillColor) {
+        function drawTicketField(ctx, label, value, x, y, fontSize) {
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 17px Inter, sans-serif';
+            ctx.fillText(label, x, y);
+
+            ctx.fillStyle = '#0f172a';
+            ctx.font = `bold ${fontSize}px Inter, sans-serif`;
+            const safeText = String(value).length > 36 ? String(value).slice(0, 35) + '...' : String(value);
+            ctx.fillText(safeText, x, y + 36);
+        }
+
+        function drawFallbackCodeBox(ctx, x, y, code) {
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, 160, 160);
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 20px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(code, x + 80, y + 86);
+            ctx.textAlign = 'left';
+        }
+
+        function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
             ctx.beginPath();
             ctx.moveTo(x + radius, y);
             ctx.lineTo(x + width - radius, y);
@@ -1723,74 +1851,12 @@
             ctx.lineTo(x, y + radius);
             ctx.quadraticCurveTo(x, y, x + radius, y);
             ctx.closePath();
-            if (fillColor) {
-                ctx.fillStyle = fillColor;
-                ctx.fill();
-            }
+            if (fill) ctx.fill();
+            if (stroke) ctx.stroke();
         }
 
         /**
-         * Volta para o formulário para realizar outra reserva
-         */
-        function startNewReservation() {
-            document.getElementById('reservation-form').reset();
-            document.getElementById('voucher-section').classList.add('hidden');
-            document.getElementById('booking-form-card').classList.remove('hidden');
-            selectedSeat = null;
-            updateSelectedBadge();
-            renderBusMap();
-        }
-
-        /**
-         * Limpa todas as reservas e deixa todas as 46 poltronas livres
-         */
-        function resetDemoData() {
-            occupiedSeats = [];
-            seatRecords = {};
-            selectedSeat = null;
-            saveOccupiedSeats();
-            pushRecordToCloud('CLEAR_ALL', {});
-            updateSelectedBadge();
-            renderBusMap();
-            renderCoordinatorList();
-            startNewReservation();
-            showToast('Mapa de assentos limpo! Todas as 46 poltronas estão livres.', 'info');
-        }
-
-        /**
-         * Máscaras leves para CPF e telefone
-         */
-        function setupInputMasks() {
-            const docInput = document.getElementById('passenger-doc');
-            docInput.addEventListener('input', (e) => {
-                let v = e.target.value.replace(/\D/g, '').slice(0, 11);
-                if (v.length > 9) {
-                    e.target.value = `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9)}`;
-                } else if (v.length > 6) {
-                    e.target.value = `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6)}`;
-                } else if (v.length > 3) {
-                    e.target.value = `${v.slice(0, 3)}.${v.slice(3)}`;
-                } else {
-                    e.target.value = v;
-                }
-            });
-
-            const phoneInput = document.getElementById('passenger-phone');
-            phoneInput.addEventListener('input', (e) => {
-                let v = e.target.value.replace(/\D/g, '');
-                if (v.length > 11) v = v.slice(0, 11);
-                if (v.length > 6) {
-                    e.target.value = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
-                } else if (v.length > 2) {
-                    e.target.value = `(${v.slice(0, 2)}) ${v.slice(2)}`;
-                } else if (v.length > 0) {
-                    e.target.value = `(${v}`;
-                }
-            });
-        }
-
-        /**
-         * Exibe notificação visual amigável (Toast)
+         * Sistema de Notificação Toast (Substitui alert())
          */
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -1798,18 +1864,21 @@
 
             const colors = {
                 success: 'bg-slate-900 text-white border-emerald-500',
-                error: 'bg-red-600 text-white border-red-800',
+                error: 'bg-red-950 text-white border-red-500',
                 info: 'bg-slate-800 text-white border-slate-600'
             };
 
-            toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border-l-4 text-xs sm:text-sm font-medium flex items-center justify-between gap-3 transition-all duration-300 ${colors[type] || colors.info}`;
-            toast.innerHTML = `<span>${message}</span>`;
+            toast.className = `${colors[type] || colors.info} border-l-4 px-4 py-3 rounded-xl shadow-xl text-xs sm:text-sm font-medium pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
+            toast.textContent = message;
 
             container.appendChild(toast);
 
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
             setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(8px)';
+                toast.classList.add('opacity-0', 'translate-y-2');
                 setTimeout(() => toast.remove(), 300);
             }, 3500);
         }
