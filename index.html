@@ -611,7 +611,7 @@
                 </div>
             </div>
 
-            <!-- Botões de Download, Impressão, E-mail e Nova Reserva -->
+            <!-- Botões de Download, Impressão e Nova Reserva -->
             <div class="max-w-md mx-auto mt-5 space-y-3 no-print">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button type="button" onclick="downloadVoucherPNG()"
@@ -629,24 +629,6 @@
                         </svg>
                         Imprimir / Salvar PDF
                     </button>
-                </div>
-
-                <!-- Reencaminhar tela do QR Code por E-mail -->
-                <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-sm space-y-2">
-                    <label for="voucher-email-input" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                        Reenviar Link do QR Code por E-mail
-                    </label>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="email" id="voucher-email-input" placeholder="passageiro@email.com"
-                            class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/60 focus:bg-white text-slate-900 text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-slate-900 transition">
-                        <button type="button" onclick="sendVoucherByEmail()"
-                            class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-                            </svg>
-                            Enviar por E-mail
-                        </button>
-                    </div>
                 </div>
 
                 <button type="button" onclick="startNewReservation()"
@@ -820,6 +802,7 @@
                                 seatRaw: seatNum,
                                 seat: formatSeatNum(seatNum),
                                 email: r.email || '',
+                                emailSent: Boolean(r.emailSent),
                                 roomId: r.roomId ? Number(r.roomId) : null
                             };
                         }
@@ -1264,7 +1247,8 @@
                     boarding,
                     datetime: `${formattedDate} às ${formattedTime}`,
                     boarded: false,
-                    boardedAt: ''
+                    boardedAt: '',
+                    emailSent: false
                 };
 
                 // Ocupa a poltrona e salva registro detalhado
@@ -1320,11 +1304,6 @@
             document.getElementById('voucher-phone').textContent = data.phone;
             document.getElementById('voucher-boarding').textContent = data.boarding;
             document.getElementById('voucher-datetime').textContent = data.datetime;
-
-            const emailInput = document.getElementById('voucher-email-input');
-            if (emailInput) {
-                emailInput.value = data.email || '';
-            }
 
             const qrContainer = document.getElementById('qrcode-container');
             qrContainer.innerHTML = '';
@@ -1598,7 +1577,7 @@
                         <div class="min-w-0">
                             <p class="text-xs sm:text-sm font-bold text-slate-900 truncate">${r.name}</p>
                             <p class="text-[11px] text-slate-500 font-mono">CPF: ${r.doc} • ${r.roomLabel || 'Sem quarto'} • #${r.code}</p>
-                            <p class="text-[11px] text-slate-400 truncate">${r.email || 'Sem e-mail cadastrado'}</p>
+                            <p class="text-[11px] text-slate-400 truncate">${r.email || 'Sem e-mail cadastrado'}${r.emailSent ? ' • E-mail enviado ✓' : ''}</p>
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 self-end sm:self-center shrink-0">
@@ -1610,8 +1589,8 @@
                                 Check-in Manual
                             </button>
                         ` : ''}
-                        <button type="button" onclick="sendAdminPassengerEmail(${r.seatRaw})" class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] border border-indigo-200 cursor-pointer">
-                            Enviar E-mail
+                        <button type="button" onclick="sendAdminPassengerEmail(${r.seatRaw})" class="px-2.5 py-1 rounded-lg ${r.emailSent ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300' : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'} font-bold text-[11px] border cursor-pointer">
+                            ${r.emailSent ? 'Reenviar E-mail' : 'Enviar E-mail'}
                         </button>
                         <button type="button" onclick="releaseSingleSeat(${r.seatRaw})" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[11px] border border-red-200 cursor-pointer">
                             Liberar
@@ -1623,34 +1602,38 @@
         }
 
         /**
-         * Envia por e-mail o link do QR Code do passageiro diretamente da tela do administrador
+         * Dispara o envio do e-mail via planilha (marcando a checkbox e enviando pelo Apps Script)
          */
-        function sendAdminPassengerEmail(seatNum) {
+        async function sendAdminPassengerEmail(seatNum) {
             const record = seatRecords[seatNum];
             if (!record) return;
 
-            const recipientEmail = record.email || '';
-            const qrLink = buildValidationURL(record);
-            const subject = encodeURIComponent(`Cartão de Embarque #${record.code} — Poltrona ${record.seat}`);
-            const body = encodeURIComponent(
-                `Olá, ${record.name}!\n\n` +
-                `Aqui está o link para acessar sua tela de QR Code e Cartão de Embarque:\n${qrLink}\n\n` +
-                `Detalhes da reserva:\n` +
-                `• Código: #${record.code}\n` +
-                `• Poltrona: ${record.seat} (${record.position})\n` +
-                `• Quarto: ${record.roomLabel || 'Não informado'} (${record.roomType || ''})\n` +
-                `• Embarque: ${record.boarding || DEFAULT_BOARDING_POINT}\n` +
-                `• Emitido em: ${record.datetime || ''}`
-            );
+            if (!record.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(record.email)) {
+                showToast('Este passageiro não possui um e-mail válido cadastrado.', 'error');
+                return;
+            }
 
-            const mailtoUrl = `mailto:${encodeURIComponent(recipientEmail)}?subject=${subject}&body=${body}`;
-            window.location.href = mailtoUrl;
-            showToast(
-                recipientEmail
-                    ? `Abrindo e-mail para ${recipientEmail}...`
-                    : `Abrindo aplicativo de e-mail para ${record.name}...`,
-                'info'
-            );
+            isSyncing = true;
+            try {
+                const qrLink = buildValidationURL(record);
+                record.emailSent = true;
+                saveOccupiedSeats();
+                renderCoordinatorList();
+
+                const res = await pushRecordToCloud('SEND_EMAIL', {
+                    ...record,
+                    qrLink
+                });
+
+                if (res && res.status === 'NO_EMAIL') {
+                    showToast('A coluna de e-mail na planilha está vazia para este passageiro.', 'error');
+                    return;
+                }
+
+                showToast(`E-mail disparado para ${record.email} e checkbox marcada na planilha!`, 'success');
+            } finally {
+                isSyncing = false;
+            }
         }
 
         /**
@@ -1672,39 +1655,6 @@
             } finally {
                 isSyncing = false;
             }
-        }
-
-        /**
-         * Abre o cliente de e-mail com o link direto para a tela de validação do QR Code
-         */
-        function sendVoucherByEmail() {
-            if (!currentTicketData) return;
-
-            const emailInput = document.getElementById('voucher-email-input');
-            const recipientEmail = emailInput ? emailInput.value.trim() : '';
-
-            if (recipientEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
-                showToast('Informe um endereço de e-mail válido.', 'error');
-                emailInput.focus();
-                return;
-            }
-
-            const qrLink = buildValidationURL(currentTicketData);
-            const subject = encodeURIComponent(`Cartão de Embarque #${currentTicketData.code} — Poltrona ${currentTicketData.seat}`);
-            const body = encodeURIComponent(
-                `Olá, ${currentTicketData.name}!\n\n` +
-                `Aqui está o link para acessar sua tela de QR Code e Cartão de Embarque:\n${qrLink}\n\n` +
-                `Detalhes da reserva:\n` +
-                `• Código: #${currentTicketData.code}\n` +
-                `• Poltrona: ${currentTicketData.seat} (${currentTicketData.position})\n` +
-                `• Quarto: ${currentTicketData.roomLabel || 'Não informado'} (${currentTicketData.roomType || ''})\n` +
-                `• Embarque: ${currentTicketData.boarding}\n` +
-                `• Emitido em: ${currentTicketData.datetime}`
-            );
-
-            const mailtoUrl = `mailto:${encodeURIComponent(recipientEmail)}?subject=${subject}&body=${body}`;
-            window.location.href = mailtoUrl;
-            showToast('Abrindo seu aplicativo de e-mail com o link do QR Code...', 'info');
         }
 
         async function releaseSingleSeat(seatNum) {
@@ -1746,7 +1696,7 @@
 
         function exportManifestCSV() {
             const records = Object.values(seatRecords).sort((a, b) => a.seatRaw - b.seatRaw);
-            const headers = ['Poltrona', 'Posicao', 'Quarto', 'TipoQuarto', 'Codigo', 'Nome', 'CPF', 'Email', 'Telefone', 'Embarcado', 'HoraCheckin'];
+            const headers = ['Poltrona', 'Posicao', 'Quarto', 'TipoQuarto', 'Codigo', 'Nome', 'CPF', 'Email', 'Telefone', 'Embarcado', 'HoraCheckin', 'EmailEnviado'];
             const lines = [headers.join(';')];
 
             records.forEach(r => {
@@ -1761,7 +1711,8 @@
                     r.email || '',
                     r.phone,
                     r.boarded ? 'SIM' : 'NAO',
-                    r.boardedAt || ''
+                    r.boardedAt || '',
+                    r.emailSent ? 'SIM' : 'NAO'
                 ].join(';'));
             });
 
