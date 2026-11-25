@@ -30,7 +30,7 @@
       --shadow: 0 14px 34px rgba(3, 105, 161, 0.10);
     }
 
-    *, *::before, *::after {
+    * {
       box-sizing: border-box;
     }
 
@@ -994,223 +994,6 @@
       color: var(--primary-dark);
     }
 
-    /* =========================================================================
-       MAPA DE 42 POLTRONAS DO ÔNIBUS
-       ========================================================================= */
-    .mapa-onibus-card {
-      margin-top: 12px;
-      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-      border: 1.5px solid #cbd5e1;
-      border-radius: 22px;
-      padding: 14px 12px;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
-    }
-
-    .bus-header-bar {
-      text-align: center;
-      font-size: 10.5px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      color: #64748b;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .bus-cabine-row {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 10px;
-      padding-bottom: 10px;
-      border-bottom: 1.5px dashed #cbd5e1;
-    }
-
-    .bus-cabine-box {
-      background: #e2e8f0;
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      padding: 8px 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      font-size: 11.5px;
-      color: #334155;
-      line-height: 1.2;
-    }
-
-    .bus-cabine-box strong {
-      display: block;
-      font-size: 12px;
-      color: #0f172a;
-    }
-
-    .bus-cabine-box span.sub {
-      font-size: 10.5px;
-      color: #64748b;
-      font-weight: 600;
-    }
-
-    .bus-cabine-icone {
-      font-size: 16px;
-      flex-shrink: 0;
-    }
-
-    .bus-col-labels {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr)) 22px repeat(2, minmax(0, 1fr));
-      gap: 5px;
-      align-items: center;
-      margin-bottom: 6px;
-      font-size: 10.5px;
-      font-weight: 700;
-      color: #64748b;
-      text-align: center;
-    }
-
-    .bus-linhas {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .bus-fileira {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr)) 22px repeat(2, minmax(0, 1fr));
-      gap: 5px;
-      align-items: center;
-    }
-
-    .bus-fileira-num {
-      text-align: center;
-      font-size: 10.5px;
-      font-weight: 700;
-      color: #94a3b8;
-      user-select: none;
-    }
-
-    .poltrona-btn {
-      width: 100%;
-      height: 36px;
-      border-radius: 10px 10px 7px 7px;
-      border: 2px solid #16a34a;
-      background: #ffffff;
-      color: #15803d;
-      font-weight: 800;
-      font-size: 12.5px;
-      cursor: pointer;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2px 0 4px;
-      transition: transform 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
-    }
-
-    .poltrona-btn::after {
-      content: "";
-      width: 62%;
-      height: 3px;
-      border-radius: 999px;
-      background: #86efac;
-      margin-top: 2px;
-    }
-
-    .poltrona-btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      background: #f0fdf4;
-      box-shadow: 0 3px 8px rgba(22, 163, 74, 0.18);
-    }
-
-    .poltrona-btn.selecionada {
-      border-color: #0284c7;
-      background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
-      color: #ffffff;
-      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
-    }
-
-    .poltrona-btn.selecionada::after {
-      background: #bae6fd;
-    }
-
-    .poltrona-btn.ocupada,
-    .poltrona-btn:disabled {
-      border-color: #cbd5e1;
-      background: #e2e8f0;
-      color: #94a3b8;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .poltrona-btn.ocupada::after,
-    .poltrona-btn:disabled::after {
-      background: #cbd5e1;
-    }
-
-    .bus-footer-bar {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1.5px dashed #cbd5e1;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .bus-footer-box {
-      background: #e2e8f0;
-      border: 1px solid #cbd5e1;
-      border-radius: 11px;
-      padding: 8px 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      font-size: 11.5px;
-      font-weight: 700;
-      color: #334155;
-    }
-
-    .bus-legenda {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 10px;
-      font-size: 11.5px;
-      font-weight: 600;
-      color: var(--muted);
-    }
-
-    .bus-legenda-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .legenda-swatch {
-      width: 13px;
-      height: 13px;
-      border-radius: 4px;
-      display: inline-block;
-    }
-
-    .legenda-livre {
-      border: 2px solid #16a34a;
-      background: #ffffff;
-    }
-
-    .legenda-selecionada {
-      border: 2px solid #0284c7;
-      background: #0284c7;
-    }
-
-    .legenda-ocupada {
-      border: 2px solid #cbd5e1;
-      background: #e2e8f0;
-    }
-
     .campos-aluno-box {
       margin-top: 12px;
       background: #f0f9ff;
@@ -1511,8 +1294,8 @@
 
       <div class="vagas-wrap">
         <div class="vagas-topo">
-          <span id="texto-vagas-ocupadas">🎟️ 0 de 42 vagas preenchidas</span>
-          <span class="vagas-restantes-tag" id="tag-vagas-restantes">Restam 42 vagas</span>
+          <span id="texto-vagas-ocupadas">🎟️ 0 de 40 vagas preenchidas</span>
+          <span class="vagas-restantes-tag" id="tag-vagas-restantes">Restam 40 vagas</span>
         </div>
         <div class="vagas-barra-fundo">
           <div class="vagas-barra-preenchida" id="barra-vagas-fill" style="width: 0%;"></div>
@@ -1650,7 +1433,7 @@
             </details>
             <details class="faq-item">
               <summary>Como são definidas as poltronas do ônibus?</summary>
-              <p>Você pode escolher diretamente uma poltrona disponível no mapa de 42 lugares durante a inscrição, priorizando que amigos e casais viajem juntos.</p>
+              <p>A escolha/distribuição das poltronas segue a ordem de confirmação da inscrição, priorizando que amigos e casais viajem juntos.</p>
             </details>
             <details class="faq-item">
               <summary>E se eu precisar cancelar ou passar minha vaga?</summary>
@@ -1685,7 +1468,7 @@
           </div>
 
           <div class="aviso-lotado" id="aviso-vagas-esgotadas">
-            🛑 Todas as 42 poltronas foram preenchidas! Entre em contato com a organização pelo WhatsApp para entrar na lista de espera.
+            🛑 Todas as 40 vagas foram preenchidas! Entre em contato com a organização pelo WhatsApp para entrar na lista de espera.
           </div>
 
           <div id="formulario-inscricao-corpo">
@@ -1724,56 +1507,6 @@
               </div>
             </div>
 
-            <!-- MAPA DE 42 POLTRONAS DO ÔNIBUS -->
-            <label class="field-label">Escolha sua Poltrona (42 lugares)</label>
-            <div class="mapa-onibus-card" role="group" aria-label="Mapa de 42 poltronas do ônibus">
-              <div class="bus-header-bar">Frente do Veículo</div>
-
-              <div class="bus-cabine-row">
-                <div class="bus-cabine-box">
-                  <div>
-                    <strong>Motorista</strong>
-                    <span class="sub">Cabine</span>
-                  </div>
-                  <span class="bus-cabine-icone" aria-hidden="true">🛞</span>
-                </div>
-                <div class="bus-cabine-box">
-                  <div>
-                    <strong>Entrada</strong>
-                    <span class="sub">Escada</span>
-                  </div>
-                  <span class="bus-cabine-icone" aria-hidden="true">🚪</span>
-                </div>
-              </div>
-
-              <div class="bus-col-labels" aria-hidden="true">
-                <span>Janela</span>
-                <span>Corredor</span>
-                <span></span>
-                <span>Corredor</span>
-                <span>Janela</span>
-              </div>
-
-              <div class="bus-linhas" id="mapa-poltronas-container"></div>
-
-              <div class="bus-footer-bar">
-                <div class="bus-footer-box">
-                  <span aria-hidden="true">🚻</span>
-                  <span>Sanitário (WC)</span>
-                </div>
-                <div class="bus-footer-box">
-                  <span aria-hidden="true">☕</span>
-                  <span>Água / Lanche</span>
-                </div>
-              </div>
-
-              <div class="bus-legenda">
-                <span class="bus-legenda-item"><span class="legenda-swatch legenda-livre"></span> Livre</span>
-                <span class="bus-legenda-item"><span class="legenda-swatch legenda-selecionada"></span> Selecionada</span>
-                <span class="bus-legenda-item"><span class="legenda-swatch legenda-ocupada"></span> Ocupada</span>
-              </div>
-            </div>
-
             <!-- CAMPOS EXTRAS PARA ALUNO (CURSO E FACULDADE) -->
             <div id="campos-aluno-box" class="campos-aluno-box">
               <div class="form-grid two-cols">
@@ -1793,7 +1526,7 @@
             </div>
 
             <div class="resumo-selecao-box">
-              <span id="resumo-ingresso-label">Ingresso: <strong>Aluno</strong> • Poltrona: <strong>01</strong></span>
+              <span id="resumo-ingresso-label">Ingresso: <strong>Aluno</strong></span>
               <strong id="resumo-valor-label">R$ 1.450,00</strong>
             </div>
 
@@ -1863,31 +1596,11 @@
 
   <script>
     // =========================================================================
-    // CONFIGURAÇÃO DE VAGAS (42 POLTRONAS) E DATA DO EMBARQUE
+    // CONFIGURAÇÃO DE VAGAS E DATA DO EMBARQUE
     // =========================================================================
     const DATA_EMBARQUE = new Date("2027-05-12T18:00:00-03:00").getTime();
-    const VAGAS_TOTAL = 42;
+    const VAGAS_TOTAL = 40;
     const VAGAS_OCUPADAS = 0;
-
-    // Layout exato de 42 poltronas:
-    // Fileiras 1 a 10: 4 poltronas cada (01 a 40)
-    // Fileira 11: apenas 2 poltronas (41 e 42)
-    const FILEIRAS_42_POLTRONAS = [
-      { fila: 1,  esqJanela: 1,  esqCorredor: 2,  dirCorredor: 4,  dirJanela: 3  },
-      { fila: 2,  esqJanela: 5,  esqCorredor: 6,  dirCorredor: 8,  dirJanela: 7  },
-      { fila: 3,  esqJanela: 9,  esqCorredor: 10, dirCorredor: 12, dirJanela: 11 },
-      { fila: 4,  esqJanela: 13, esqCorredor: 14, dirCorredor: 16, dirJanela: 15 },
-      { fila: 5,  esqJanela: 17, esqCorredor: 18, dirCorredor: 20, dirJanela: 19 },
-      { fila: 6,  esqJanela: 21, esqCorredor: 22, dirCorredor: 24, dirJanela: 23 },
-      { fila: 7,  esqJanela: 25, esqCorredor: 26, dirCorredor: 28, dirJanela: 27 },
-      { fila: 8,  esqJanela: 29, esqCorredor: 30, dirCorredor: 32, dirJanela: 31 },
-      { fila: 9,  esqJanela: 33, esqCorredor: 34, dirCorredor: 36, dirJanela: 35 },
-      { fila: 10, esqJanela: 37, esqCorredor: 38, dirCorredor: 40, dirJanela: 39 },
-      { fila: 11, esqJanela: 41, esqCorredor: 42, dirCorredor: null, dirJanela: null }
-    ];
-
-    let poltronasOcupadasSet = new Set();
-    let poltronaSelecionada = 1;
 
     // =========================================================================
     // PROGRAMAÇÃO POR DIAS (12 A 17 DE MAIO DE 2027)
@@ -2042,92 +1755,6 @@
     let passo = 0;
     const PASSOS_POR_TRECHO = 35;
 
-    function formatarPoltrona(num) {
-      return num ? String(num).padStart(2, "0") : "—";
-    }
-
-    function garantirPoltronaValida() {
-      if (poltronaSelecionada && !poltronasOcupadasSet.has(poltronaSelecionada) && poltronaSelecionada >= 1 && poltronaSelecionada <= VAGAS_TOTAL) {
-        return;
-      }
-      poltronaSelecionada = null;
-      for (let i = 1; i <= VAGAS_TOTAL; i++) {
-        if (!poltronasOcupadasSet.has(i)) {
-          poltronaSelecionada = i;
-          break;
-        }
-      }
-    }
-
-    function renderizarMapaPoltronas() {
-      const container = document.getElementById("mapa-poltronas-container");
-      if (!container) return;
-
-      garantirPoltronaValida();
-
-      const renderBotao = (num) => {
-        if (!num || num > VAGAS_TOTAL) {
-          return `<div style="height: 36px; visibility: hidden;" aria-hidden="true"></div>`;
-        }
-        const ocupada = poltronasOcupadasSet.has(num);
-        const selecionada = !ocupada && poltronaSelecionada === num;
-        const classes = [
-          "poltrona-btn",
-          ocupada ? "ocupada" : "",
-          selecionada ? "selecionada" : ""
-        ].filter(Boolean).join(" ");
-
-        return `
-          <button
-            type="button"
-            class="${classes}"
-            ${ocupada ? "disabled aria-disabled='true'" : ""}
-            aria-pressed="${selecionada}"
-            aria-label="Poltrona ${formatarPoltrona(num)}${ocupada ? " ocupada" : selecionada ? " selecionada" : " livre"}"
-            onclick="selecionarPoltrona(${num})">
-            ${formatarPoltrona(num)}
-          </button>
-        `;
-      };
-
-      container.innerHTML = FILEIRAS_42_POLTRONAS
-        .filter((f) => f.fila <= 11)
-        .map((f) => `
-          <div class="bus-fileira">
-            ${renderBotao(f.esqJanela)}
-            ${renderBotao(f.esqCorredor)}
-            <span class="bus-fileira-num" aria-hidden="true">${f.fila}</span>
-            ${renderBotao(f.dirCorredor)}
-            ${renderBotao(f.dirJanela)}
-          </div>
-        `).join("");
-
-      atualizarResumoSelecao();
-    }
-
-    function selecionarPoltrona(num) {
-      if (poltronasOcupadasSet.has(num) || num > VAGAS_TOTAL) return;
-      ativarTravaSaida();
-      poltronaSelecionada = num;
-      renderizarMapaPoltronas();
-    }
-
-    function atualizarResumoSelecao() {
-      const basePix = tipoIngresso === "Aluno" ? PRECO_ALUNO : PRECO_EXTERNO;
-      const baseCartao = calcularValorCartao(basePix);
-      const valorResumoExibido = metodoAtual === "cartao" ? baseCartao : basePix;
-      const textoPoltrona = poltronaSelecionada ? formatarPoltrona(poltronaSelecionada) : "Nenhuma";
-
-      const resumoEl = document.getElementById("resumo-ingresso-label");
-      const valorEl = document.getElementById("resumo-valor-label");
-      if (resumoEl) {
-        resumoEl.innerHTML = `Ingresso: <strong>${tipoIngresso}</strong> (${metodoAtual === "cartao" ? "Cartão" : "Pix"}) • Poltrona: <strong>${textoPoltrona}</strong>`;
-      }
-      if (valorEl) {
-        valorEl.innerText = formatarMoeda(valorResumoExibido);
-      }
-    }
-
     function formatarCampoCPF(input) {
       ativarTravaSaida();
       let digitos = input.value.replace(/\D/g, "").slice(0, 11);
@@ -2166,31 +1793,16 @@
       document.getElementById("formulario-inscricao-corpo").style.display = esgotado ? "none" : "block";
     }
 
-    function renderizarVagas(ocupadas, total = VAGAS_TOTAL, listaOcupadas = null) {
-      const limTotal = VAGAS_TOTAL;
+    function renderizarVagas(ocupadas, total) {
+      const limTotal = Math.max(1, Number(total) || VAGAS_TOTAL);
       const limOcupadas = Math.max(0, Math.min(limTotal, Number(ocupadas) || 0));
       const restantes = Math.max(0, limTotal - limOcupadas);
       const percentual = Math.min(100, Math.round((limOcupadas / limTotal) * 100));
-
-      poltronasOcupadasSet = new Set();
-      if (Array.isArray(listaOcupadas)) {
-        listaOcupadas.forEach((p) => {
-          const n = Number(p);
-          if (Number.isInteger(n) && n >= 1 && n <= limTotal) {
-            poltronasOcupadasSet.add(n);
-          }
-        });
-      } else if (limOcupadas > 0) {
-        for (let i = 1; i <= limOcupadas; i++) {
-          poltronasOcupadasSet.add(i);
-        }
-      }
 
       document.getElementById("texto-vagas-ocupadas").innerText = `🎟️ ${limOcupadas} de ${limTotal} vagas preenchidas`;
       document.getElementById("tag-vagas-restantes").innerText = restantes === 0 ? "Esgotadas" : (restantes === 1 ? "Resta 1 vaga" : `Restam ${restantes} vagas`);
       document.getElementById("barra-vagas-fill").style.width = `${percentual}%`;
       atualizarEstadoLotacao(limOcupadas, limTotal);
-      renderizarMapaPoltronas();
     }
 
     async function buscarVagasAutomaticas() {
@@ -2201,13 +1813,9 @@
           return;
         }
         const data = await res.json();
-        const listaPoltronas = Array.isArray(data.poltronasOcupadas)
-          ? data.poltronasOcupadas
-          : (Array.isArray(data.ocupadasLista) ? data.ocupadasLista : null);
-        const ocupadas = listaPoltronas
-          ? listaPoltronas.filter((n) => Number(n) >= 1 && Number(n) <= VAGAS_TOTAL).length
-          : Number(data.ocupadas ?? data.preenchidas ?? VAGAS_OCUPADAS);
-        renderizarVagas(ocupadas, VAGAS_TOTAL, listaPoltronas);
+        const ocupadas = Number(data.ocupadas ?? data.preenchidas ?? VAGAS_OCUPADAS);
+        const total = Number(data.total ?? VAGAS_TOTAL);
+        renderizarVagas(ocupadas, total);
       } catch (err) {
         renderizarVagas(VAGAS_OCUPADAS, VAGAS_TOTAL);
       }
@@ -2437,7 +2045,6 @@
         cpf: document.getElementById("cpf").value.trim(),
         email: document.getElementById("email").value.trim(),
         whatsapp: document.getElementById("whatsapp").value.trim(),
-        poltrona: poltronaSelecionada,
         curso: isAluno ? document.getElementById("curso").value.trim() : "",
         faculdade: isAluno ? document.getElementById("faculdade").value.trim() : ""
       };
@@ -2446,10 +2053,6 @@
     function validarDadosPassageiro(dados) {
       if (!dados.nome || !dados.cpf || !dados.email || !dados.whatsapp) {
         mostrarStatus("⚠️ Preencha Nome Completo, CPF, E-mail e WhatsApp antes de concluir.", "#fef2f2", "#b91c1c");
-        return false;
-      }
-      if (!dados.poltrona || dados.poltrona > VAGAS_TOTAL || poltronasOcupadasSet.has(dados.poltrona)) {
-        mostrarStatus("⚠️ Selecione uma poltrona disponível no mapa de 42 lugares.", "#fef2f2", "#b91c1c");
         return false;
       }
       if (tipoIngresso === "Aluno" && (!dados.curso || !dados.faculdade)) {
@@ -2536,12 +2139,14 @@
 
       const precoAlunoExibido = metodoAtual === "cartao" ? calcularValorCartao(PRECO_ALUNO) : PRECO_ALUNO;
       const precoExternoExibido = metodoAtual === "cartao" ? calcularValorCartao(PRECO_EXTERNO) : PRECO_EXTERNO;
+      const valorResumoExibido = metodoAtual === "cartao" ? baseCartao : basePix;
 
       document.getElementById("label-preco-aluno").innerText = formatarMoeda(precoAlunoExibido);
       document.getElementById("label-preco-externo").innerText = formatarMoeda(precoExternoExibido);
       document.getElementById("valor-pix-texto").innerText = formatarMoeda(basePix);
       document.getElementById("valor-cartao-texto").innerText = formatarMoeda(baseCartao);
-      atualizarResumoSelecao();
+      document.getElementById("resumo-ingresso-label").innerHTML = `Ingresso: <strong>${tipoIngresso}</strong> (${metodoAtual === "cartao" ? "Cartão" : "Pix"})`;
+      document.getElementById("resumo-valor-label").innerText = formatarMoeda(valorResumoExibido);
 
       codigoPixAtual = gerarPayloadPix(PIX_CHAVE, PIX_NOME, PIX_CIDADE, basePix);
       document.getElementById("pix-copia-cola").innerText = codigoPixAtual;
@@ -2634,7 +2239,6 @@
         <strong>CPF:</strong> ${dados.cpf}<br>
         <strong>E-mail:</strong> ${dados.email}<br>
         <strong>WhatsApp:</strong> ${dados.whatsapp}<br>
-        <strong>Poltrona:</strong> ${formatarPoltrona(dados.poltrona)} (de ${VAGAS_TOTAL})<br>
         <strong>Ingresso:</strong> ${tipoIngresso}<br>
         ${infoAcademicaHtml}
         <strong>Valor:</strong> ${formatarMoeda(valorCobrado)}<br>
@@ -2668,7 +2272,6 @@
             cpf: dados.cpf,
             email: dados.email,
             whatsapp: dados.whatsapp,
-            poltrona: dados.poltrona,
             ingresso: tipoIngresso,
             curso: dados.curso,
             faculdade: dados.faculdade,
@@ -2697,7 +2300,6 @@
         `*CPF:* ${dados.cpf}\n` +
         `*E-mail:* ${dados.email}\n` +
         `*WhatsApp:* ${dados.whatsapp}\n` +
-        `*Poltrona:* ${formatarPoltrona(dados.poltrona)}\n` +
         `*Ingresso:* ${tipoIngresso} (${formatarMoeda(valorAtual)})\n` +
         infoAcademicaWhats +
         `\nSegue o comprovante:`
@@ -2760,12 +2362,11 @@
               const payload = {
                 ...formData,
                 transaction_amount: valorCobradoCartao,
-                description: `Excursao Foz - ${tipoIngresso} - Poltrona ${formatarPoltrona(dados.poltrona)} - ${dados.nome}`,
+                description: `Excursao Foz - ${tipoIngresso} - ${dados.nome}`,
                 nome: dados.nome,
                 cpf: dados.cpf,
                 email: dados.email,
                 whatsapp: dados.whatsapp,
-                poltrona: dados.poltrona,
                 tipoIngresso: tipoIngresso,
                 curso: dados.curso,
                 faculdade: dados.faculdade,
@@ -2774,7 +2375,6 @@
                   cpf: dados.cpf,
                   email: dados.email,
                   whatsapp: dados.whatsapp,
-                  poltrona: dados.poltrona,
                   ingresso: tipoIngresso,
                   curso: dados.curso,
                   faculdade: dados.faculdade
@@ -2823,7 +2423,6 @@
       }
     }
 
-    renderizarMapaPoltronas();
     atualizarStatusViagem();
     renderizarProgramacao();
     atualizarTelaValores();
