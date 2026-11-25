@@ -413,9 +413,9 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="passenger-doc" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                                    CPF ou RG <span class="text-slate-400 font-normal">(Opcional)</span>
+                                    CPF <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="passenger-doc" maxlength="18" placeholder="000.000.000-00"
+                                <input type="text" id="passenger-doc" required maxlength="18" placeholder="000.000.000-00"
                                     class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/50 focus:bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition">
                             </div>
 
@@ -581,7 +581,7 @@
          * SENHA DO PAINEL DO COORDENADOR
          * Altere o valor abaixo para definir a senha desejada (padrão: '1234')
          */
-        const ADMIN_PASSWORD = '2307';
+        const ADMIN_PASSWORD = '1234';
 
         /**
          * INTEGRAÇÃO OPCIONAL COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
@@ -807,6 +807,8 @@
                 const phoneInput = document.getElementById('passenger-phone');
 
                 const name = nameInput.value.trim();
+                const rawDoc = docInput.value.trim();
+                const normalizedDoc = rawDoc.replace(/\D/g, '');
 
                 if (!selectedSeat) {
                     showToast('Por favor, selecione uma poltrona livre no mapa do ônibus.', 'error');
@@ -816,6 +818,24 @@
                 if (name.length < 3) {
                     showToast('Por favor, informe o nome completo do passageiro.', 'error');
                     nameInput.focus();
+                    return;
+                }
+
+                if (normalizedDoc.length < 11) {
+                    showToast('Por favor, informe um CPF válido com 11 dígitos.', 'error');
+                    docInput.focus();
+                    return;
+                }
+
+                // Verifica se o CPF já possui alguma poltrona reservada
+                const existingSeatForCpf = Object.values(seatRecords).find(rec => {
+                    const recDigits = (rec.doc || '').replace(/\D/g, '');
+                    return recDigits.length > 0 && recDigits === normalizedDoc;
+                });
+
+                if (existingSeatForCpf) {
+                    showToast(`Este CPF já possui uma reserva ativa na Poltrona ${existingSeatForCpf.seat} (${existingSeatForCpf.code}).`, 'error');
+                    docInput.focus();
                     return;
                 }
 
@@ -836,7 +856,7 @@
                     seatRaw: selectedSeat,
                     position: getSeatPosition(selectedSeat),
                     name,
-                    doc: docInput.value.trim() || 'Não informado',
+                    doc: rawDoc,
                     phone: phoneInput.value.trim() || 'Não informado',
                     boarding: DEFAULT_BOARDING_POINT,
                     datetime: `${formattedDate} às ${formattedTime}`,
@@ -1564,9 +1584,23 @@
         }
 
         /**
-         * Máscara leve para telefone
+         * Máscaras leves para CPF e telefone
          */
         function setupInputMasks() {
+            const docInput = document.getElementById('passenger-doc');
+            docInput.addEventListener('input', (e) => {
+                let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+                if (v.length > 9) {
+                    e.target.value = `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9)}`;
+                } else if (v.length > 6) {
+                    e.target.value = `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6)}`;
+                } else if (v.length > 3) {
+                    e.target.value = `${v.slice(0, 3)}.${v.slice(3)}`;
+                } else {
+                    e.target.value = v;
+                }
+            });
+
             const phoneInput = document.getElementById('passenger-phone');
             phoneInput.addEventListener('input', (e) => {
                 let v = e.target.value.replace(/\D/g, '');
