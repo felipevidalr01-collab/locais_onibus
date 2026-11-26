@@ -684,7 +684,6 @@
         let isSyncing = false;
 
         let threeScene, threeCamera, threeRenderer, busGroup, seatMaterials3D = {};
-        // Vista frontal-lateral alinhada para a frente (-X) ficar à esquerda e a traseira (+X) à direita
         let targetRotY = -0.35, targetRotX = 0.20;
         let currentRotY = -0.35, currentRotX = 0.20;
         let isDragging3D = false, prevMouseX = 0, prevMouseY = 0, autoRotate3D = false;
@@ -767,11 +766,6 @@
             return new THREE.Mesh(geo, material);
         }
 
-        /**
-         * Frente do ônibus está em -X e traseira em +X:
-         * Passageiro olha para a frente (-X), então o encosto reclina para trás (+X) em 145°
-         * e o assento + apoio de pernas ficam voltados para a frente (-X).
-         */
         function create3DReclinerSeat(mode, initialColorHex) {
             const seatGroup = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({
@@ -787,30 +781,25 @@
             });
 
             if (mode === 'semileito') {
-                // Encosto inclinado 145° para trás (+X)
                 const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.052, 0.22, 0.18), mat);
                 backrest.position.set(0.115, 0.115, 0);
                 backrest.rotation.z = -THREE.MathUtils.degToRad(55);
                 seatGroup.add(backrest);
 
-                // Travesseiro na face frontal superior do encosto (voltado para frente/cima)
                 const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.068, 0.13), pillowMat);
                 pillow.position.set(0.155, 0.175, 0);
                 pillow.rotation.z = -THREE.MathUtils.degToRad(55);
                 seatGroup.add(pillow);
 
-                // Base do assento voltada para a frente (-X)
                 const seatBase = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.048, 0.18), mat);
                 seatBase.position.set(-0.025, 0.045, 0);
                 seatGroup.add(seatBase);
 
-                // Apoio dos pés na extremidade frontal (-X)
                 const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.072, 0.17), mat);
                 footRest.position.set(-0.075, 0.036, 0);
                 footRest.rotation.z = 0.22;
                 seatGroup.add(footRest);
             } else {
-                // LEITO 180° (Piso Inferior)
                 const bedBase = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.052, 0.24), mat);
                 bedBase.position.set(-0.01, 0.036, 0);
                 seatGroup.add(bedBase);
@@ -979,7 +968,6 @@
                 });
             });
 
-            // Piso Superior (01..42): row 0 = frente (-2.14), row 10 = traseira (+2.26)
             const zSlots = [-0.42, -0.18, 0.18, 0.42];
             for (let s = 1; s <= UPPER_DECK_SEATS; s++) {
                 const idx = s - 1;
@@ -994,7 +982,6 @@
                 seatMaterials3D[s] = seatObj.material;
             }
 
-            // Piso Inferior (43..48): row 0 = frente (-0.35), row 1 = traseira (+0.21)
             for (let s = 43; s <= TOTAL_PHYSICAL_SEATS; s++) {
                 const idx = s - 43;
                 const row = Math.floor(idx / 3);
@@ -1167,10 +1154,10 @@
                     seatRecords = remoteRecords;
                     saveOccupiedSeats();
 
-                    if (prevSelected && (occupiedSeats.includes(prevSelected) || occupiedSeats.length >= MAX_PASSENGERS_LIMIT)) {
+                    if (prevSelected && occupiedSeats.includes(prevSelected)) {
                         selectedSeat = null;
                         updateSelectedBadge();
-                        showToast(`A poltrona ${formatSeatNum(prevSelected)} não está mais disponível.`, 'error');
+                        showToast(`A poltrona ${formatSeatNum(prevSelected)} acabou de ser reservada por outra pessoa.`, 'error');
                     }
                     if (prevRoomId && isRoomFull(prevRoomId)) {
                         const lostRoom = getRoomById(prevRoomId);
@@ -1614,7 +1601,7 @@
                     return;
                 }
 
-                if (occupiedSeats.includes(selectedSeat)) {
+                if (occupiedSeats.includes(seatToReserve)) {
                     showToast('Ops! Essa poltrona acabou de ser ocupada. Escolha outra.', 'error');
                     selectedSeat = null;
                     renderBusMap();
@@ -1622,7 +1609,7 @@
                     return;
                 }
 
-                if (isRoomFull(selectedRoomId)) {
+                if (isRoomFull(roomToReserveId)) {
                     showToast('Ops! Esse quarto acabou de lotar. Escolha outro quarto.', 'error');
                     selectedRoomId = null;
                     renderRoomsGrid();
@@ -1634,15 +1621,15 @@
                 const formattedDate = now.toLocaleDateString('pt-BR');
                 const formattedTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 const randomCode = 'BUS-' + Math.floor(1000 + Math.random() * 9000);
-                const selectedRoom = getRoomById(selectedRoomId);
-                const deckName = getSeatDeckName(selectedSeat);
+                const selectedRoom = getRoomById(roomToReserveId);
+                const deckName = getSeatDeckName(seatToReserve);
 
                 const ticketData = {
                     code: randomCode,
-                    seat: formatSeatNum(selectedSeat),
-                    seatRaw: selectedSeat,
+                    seat: formatSeatNum(seatToReserve),
+                    seatRaw: seatToReserve,
                     deck: deckName,
-                    position: getSeatPosition(selectedSeat),
+                    position: getSeatPosition(seatToReserve),
                     roomId: selectedRoom.id,
                     roomLabel: selectedRoom.label,
                     roomType: `${selectedRoom.type} (${selectedRoom.capacity} lugares)`,
@@ -1655,8 +1642,8 @@
                     boardedAt: ''
                 };
 
-                occupiedSeats.push(selectedSeat);
-                seatRecords[selectedSeat] = ticketData;
+                occupiedSeats.push(seatToReserve);
+                seatRecords[seatToReserve] = ticketData;
                 saveOccupiedSeats();
 
                 const cloudRes = await pushRecordToCloud('RESERVE', ticketData);
