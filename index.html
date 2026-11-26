@@ -767,8 +767,8 @@
         }
 
         /**
-         * Inclinação do encosto ajustada para 145° em relação ao assento
-         * (145° - 90° = 55° de reclinação para trás -> ~0.96 radianos)
+         * Inclinação do encosto em 145° (reclineRad = 55°)
+         * + Travesseiro fofo posicionado na parte da frente/cima do encosto
          */
         function create3DReclinerSeat(mode, initialColorHex) {
             const seatGroup = new THREE.Group();
@@ -778,8 +778,15 @@
                 metalness: 0.15
             });
 
+            // Material macio branco-gelo para o travesseiro
+            const pillowMat = new THREE.MeshStandardMaterial({
+                color: 0xf8fafc,
+                roughness: 0.55,
+                metalness: 0.05
+            });
+
             if (mode === 'semileito') {
-                const reclineRad = THREE.MathUtils.degToRad(55); // 90° + 55° = 145° de abertura assento-encosto
+                const reclineRad = THREE.MathUtils.degToRad(55); // 90° + 55° = 145°
 
                 // Encosto reclinado em 145° para a esquerda (-X)
                 const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.052, 0.22, 0.18), mat);
@@ -787,11 +794,11 @@
                 backrest.rotation.z = reclineRad;
                 seatGroup.add(backrest);
 
-                // Apoio de cabeça alinhado no topo do encosto a 145°
-                const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.055, 0.12), mat);
-                headrest.position.set(-0.215, 0.185, 0);
-                headrest.rotation.z = reclineRad;
-                seatGroup.add(headrest);
+                // Travesseiro apoiado na parte da frente/cima do encosto (alinhado ao mesmo ângulo de 145°)
+                const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.068, 0.13), pillowMat);
+                pillow.position.set(-0.155, 0.175, 0);
+                pillow.rotation.z = reclineRad;
+                seatGroup.add(pillow);
 
                 // Base do assento colada na articulação inferior do encosto, avançando para o lado oposto (+X)
                 const seatBase = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.048, 0.18), mat);
@@ -804,7 +811,7 @@
                 footRest.rotation.z = -0.22;
                 seatGroup.add(footRest);
             } else {
-                // LEITO 180° (Piso Inferior)
+                // LEITO 180° (Piso Inferior) com travesseiro na cabeceira
                 const bedBase = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.052, 0.24), mat);
                 bedBase.position.set(0.01, 0.036, 0);
                 seatGroup.add(bedBase);
@@ -813,6 +820,11 @@
                 reclineBack.position.set(-0.17, 0.052, 0);
                 reclineBack.rotation.z = 0.14;
                 seatGroup.add(reclineBack);
+
+                const bedPillow = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.032, 0.16), pillowMat);
+                bedPillow.position.set(-0.175, 0.082, 0);
+                bedPillow.rotation.z = 0.14;
+                seatGroup.add(bedPillow);
 
                 const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.068, 0.235), mat);
                 footRest.position.set(0.172, 0.034, 0);
