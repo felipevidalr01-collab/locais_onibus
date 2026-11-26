@@ -189,7 +189,7 @@
                         <span class="text-[10px] text-slate-400 hidden sm:inline">Sup. Semi-Leito 145° • Inf. Leito 180°</span>
                     </div>
                     <h1 class="text-base sm:text-xl font-bold tracking-tight leading-tight mt-0.5">Reserva de Poltronas 3D e Quartos</h1>
-                    <p class="text-[11px] sm:text-xs text-slate-400">42 Semi-Leito 145° (Sup.) + 6 Leito 180° (Inf.) • Máx. 40 Passageiros</p>
+                    <p class="text-[11px] sm:text-xs text-slate-400">42 Semi-Leito 145° (Sup.) + 6 Leito 180° (Inf.) • Máx. 40 Lugares</p>
                 </div>
             </div>
 
@@ -415,12 +415,12 @@
                     </div>
                     <div class="flex items-center justify-center gap-1.5">
                         <span class="w-4 h-4 rounded bg-slate-800 border-2 border-slate-600 opacity-70 inline-block"></span>
-                        <span class="text-slate-500">Ocupada</span>
+                        <span class="text-slate-500">Bloqueada / Ocup.</span>
                     </div>
                 </div>
 
                 <div id="bus-capacity-full-banner" class="hidden mb-4 p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold text-center">
-                    Lotação máxima de 40 passageiros atingida! As poltronas restantes permanecem bloqueadas.
+                    Contagem de 40 lugares atingida! As demais poltronas livres estão travadas.
                 </div>
 
                 <!-- Carroceria do Ônibus GS Tour -->
@@ -1046,7 +1046,7 @@
 
         function update3DSeatsColors() {
             if (!seatMaterials3D) return;
-            const limitReached = occupiedSeats.length >= MAX_PASSENGERS_LIMIT;
+            const limitReached = isSelectionQuotaReached();
 
             for (let s = 1; s <= TOTAL_PHYSICAL_SEATS; s++) {
                 const mat = seatMaterials3D[s];
@@ -1214,6 +1214,17 @@
             return [43, 45, 46, 48].includes(num) ? 'Janela' : 'Corredor';
         }
 
+        // Contagem total de lugares considerados (ocupados + 1 selecionado no mapa, se não já ocupado)
+        function getTotalCountedSeats() {
+            const extraSelected = selectedSeat && !occupiedSeats.includes(selectedSeat) ? 1 : 0;
+            return occupiedSeats.length + extraSelected;
+        }
+
+        // Trava os demais bancos livres apenas quando a contagem atingir 40 lugares
+        function isSelectionQuotaReached() {
+            return getTotalCountedSeats() >= MAX_PASSENGERS_LIMIT;
+        }
+
         function isBusPassengerLimitReached() {
             return occupiedSeats.length >= MAX_PASSENGERS_LIMIT;
         }
@@ -1233,7 +1244,7 @@
         }
 
         function updateAvailableCounter() {
-            const remainingBusSlots = Math.max(0, MAX_PASSENGERS_LIMIT - occupiedSeats.length);
+            const remainingBusSlots = Math.max(0, MAX_PASSENGERS_LIMIT - getTotalCountedSeats());
             const seatCounterEl = document.getElementById('available-counter');
             if (seatCounterEl) {
                 seatCounterEl.textContent = `${remainingBusSlots} ${remainingBusSlots === 1 ? 'vaga no ônibus' : 'vagas no ônibus'}`;
@@ -1255,7 +1266,7 @@
             if (lowerLabel) lowerLabel.textContent = `Leito 180° • ${LOWER_DECK_SEATS - lowerOccupied}/6 livres`;
 
             const fullBanner = document.getElementById('bus-capacity-full-banner');
-            if (fullBanner) fullBanner.classList.toggle('hidden', !isBusPassengerLimitReached());
+            if (fullBanner) fullBanner.classList.toggle('hidden', !isSelectionQuotaReached());
         }
 
         function renderBusMap() {
@@ -1387,13 +1398,13 @@
 
             const isOccupied = occupiedSeats.includes(seatNumber);
             const isSelected = selectedSeat === seatNumber;
-            const limitBlocked = !isOccupied && !isSelected && isBusPassengerLimitReached();
+            const quotaBlocked = !isOccupied && !isSelected && isSelectionQuotaReached();
             const formatted = formatSeatNum(seatNumber);
             const position = getSeatPosition(seatNumber);
             const reclinaLabel = mode === 'leito180' ? 'Leito 180°' : 'Semi-Leito 145°';
 
             let stateClass = 'seat-available';
-            if (isOccupied || limitBlocked) stateClass = 'seat-occupied';
+            if (isOccupied || quotaBlocked) stateClass = 'seat-occupied';
             else if (isSelected) stateClass = 'seat-selected';
 
             const modeClass = mode === 'leito180' ? 'seat-btn-leito180 h-14' : 'seat-btn-semileito h-11';
@@ -1402,11 +1413,11 @@
             btn.innerHTML = `<span>${formatted}</span>`;
             btn.title = isOccupied
                 ? `Poltrona ${formatted} (${reclinaLabel} • ${position}) — Ocupada`
-                : limitBlocked
-                    ? `Poltrona ${formatted} — Limite máximo de 40 passageiros atingido`
+                : quotaBlocked
+                    ? `Poltrona ${formatted} — Travada (contagem de 40 lugares atingida)`
                     : `Poltrona ${formatted} (${reclinaLabel} • ${position}) — Livre`;
 
-            if (isOccupied || limitBlocked) {
+            if (isOccupied || quotaBlocked) {
                 btn.disabled = true;
             } else {
                 btn.addEventListener('click', () => handleSeatClick(seatNumber));
@@ -1482,8 +1493,8 @@
                 showToast(`A poltrona ${formatSeatNum(seatNumber)} já está ocupada.`, 'error');
                 return;
             }
-            if (isBusPassengerLimitReached() && selectedSeat !== seatNumber) {
-                showToast('O ônibus já atingiu a lotação máxima de 40 passageiros.', 'error');
+            if (selectedSeat !== seatNumber && isSelectionQuotaReached()) {
+                showToast('A contagem atingiu 40 lugares! Os demais bancos livres estão travados.', 'error');
                 return;
             }
             selectedSeat = selectedSeat === seatNumber ? null : seatNumber;
