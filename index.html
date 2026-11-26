@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expresso Viação — Escolha de Poltronas e Quartos</title>
+    <title>GS Tour Double Decker — Escolha de Poltronas 3D e Quartos</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js para o modelo 3D interativo do ônibus GS Tour -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- Google Fonts: Inter & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -20,10 +22,11 @@
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        navy: {
-                            800: '#1e293b',
-                            900: '#0f172a',
-                            950: '#090d16',
+                        gold: {
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#d4af37',
+                            600: '#b48a1e',
                         }
                     }
                 }
@@ -32,59 +35,90 @@
     </script>
 
     <style>
-        /* Estilos personalizados para o mapa do ônibus e impressão */
         body {
             background-color: #f1f5f9;
             color: #0f172a;
         }
 
-        /* Estilo realista de poltrona de ônibus */
-        .seat-btn {
-            position: relative;
-            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+        /* Palco 3D CSS para o interior do ônibus */
+        .bus-3d-stage {
+            perspective: 1050px;
         }
 
+        .bus-cabin-3d {
+            transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.55s ease;
+            transform-style: preserve-3d;
+        }
+
+        .bus-cabin-3d.is-3d-tilted {
+            transform: rotateX(13deg) scale(0.985);
+            box-shadow: 0 26px 40px -14px rgba(9, 13, 22, 0.45);
+        }
+
+        /* Poltrona Volumétrica 3D (Encosto + Apoio de cabeça + Base) */
+        .seat-btn {
+            position: relative;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.16), 0 6px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Apoio de cabeça superior da poltrona */
+        .seat-btn::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 24%;
+            right: 24%;
+            height: 4px;
+            border-radius: 999px;
+            background-color: currentColor;
+            opacity: 0.4;
+        }
+
+        /* Assento / Almofada inferior da poltrona */
         .seat-btn::after {
             content: '';
             position: absolute;
             bottom: 3px;
-            left: 18%;
-            right: 18%;
-            height: 3px;
+            left: 14%;
+            right: 14%;
+            height: 4px;
             border-radius: 999px;
             background-color: currentColor;
             opacity: 0.35;
         }
 
         .seat-available {
-            background-color: #ffffff;
+            background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
             border: 2px solid #10b981;
             color: #065f46;
-            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.08);
+            box-shadow: 0 3px 0 #059669, 0 5px 10px rgba(16, 185, 129, 0.14);
         }
 
         .seat-available:hover {
-            background-color: #ecfdf5;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.18);
+            background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+            transform: translateY(-3px) scale(1.04);
+            box-shadow: 0 6px 0 #059669, 0 10px 16px rgba(16, 185, 129, 0.24);
         }
 
         .seat-selected {
-            background-color: #0f172a;
-            border: 2px solid #0f172a;
-            color: #ffffff;
-            transform: scale(1.06);
-            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.28);
+            background: linear-gradient(180deg, #1e293b 0%, #090d16 100%);
+            border: 2px solid #d4af37;
+            color: #fde047;
+            transform: translateY(-3px) scale(1.07);
+            box-shadow: 0 5px 0 #927012, 0 10px 20px rgba(212, 175, 55, 0.35);
             z-index: 10;
         }
 
         .seat-occupied {
-            background-color: #e2e8f0;
-            border: 2px solid #cbd5e1;
-            color: #94a3b8;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #334155;
+            color: #64748b;
+            box-shadow: 0 2px 0 #020617;
             cursor: not-allowed;
+            opacity: 0.68;
         }
 
         /* Efeito de recorte lateral (picote) do bilhete */
@@ -133,32 +167,36 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased">
 
-    <!-- Cabeçalho Superior Ajustado para Celular -->
-    <header class="bg-slate-900 text-white shadow-md no-print">
+    <!-- Cabeçalho Superior Identidade GS Tour (Preto & Dourado) -->
+    <header class="bg-[#090d16] text-white shadow-lg border-b border-amber-500/30 no-print">
         <div class="max-w-6xl mx-auto px-4 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div class="flex items-center gap-3">
-                <div id="admin-secret-trigger" title="Controle de Embarque" class="bg-emerald-500 text-slate-950 p-2 sm:p-2.5 rounded-xl shadow-inner cursor-pointer select-none shrink-0">
-                    <!-- Ícone de Ônibus SVG -->
+                <div id="admin-secret-trigger" title="Controle de Embarque (3 cliques)" class="bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 text-slate-950 p-2 sm:p-2.5 rounded-xl shadow-md shadow-amber-500/20 cursor-pointer select-none shrink-0">
+                    <!-- Ícone de Ônibus Double Decker SVG -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>
                     </svg>
                 </div>
                 <div class="min-w-0">
-                    <h1 class="text-base sm:text-xl font-bold tracking-tight leading-tight">Reserva de Assentos e Quartos</h1>
-                    <p class="text-[11px] sm:text-xs text-slate-400">Ônibus Executivo (46 Lugares) • 15 Quartos</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-amber-400/15 text-amber-300 border border-amber-400/30">GS TOUR • DD</span>
+                        <span class="text-[10px] text-slate-400 hidden sm:inline">Double Decker 4 Eixos</span>
+                    </div>
+                    <h1 class="text-base sm:text-xl font-bold tracking-tight leading-tight mt-0.5">Reserva de Poltronas 3D e Quartos</h1>
+                    <p class="text-[11px] sm:text-xs text-slate-400">42 Superior + 6 Inferior (Limite Máx. 40 Passageiros) • 15 Quartos</p>
                 </div>
             </div>
 
             <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-2 sm:pt-0 border-t border-slate-800/80 sm:border-0">
-                <span id="live-sync-badge" class="hidden inline-flex items-center gap-1.5 text-[11px] font-medium bg-slate-800/80 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700" title="Mapa atualizado automaticamente sem recarregar">
+                <span id="live-sync-badge" class="hidden inline-flex items-center gap-1.5 text-[11px] font-medium bg-slate-900 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700" title="Mapa atualizado automaticamente sem recarregar">
                     <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
                     <span>Ao vivo</span>
                 </span>
-                <span class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium bg-slate-800 text-emerald-400 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">
+                <span class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium bg-slate-900 text-emerald-400 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">
                     <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span id="available-counter">46 poltronas</span>
+                    <span id="available-counter">40 vagas no ônibus</span>
                 </span>
-                <span class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium bg-slate-800 text-amber-300 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-700">
+                <span class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium bg-slate-900 text-amber-300 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-amber-500/30">
                     <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400"></span>
                     <span id="available-rooms-counter">40 vagas em quartos</span>
                 </span>
@@ -199,7 +237,6 @@
                     <p id="val-name" class="text-base font-bold text-slate-900">—</p>
                 </div>
 
-                <!-- Formulário de senha para validar check-in via QR Code -->
                 <form id="val-auth-form" class="hidden space-y-3 pt-1">
                     <div>
                         <label for="val-password-input" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
@@ -237,7 +274,7 @@
         <div class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-200">
             <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
                 <div>
-                    <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Acesso Restrito</span>
+                    <span class="text-[10px] uppercase tracking-widest text-amber-400 font-bold block">Acesso Restrito</span>
                     <h2 class="text-base font-bold">Senha do Coordenador</h2>
                 </div>
                 <button type="button" onclick="closePasswordModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800 cursor-pointer">
@@ -267,12 +304,12 @@
         </div>
     </div>
 
-    <!-- PAINEL DO COORDENADOR (Acesso protegido por senha após 3 cliques no ícone do ônibus ou ?admin=1) -->
+    <!-- PAINEL DO COORDENADOR -->
     <div id="coordinator-modal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[88vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200">
             <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
                 <div>
-                    <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Área Restrita</span>
+                    <span class="text-[10px] uppercase tracking-widest text-amber-400 font-bold block">Área Restrita • GS Tour</span>
                     <h2 class="text-lg font-bold">Controle de Passageiros e Embarque</h2>
                 </div>
                 <button type="button" onclick="closeCoordinatorPanel()" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800 cursor-pointer">
@@ -282,16 +319,16 @@
 
             <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 border-b border-slate-200 text-center">
                 <div class="bg-white p-2.5 rounded-xl border border-slate-200">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Reservados</span>
-                    <span id="coord-total-reserved" class="text-xl font-black text-slate-900">0</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Reservados (Máx 40)</span>
+                    <span id="coord-total-reserved" class="text-xl font-black text-slate-900">0 / 40</span>
                 </div>
                 <div class="bg-white p-2.5 rounded-xl border border-slate-200">
                     <span class="text-[10px] uppercase font-bold text-emerald-600 block">Embarcados (QR)</span>
                     <span id="coord-total-boarded" class="text-xl font-black text-emerald-600">0</span>
                 </div>
                 <div class="bg-white p-2.5 rounded-xl border border-slate-200">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Livres</span>
-                    <span id="coord-total-free" class="text-xl font-black text-slate-600">46</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Vagas Restantes</span>
+                    <span id="coord-total-free" class="text-xl font-black text-slate-600">40</span>
                 </div>
             </div>
 
@@ -312,98 +349,119 @@
 
     <!-- Conteúdo Principal -->
     <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
-        <!-- TELA DE SELEÇÃO (Mapa do Ônibus + Quartos + Formulário) -->
+        <!-- TELA DE SELEÇÃO (Visor 3D GS Tour + Mapa Double Decker + Quartos + Formulário) -->
         <div id="selection-screen-view" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-            <!-- COLUNA ESQUERDA: Mapa Interativo do Ônibus (1 Andar - 46 Lugares) -->
-            <section class="lg:col-span-6 xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 no-print">
-                <div class="flex items-center justify-between mb-4">
+            <!-- COLUNA ESQUERDA: Visor 3D do Ônibus GS Tour + Mapa Double Decker (42 Sup + 6 Inf) -->
+            <section class="lg:col-span-6 xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 no-print">
+                <div class="flex items-center justify-between gap-2 mb-3">
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-slate-900">1. Escolha sua Poltrona</h2>
-                        <p class="text-xs text-slate-500">Toque em um assento livre (verde) para selecionar</p>
+                        <p class="text-xs text-slate-500">Gire o ônibus 3D ou toque em um assento livre</p>
+                    </div>
+                    <button type="button" id="toggle-3d-tilt-btn" onclick="toggleCabin3DTilt()"
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 text-[11px] font-bold transition cursor-pointer shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                        <span id="tilt-btn-label">Cabine 3D: ON</span>
+                    </button>
+                </div>
+
+                <!-- PALCO 3D INTERATIVO THREE.JS (Modelo GS Tour Double Decker Preto & Dourado) -->
+                <div class="relative rounded-2xl overflow-hidden border border-slate-800 bg-gradient-to-b from-[#090d16] via-[#111827] to-[#1e293b] mb-4 shadow-inner">
+                    <div id="gs-tour-3d-canvas" class="w-full h-[185px] sm:h-[205px] cursor-grab active:cursor-grabbing"></div>
+
+                    <!-- Etiqueta superior esquerda GS Tour -->
+                    <div class="absolute top-2.5 left-3 pointer-events-none flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm border border-amber-400/40 text-amber-300 font-extrabold text-[10px] tracking-widest">
+                            GS TOUR 3D
+                        </span>
+                        <span class="text-[10px] text-slate-300/80 hidden sm:inline">Arraste para girar</span>
+                    </div>
+
+                    <!-- Botão para resetar ângulo / pausar rotação -->
+                    <button type="button" onclick="reset3DCamera()" title="Centralizar visão 3D"
+                        class="absolute top-2.5 right-2.5 px-2 py-1 rounded-lg bg-black/60 hover:bg-black/80 text-slate-200 border border-white/15 text-[10px] font-semibold backdrop-blur-sm transition cursor-pointer">
+                        Centralizar
+                    </button>
+
+                    <!-- Legenda inferior do modelo 3D -->
+                    <div class="absolute bottom-2 inset-x-3 flex items-center justify-between text-[10px] text-slate-300 pointer-events-none">
+                        <span>48 poltronas físicas • Limite 40 passageiros</span>
+                        <span id="canvas-3d-status" class="text-amber-300 font-mono font-bold">Visão Externa / Raio-X</span>
                     </div>
                 </div>
 
+                <!-- Seletor de Andar (Double Decker: Piso Superior 42 vs Piso Inferior 6) -->
+                <div class="grid grid-cols-2 gap-2 p-1.5 bg-slate-900 rounded-xl mb-4 border border-slate-800">
+                    <button type="button" id="tab-upper-deck" onclick="switchDeck('upper')"
+                        class="py-2 px-3 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-extrabold text-xs transition cursor-pointer flex flex-col items-center leading-tight shadow">
+                        <span>Piso Superior (01–42)</span>
+                        <span id="upper-deck-count" class="text-[10px] font-semibold opacity-85 mt-0.5">42 lugares • Panorâmico</span>
+                    </button>
+                    <button type="button" id="tab-lower-deck" onclick="switchDeck('lower')"
+                        class="py-2 px-3 rounded-lg bg-transparent hover:bg-slate-800 text-slate-300 font-bold text-xs transition cursor-pointer flex flex-col items-center leading-tight">
+                        <span>Piso Inferior (43–48)</span>
+                        <span id="lower-deck-count" class="text-[10px] font-normal text-slate-400 mt-0.5">6 lugares • Térreo</span>
+                    </button>
+                </div>
+
                 <!-- Legenda -->
-                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200/80 mb-5 text-xs font-medium">
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="w-4 h-4 rounded bg-white border-2 border-emerald-500 inline-block"></span>
+                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 mb-4 text-xs font-medium">
+                    <div class="flex items-center justify-center gap-1.5">
+                        <span class="w-4 h-4 rounded bg-white border-2 border-emerald-500 inline-block shadow-xs"></span>
                         <span class="text-slate-700">Livre</span>
                     </div>
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="w-4 h-4 rounded bg-slate-900 border-2 border-slate-900 inline-block"></span>
-                        <span class="text-slate-700">Selecionada</span>
+                    <div class="flex items-center justify-center gap-1.5">
+                        <span class="w-4 h-4 rounded bg-slate-900 border-2 border-amber-400 inline-block"></span>
+                        <span class="text-slate-700">Sua Escolha</span>
                     </div>
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="w-4 h-4 rounded bg-slate-200 border-2 border-slate-300 inline-block"></span>
+                    <div class="flex items-center justify-center gap-1.5">
+                        <span class="w-4 h-4 rounded bg-slate-800 border-2 border-slate-600 opacity-70 inline-block"></span>
                         <span class="text-slate-500">Ocupada</span>
                     </div>
                 </div>
 
-                <!-- Carroceria do Ônibus -->
-                <div class="max-w-[330px] mx-auto bg-slate-100 rounded-t-[44px] rounded-b-3xl border-4 border-slate-300 p-3.5 shadow-inner relative">
-                    
-                    <!-- Para-brisa / Frente -->
-                    <div class="text-center mb-2">
-                        <span class="text-[10px] uppercase tracking-widest font-bold text-slate-400">Frente do Veículo</span>
-                    </div>
+                <!-- Aviso caso o limite de 40 passageiros já tenha sido atingido -->
+                <div id="bus-capacity-full-banner" class="hidden mb-4 p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold text-center">
+                    Lotação máxima de 40 passageiros atingida! As poltronas restantes permanecem bloqueadas.
+                </div>
 
-                    <!-- Cabine do Motorista e Porta de Entrada -->
-                    <div class="grid grid-cols-2 gap-3 pb-3 mb-3 border-b-2 border-dashed border-slate-300">
-                        <!-- Motorista -->
-                        <div class="bg-slate-200/90 rounded-xl p-2.5 flex items-center gap-2 border border-slate-300">
-                            <div class="w-7 h-7 rounded-full bg-slate-700 text-white flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 14v7"/><path d="M10 12 3.5 9.5"/><path d="M14 12l6.5-2.5"/>
-                                </svg>
-                            </div>
-                            <div class="leading-tight">
-                                <span class="block text-[11px] font-bold text-slate-700">Motorista</span>
-                                <span class="block text-[10px] text-slate-500">Cabine</span>
-                            </div>
+                <!-- Carroceria do Ônibus GS Tour (Palco 3D CSS) -->
+                <div class="bus-3d-stage">
+                    <div id="bus-cabin-wrapper" class="bus-cabin-3d is-3d-tilted max-w-[338px] mx-auto bg-gradient-to-b from-[#0f172a] via-[#111827] to-[#090d16] rounded-t-[46px] rounded-b-3xl border-[3px] border-amber-500/70 p-3.5 text-white relative">
+                        
+                        <!-- Para-brisa / Frente GS Tour -->
+                        <div class="text-center mb-2.5 pb-1.5 border-b border-amber-500/25">
+                            <span class="text-[10px] uppercase tracking-[0.22em] font-extrabold text-amber-400 block" id="deck-header-title">
+                                PISO SUPERIOR • PANORÂMICO
+                            </span>
+                            <span class="text-[9px] text-slate-400">GS Tour Double Decker • Poltronas Reclináveis</span>
                         </div>
 
-                        <!-- Porta / Escada -->
-                        <div class="bg-slate-200/60 rounded-xl p-2.5 flex items-center justify-end gap-2 border border-slate-300/80">
-                            <div class="text-right leading-tight">
-                                <span class="block text-[11px] font-bold text-slate-600">Entrada</span>
-                                <span class="block text-[10px] text-slate-400">Escada</span>
-                            </div>
-                            <div class="w-7 h-7 rounded-lg bg-slate-300 text-slate-600 flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"/>
-                                </svg>
-                            </div>
+                        <!-- Cabine / Escada conforme o andar selecionado -->
+                        <div id="deck-front-area" class="grid grid-cols-2 gap-2.5 pb-3 mb-3 border-b border-dashed border-slate-700">
+                            <!-- Renderizado dinamicamente conforme o andar -->
                         </div>
-                    </div>
 
-                    <!-- Cabeçalho Janela / Corredor -->
-                    <div class="grid grid-cols-5 text-[10px] font-semibold text-slate-400 text-center mb-1.5 px-1">
-                        <span>Janela</span>
-                        <span>Corredor</span>
-                        <span></span>
-                        <span>Corredor</span>
-                        <span>Janela</span>
-                    </div>
-
-                    <!-- Grade de Poltronas (Gerada via JS) -->
-                    <div id="bus-seats-grid" class="flex flex-col gap-2">
-                        <!-- As fileiras serão inseridas aqui -->
-                    </div>
-
-                    <!-- Fundos: Banheiro e Água / Café -->
-                    <div class="grid grid-cols-2 gap-3 pt-3 mt-3 border-t-2 border-dashed border-slate-300">
-                        <div class="bg-slate-200/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-300 text-slate-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 6 6.5 3.5a1.5 1.5 0 0 0-1-.5C4.683 3 4 3.683 4 4.5V17a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><line x1="10" x2="8" y1="5" y2="7"/><line x1="2" x2="22" y1="12" y2="12"/>
-                            </svg>
-                            <span class="text-[11px] font-semibold">Sanitário (WC)</span>
+                        <!-- Cabeçalho Janela / Corredor -->
+                        <div class="grid grid-cols-5 text-[10px] font-semibold text-amber-300/80 text-center mb-1.5 px-1">
+                            <span>Janela</span>
+                            <span>Corredor</span>
+                            <span></span>
+                            <span>Corredor</span>
+                            <span>Janela</span>
                         </div>
-                        <div class="bg-slate-200/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-300 text-slate-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>
-                            </svg>
-                            <span class="text-[11px] font-semibold">Água / Lanche</span>
+
+                        <!-- Grade de Poltronas (Gerada via JS para o andar ativo) -->
+                        <div id="bus-seats-grid" class="flex flex-col gap-2.5">
+                            <!-- As fileiras serão inseridas aqui -->
+                        </div>
+
+                        <!-- Fundos do Andar -->
+                        <div id="deck-rear-area" class="grid grid-cols-2 gap-2.5 pt-3 mt-3 border-t border-dashed border-slate-700">
+                            <!-- Renderizado dinamicamente conforme o andar -->
                         </div>
                     </div>
                 </div>
@@ -412,12 +470,12 @@
             <!-- COLUNA DIREITA: Escolha de Quarto, Formulário e Comprovante Gerado -->
             <div class="lg:col-span-6 xl:col-span-7 flex flex-col gap-6">
 
-                <!-- PASSO 2: Escolha de Quarto (10 Triplos + 5 Duplos - Um embaixo do outro no celular) -->
+                <!-- PASSO 2: Escolha de Quarto (10 Triplos + 5 Duplos = 40 vagas) -->
                 <section id="room-selection-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 no-print">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
                         <div>
                             <h2 class="text-base sm:text-lg font-bold text-slate-900">2. Escolha seu Quarto</h2>
-                            <p class="text-xs text-slate-500">10 quartos Triplos (3 vagas) e 5 quartos Duplos (2 vagas)</p>
+                            <p class="text-xs text-slate-500">10 quartos Triplos (3 vagas) e 5 quartos Duplos (2 vagas) = 40 vagas</p>
                         </div>
                         <div class="flex items-center gap-1.5 text-[11px] font-semibold">
                             <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">01–10 Triplo</span>
@@ -426,7 +484,7 @@
                     </div>
 
                     <div id="rooms-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
-                        <!-- Cards dos 15 quartos gerados via JS (1 por linha no celular) -->
+                        <!-- Cards dos 15 quartos gerados via JS -->
                     </div>
                 </section>
 
@@ -435,7 +493,7 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
                         <div>
                             <h2 class="text-base sm:text-lg font-bold text-slate-900">3. Dados do Passageiro</h2>
-                            <p class="text-xs text-slate-500">Preencha seus dados para emitir o comprovante completo</p>
+                            <p class="text-xs text-slate-500">Preencha seus dados para emitir o cartão de embarque</p>
                         </div>
 
                         <!-- Badges dinâmicos do assento e quarto selecionados -->
@@ -493,7 +551,6 @@
 
         <!-- TELA EXCLUSIVA DE CHECKOUT / CARTÃO DE EMBARQUE (Oculta até confirmar) -->
         <section id="voucher-section" class="hidden max-w-lg mx-auto animate-fade-in">
-            <!-- Barra Superior do Checkout -->
             <div class="flex items-center justify-between gap-3 mb-4 no-print">
                 <button type="button" onclick="startNewReservation()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm transition cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -515,25 +572,24 @@
                 </div>
                 <div>
                     <h3 class="text-sm font-bold text-emerald-950">Checkout finalizado com sucesso!</h3>
-                    <p class="text-xs text-emerald-800">Seu cartão de embarque está pronto. Salve a imagem PNG ou imprima para apresentar no embarque.</p>
+                    <p class="text-xs text-emerald-800">Seu cartão de embarque GS Tour está pronto. Salve a imagem PNG ou imprima para o embarque.</p>
                 </div>
             </div>
 
-            <!-- Cartão Visual do Bilhete / Comprovante -->
+            <!-- Cartão Visual do Bilhete / Comprovante (Identidade GS Tour Preto & Dourado) -->
             <div id="printable-voucher-area" class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden max-w-md mx-auto">
-                <!-- Topo Azul Marinho do Bilhete -->
-                <div class="bg-slate-900 text-white px-6 py-5 flex items-center justify-between">
+                <div class="bg-[#090d16] text-white px-6 py-5 flex items-center justify-between border-b-2 border-amber-500">
                     <div>
-                        <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">Comprovante de Viagem</span>
+                        <span class="text-[10px] uppercase tracking-widest text-amber-400 font-bold block">GS Tour • Double Decker</span>
                         <h4 class="text-lg font-extrabold tracking-tight">Cartão de Embarque</h4>
                     </div>
                     <div class="text-right">
                         <span class="text-[10px] text-slate-400 block">CÓDIGO</span>
-                        <span id="voucher-code" class="font-mono text-sm font-bold text-white bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">#BUS-0000</span>
+                        <span id="voucher-code" class="font-mono text-sm font-bold text-amber-300 bg-slate-900 px-2.5 py-1 rounded-lg border border-amber-500/30">#BUS-0000</span>
                     </div>
                 </div>
 
-                <!-- Destaque Principal da Poltrona e Quarto -->
+                <!-- Destaque Principal da Poltrona, Andar e Quarto -->
                 <div class="px-6 py-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
                     <div>
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Poltrona Reservada</span>
@@ -541,6 +597,7 @@
                             <span id="voucher-seat-number" class="text-4xl font-black text-slate-900 font-mono">00</span>
                             <span id="voucher-seat-position" class="text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Janela</span>
                         </div>
+                        <span id="voucher-deck-label" class="text-[11px] font-bold text-amber-700 mt-1 block">Piso Superior</span>
                     </div>
                     <div class="text-right">
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Quarto / Hospedagem</span>
@@ -578,7 +635,7 @@
                     </div>
                 </div>
 
-                <!-- Linha Picotada com Recortes Laterais -->
+                <!-- Linha Picotada -->
                 <div class="relative flex items-center justify-center my-1">
                     <div class="ticket-notch-left"></div>
                     <div class="w-full border-t-2 border-dashed border-slate-200 mx-4"></div>
@@ -593,7 +650,6 @@
                             Apresente este cartão de embarque digital ou impresso ao coordenador antes de entrar no ônibus.
                         </p>
                     </div>
-                    <!-- Container do QR Code -->
                     <div id="qrcode-container" class="p-2 bg-white border border-slate-200 rounded-xl shrink-0"></div>
                 </div>
             </div>
@@ -631,12 +687,17 @@
 
     <script>
         /**
-         * CONFIGURAÇÃO DO ÔNIBUS (1 ANDAR - 46 LUGARES EXECUTIVO SEMILEITO)
-         * Disposição 2x2:
-         * Lado Esquerdo (Motorista): Janela (ímpar), Corredor (par) -> Ex: 01, 02
-         * Lado Direito (Porta): Corredor (par), Janela (ímpar) -> Ex: 04, 03
+         * CONFIGURAÇÃO DO ÔNIBUS GS TOUR DOUBLE DECKER
+         * - Piso Superior: 42 poltronas (01 a 42)
+         * - Piso Inferior: 6 poltronas (43 a 48)
+         * - Total de assentos físicos: 48
+         * - Limite máximo de passageiros ocupados (somando os 2 andares): 40
          */
-        const TOTAL_SEATS = 42;
+        const UPPER_DECK_SEATS = 42;
+        const LOWER_DECK_SEATS = 6;
+        const TOTAL_PHYSICAL_SEATS = UPPER_DECK_SEATS + LOWER_DECK_SEATS; // 48
+        const MAX_PASSENGERS_LIMIT = 40; // Máximo permitido somando ambos os andares
+
         const STORAGE_KEY = 'bus_3d_seat_reservations_v1';
         const RECORDS_STORAGE_KEY = 'bus_3d_seat_records_v1';
         const DEFAULT_BOARDING_POINT = 'Embarque Único — Saída Principal';
@@ -660,14 +721,7 @@
         ];
         const TOTAL_ROOM_BEDS = ROOMS_CONFIG.reduce((sum, r) => sum + r.capacity, 0);
 
-        /**
-         * SENHA DO PAINEL DO COORDENADOR
-         */
         const ADMIN_PASSWORD = '2307';
-
-        /**
-         * INTEGRAÇÃO OPCIONAL COM GOOGLE SHEETS (SINCRONIZAÇÃO ENTRE CELULARES)
-         */
         const GOOGLE_SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwWE_wGxR7UGrnPHO7sGJa-huIU8GURD7-4Gd7GWYKUAWI69kh9JUcR0k4aC5z_paKv/exec';
 
         // Estado da aplicação
@@ -675,14 +729,23 @@
         let seatRecords = {};
         let selectedSeat = null;
         let selectedRoomId = null;
+        let activeDeck = 'upper'; // 'upper' (01-42) ou 'lower' (43-48)
+        let isCabin3DTilted = true;
         let currentTicketData = null;
         let isSyncing = false;
+
+        // Referências do motor 3D Three.js
+        let threeScene, threeCamera, threeRenderer, busGroup, seatMeshes3D = {};
+        let targetRotY = -0.58, targetRotX = 0.16;
+        let currentRotY = -0.58, currentRotX = 0.16;
+        let isDragging3D = false, prevMouseX = 0, prevMouseY = 0, autoRotate3D = true;
 
         /**
          * Inicialização ao carregar a página
          */
         window.addEventListener('DOMContentLoaded', async () => {
             loadOccupiedSeats();
+            initBus3DViewer();
             renderBusMap();
             await syncFromCloudIfConfigured();
             renderBusMap();
@@ -691,7 +754,6 @@
             setupAdminTrigger();
             checkQRCodeValidationInURL();
 
-            // Sincronização automática silenciosa em tempo real a cada 3 segundos (sem recarregar a página)
             if (GOOGLE_SHEETS_WEBHOOK_URL) {
                 const liveBadge = document.getElementById('live-sync-badge');
                 if (liveBadge) liveBadge.classList.remove('hidden');
@@ -701,13 +763,11 @@
                     await syncFromCloudIfConfigured();
                 }, 3000);
 
-                // Atualiza imediatamente quando o usuário volta para a aba do navegador
                 document.addEventListener('visibilitychange', () => {
                     if (!document.hidden) syncFromCloudIfConfigured();
                 });
             }
 
-            // Sincronização instantânea entre abas no mesmo navegador
             window.addEventListener('storage', (e) => {
                 if (e.key === STORAGE_KEY || e.key === RECORDS_STORAGE_KEY) {
                     const prevSelected = selectedSeat;
@@ -733,7 +793,352 @@
         });
 
         /**
-         * Carrega assentos ocupados e registros detalhados do localStorage
+         * VISOR 3D INTERATIVO DO ÔNIBUS GS TOUR DOUBLE DECKER (THREE.JS)
+         */
+        function initBus3DViewer() {
+            const container = document.getElementById('gs-tour-3d-canvas');
+            if (!container || typeof THREE === 'undefined') return;
+
+            const width = container.clientWidth || 360;
+            const height = container.clientHeight || 195;
+
+            threeScene = new THREE.Scene();
+            threeCamera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
+            threeCamera.position.set(0, 1.35, 7.6);
+            threeCamera.lookAt(0, 0.25, 0);
+
+            threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            threeRenderer.setSize(width, height);
+            threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.innerHTML = '';
+            container.appendChild(threeRenderer.domElement);
+
+            // Iluminação de estúdio para destacar o preto brilhante e os detalhes dourados
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+            threeScene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.2);
+            dirLight.position.set(5, 8, 6);
+            threeScene.add(dirLight);
+
+            const rimLight = new THREE.DirectionalLight(0xd4af37, 0.85);
+            rimLight.position.set(-6, 4, -5);
+            threeScene.add(rimLight);
+
+            busGroup = new THREE.Group();
+            threeScene.add(busGroup);
+
+            // Dimensões proporcionais do Double Decker (Comprimento X=5.6, Altura Y=1.75, Largura Z=1.25)
+            const busLength = 5.6;
+            const busHeight = 1.72;
+            const busWidth = 1.26;
+
+            // 1. Chassi inferior preto sólido
+            const lowerBodyGeo = new THREE.BoxGeometry(busLength, 0.72, busWidth);
+            const blackBodyMat = new THREE.MeshStandardMaterial({
+                color: 0x0b0f19,
+                roughness: 0.28,
+                metalness: 0.55
+            });
+            const lowerBody = new THREE.Mesh(lowerBodyGeo, blackBodyMat);
+            lowerBody.position.y = -0.28;
+            busGroup.add(lowerBody);
+
+            // 2. Carroceria superior semitransparente (efeito Raio-X para enxergar as poltronas 3D dentro)
+            const upperBodyGeo = new THREE.BoxGeometry(busLength, 0.96, busWidth);
+            const glassBodyMat = new THREE.MeshPhysicalMaterial({
+                color: 0x0f172a,
+                roughness: 0.15,
+                metalness: 0.2,
+                transparent: true,
+                opacity: 0.34,
+                depthWrite: false
+            });
+            const upperBody = new THREE.Mesh(upperBodyGeo, glassBodyMat);
+            upperBody.position.y = 0.56;
+            busGroup.add(upperBody);
+
+            // 3. Teto preto com moldura dourada GS Tour
+            const roofGeo = new THREE.BoxGeometry(busLength + 0.04, 0.08, busWidth + 0.04);
+            const goldMat = new THREE.MeshStandardMaterial({
+                color: 0xd4af37,
+                roughness: 0.3,
+                metalness: 0.85
+            });
+            const roofMesh = new THREE.Mesh(roofGeo, blackBodyMat);
+            roofMesh.position.y = 1.06;
+            busGroup.add(roofMesh);
+
+            // Frisos dourados laterais e contorno frontal (estilo GS Tour da foto)
+            const stripeGeo = new THREE.BoxGeometry(busLength + 0.03, 0.045, busWidth + 0.03);
+            const midGoldStripe = new THREE.Mesh(stripeGeo, goldMat);
+            midGoldStripe.position.y = 0.10;
+            busGroup.add(midGoldStripe);
+
+            const topGoldStripe = new THREE.Mesh(stripeGeo, goldMat);
+            topGoldStripe.position.y = 1.01;
+            busGroup.add(topGoldStripe);
+
+            // 4. Para-brisa panorâmico duplo na frente (+X)
+            const frontGlassGeo = new THREE.BoxGeometry(0.06, 1.48, busWidth - 0.14);
+            const windshieldMat = new THREE.MeshStandardMaterial({
+                color: 0x1e293b,
+                roughness: 0.1,
+                metalness: 0.9,
+                transparent: true,
+                opacity: 0.65
+            });
+            const frontGlass = new THREE.Mesh(frontGlassGeo, windshieldMat);
+            frontGlass.position.set(busLength / 2 + 0.01, 0.24, 0);
+            busGroup.add(frontGlass);
+
+            // Faróis dianteiros LED
+            const headlightGeo = new THREE.BoxGeometry(0.06, 0.09, 0.22);
+            const headlightMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+            [-0.42, 0.42].forEach(zPos => {
+                const hl = new THREE.Mesh(headlightGeo, headlightMat);
+                hl.position.set(busLength / 2 + 0.02, -0.46, zPos);
+                busGroup.add(hl);
+            });
+
+            // 5. Textura lateral com logo "GS TOUR" e a Bússola Dourada da foto real
+            const sideCanvas = document.createElement('canvas');
+            sideCanvas.width = 512;
+            sideCanvas.height = 128;
+            const sctx = sideCanvas.getContext('2d');
+            sctx.clearRect(0, 0, 512, 128);
+
+            // Faixa curva dourada e prateada
+            sctx.strokeStyle = '#d4af37';
+            sctx.lineWidth = 5;
+            sctx.beginPath();
+            sctx.moveTo(20, 35);
+            sctx.quadraticCurveTo(260, 15, 490, 95);
+            sctx.stroke();
+
+            sctx.strokeStyle = '#94a3b8';
+            sctx.lineWidth = 4;
+            sctx.beginPath();
+            sctx.moveTo(75, 45);
+            sctx.lineTo(290, 112);
+            sctx.stroke();
+
+            // Bússola / Rosa dos Ventos na traseira esquerda
+            sctx.save();
+            sctx.translate(78, 72);
+            sctx.strokeStyle = '#d4af37';
+            sctx.lineWidth = 3;
+            sctx.beginPath();
+            sctx.arc(0, 0, 28, 0, Math.PI * 2);
+            sctx.stroke();
+            sctx.fillStyle = '#d4af37';
+            for (let a = 0; a < 4; a++) {
+                sctx.rotate(Math.PI / 2);
+                sctx.beginPath();
+                sctx.moveTo(0, -26);
+                sctx.lineTo(5, 0);
+                sctx.lineTo(-5, 0);
+                sctx.closePath();
+                sctx.fill();
+            }
+            sctx.restore();
+
+            // Texto GS TOUR
+            sctx.fillStyle = '#d4af37';
+            sctx.font = 'bold 34px Inter, sans-serif';
+            sctx.fillText('GS', 330, 62);
+            sctx.font = 'bold 12px Inter, sans-serif';
+            sctx.fillText('— TOUR —', 325, 80);
+
+            const decalTex = new THREE.CanvasTexture(sideCanvas);
+            const decalMat = new THREE.MeshBasicMaterial({ map: decalTex, transparent: true });
+            const decalGeo = new THREE.PlaneGeometry(busLength - 0.2, 0.7);
+
+            const rightDecal = new THREE.Mesh(decalGeo, decalMat);
+            rightDecal.position.set(0, -0.28, busWidth / 2 + 0.005);
+            busGroup.add(rightDecal);
+
+            const leftDecal = new THREE.Mesh(decalGeo, decalMat);
+            leftDecal.rotation.y = Math.PI;
+            leftDecal.position.set(0, -0.28, -busWidth / 2 - 0.005);
+            busGroup.add(leftDecal);
+
+            // 6. Os 4 Eixos (8 rodas com calotas cromadas iguais à foto)
+            const wheelXPositions = [-2.05, -1.48, 1.38, 1.98];
+            const tireGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.14, 20);
+            tireGeo.rotateX(Math.PI / 2);
+            const tireMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+
+            const rimGeo = new THREE.CylinderGeometry(0.13, 0.13, 0.15, 16);
+            rimGeo.rotateX(Math.PI / 2);
+            const rimMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.2 });
+
+            wheelXPositions.forEach(xPos => {
+                [-busWidth / 2, busWidth / 2].forEach(zPos => {
+                    const tire = new THREE.Mesh(tireGeo, tireMat);
+                    tire.position.set(xPos, -0.64, zPos);
+                    busGroup.add(tire);
+
+                    const rim = new THREE.Mesh(rimGeo, rimMat);
+                    rim.position.set(xPos, -0.64, zPos);
+                    busGroup.add(rim);
+                });
+            });
+
+            // Piso divisório entre andar superior e inferior
+            const floorDivGeo = new THREE.BoxGeometry(busLength - 0.1, 0.04, busWidth - 0.08);
+            const floorDiv = new THREE.Mesh(floorDivGeo, blackBodyMat);
+            floorDiv.position.y = 0.12;
+            busGroup.add(floorDiv);
+
+            // 7. Mini-poltronas 3D internas (01 a 42 no superior, 43 a 48 no inferior)
+            const seatGeo = new THREE.BoxGeometry(0.24, 0.26, 0.20);
+            const zSlots = [-0.42, -0.18, 0.18, 0.42]; // Janela Esq, Corredor Esq, Corredor Dir, Janela Dir
+
+            // Piso Superior (11 fileiras -> 01 a 42)
+            for (let s = 1; s <= UPPER_DECK_SEATS; s++) {
+                const idx = s - 1;
+                const row = Math.floor(idx / 4); // 0..10
+                const col = idx % 4;
+                const xPos = 2.15 - row * 0.43;
+                const zPos = zSlots[col];
+
+                const mat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.4 });
+                const mesh = new THREE.Mesh(seatGeo, mat);
+                mesh.position.set(xPos, 0.32, zPos);
+                busGroup.add(mesh);
+                seatMeshes3D[s] = mesh;
+            }
+
+            // Piso Inferior (2 fileiras -> 43 a 48)
+            for (let s = 43; s <= TOTAL_PHYSICAL_SEATS; s++) {
+                const idx = s - 43; // 0..5
+                const row = Math.floor(idx / 3);
+                const col = idx % 3;
+                const xPos = -0.35 - row * 0.55;
+                const zPos = [-0.36, 0.0, 0.36][col];
+
+                const mat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.4 });
+                const mesh = new THREE.Mesh(seatGeo, mat);
+                mesh.position.set(xPos, -0.32, zPos);
+                busGroup.add(mesh);
+                seatMeshes3D[s] = mesh;
+            }
+
+            // Controles de arraste (Mouse e Touch no celular)
+            const domEl = threeRenderer.domElement;
+            domEl.addEventListener('pointerdown', (e) => {
+                isDragging3D = true;
+                autoRotate3D = false;
+                prevMouseX = e.clientX;
+                prevMouseY = e.clientY;
+            });
+
+            window.addEventListener('pointermove', (e) => {
+                if (!isDragging3D) return;
+                const dx = e.clientX - prevMouseX;
+                const dy = e.clientY - prevMouseY;
+                prevMouseX = e.clientX;
+                prevMouseY = e.clientY;
+
+                targetRotY += dx * 0.012;
+                targetRotX = Math.max(-0.25, Math.min(0.65, targetRotX + dy * 0.008));
+            });
+
+            window.addEventListener('pointerup', () => {
+                isDragging3D = false;
+            });
+
+            window.addEventListener('resize', () => {
+                if (!container || !threeRenderer || !threeCamera) return;
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                if (w > 0 && h > 0) {
+                    threeCamera.aspect = w / h;
+                    threeCamera.updateProjectionMatrix();
+                    threeRenderer.setSize(w, h);
+                }
+            });
+
+            function animate3D() {
+                requestAnimationFrame(animate3D);
+                if (autoRotate3D && !isDragging3D) {
+                    targetRotY += 0.0035;
+                }
+                currentRotY += (targetRotY - currentRotY) * 0.1;
+                currentRotX += (targetRotX - currentRotX) * 0.1;
+
+                if (busGroup) {
+                    busGroup.rotation.y = currentRotY;
+                    busGroup.rotation.x = currentRotX;
+                }
+                threeRenderer.render(threeScene, threeCamera);
+            }
+            animate3D();
+        }
+
+        function update3DSeatsColors() {
+            if (!seatMeshes3D) return;
+            const limitReached = occupiedSeats.length >= MAX_PASSENGERS_LIMIT;
+
+            for (let s = 1; s <= TOTAL_PHYSICAL_SEATS; s++) {
+                const mesh = seatMeshes3D[s];
+                if (!mesh) continue;
+
+                if (occupiedSeats.includes(s)) {
+                    mesh.material.color.setHex(0x475569); // Ocupada
+                    mesh.scale.set(1, 0.85, 1);
+                } else if (selectedSeat === s) {
+                    mesh.material.color.setHex(0xfacc15); // Selecionada (Dourado vibrante)
+                    mesh.scale.set(1.25, 1.35, 1.25);
+                } else if (limitReached) {
+                    mesh.material.color.setHex(0x334155); // Bloqueada pelo limite de 40
+                    mesh.scale.set(1, 0.85, 1);
+                } else {
+                    mesh.material.color.setHex(0x10b981); // Livre (Verde)
+                    mesh.scale.set(1, 1, 1);
+                }
+            }
+        }
+
+        function reset3DCamera() {
+            targetRotY = activeDeck === 'lower' ? -0.85 : -0.58;
+            targetRotX = activeDeck === 'lower' ? 0.08 : 0.22;
+            autoRotate3D = false;
+        }
+
+        function toggleCabin3DTilt() {
+            isCabin3DTilted = !isCabin3DTilted;
+            const wrapper = document.getElementById('bus-cabin-wrapper');
+            const label = document.getElementById('tilt-btn-label');
+            if (wrapper) {
+                wrapper.classList.toggle('is-3d-tilted', isCabin3DTilted);
+            }
+            if (label) {
+                label.textContent = isCabin3DTilted ? 'Cabine 3D: ON' : 'Cabine 3D: OFF';
+            }
+        }
+
+        function switchDeck(deck) {
+            activeDeck = deck;
+            const upperTab = document.getElementById('tab-upper-deck');
+            const lowerTab = document.getElementById('tab-lower-deck');
+
+            if (deck === 'upper') {
+                upperTab.className = 'py-2 px-3 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-extrabold text-xs transition cursor-pointer flex flex-col items-center leading-tight shadow';
+                lowerTab.className = 'py-2 px-3 rounded-lg bg-transparent hover:bg-slate-800 text-slate-300 font-bold text-xs transition cursor-pointer flex flex-col items-center leading-tight';
+                targetRotX = 0.24;
+            } else {
+                lowerTab.className = 'py-2 px-3 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-extrabold text-xs transition cursor-pointer flex flex-col items-center leading-tight shadow';
+                upperTab.className = 'py-2 px-3 rounded-lg bg-transparent hover:bg-slate-800 text-slate-300 font-bold text-xs transition cursor-pointer flex flex-col items-center leading-tight';
+                targetRotX = 0.06;
+            }
+            autoRotate3D = false;
+            renderBusMap();
+        }
+
+        /**
+         * Carrega e salva no localStorage
          */
         function loadOccupiedSeats() {
             try {
@@ -747,9 +1152,6 @@
             }
         }
 
-        /**
-         * Salva lista de assentos e registros no localStorage
-         */
         function saveOccupiedSeats() {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(occupiedSeats));
@@ -782,7 +1184,7 @@
 
                     data.records.forEach(r => {
                         const seatNum = Number(r.seatRaw || r.seat);
-                        if (seatNum >= 1 && seatNum <= TOTAL_SEATS) {
+                        if (seatNum >= 1 && seatNum <= TOTAL_PHYSICAL_SEATS) {
                             remoteSeats.push(seatNum);
                             remoteRecords[seatNum] = {
                                 ...r,
@@ -801,10 +1203,10 @@
                     seatRecords = remoteRecords;
                     saveOccupiedSeats();
 
-                    if (prevSelected && occupiedSeats.includes(prevSelected)) {
+                    if (prevSelected && (occupiedSeats.includes(prevSelected) || occupiedSeats.length >= MAX_PASSENGERS_LIMIT)) {
                         selectedSeat = null;
                         updateSelectedBadge();
-                        showToast(`A poltrona ${formatSeatNum(prevSelected)} acabou de ser reservada por outra pessoa.`, 'error');
+                        showToast(`A poltrona ${formatSeatNum(prevSelected)} não está mais disponível.`, 'error');
                     }
 
                     if (prevRoomId && isRoomFull(prevRoomId)) {
@@ -853,17 +1255,26 @@
         }
 
         /**
-         * Formata número do assento com dois dígitos (ex: 1 -> "01")
+         * Auxiliares de Poltrona e Andar
          */
         function formatSeatNum(num) {
             return String(num).padStart(2, '0');
         }
 
-        /**
-         * Retorna posição do assento (Janela ou Corredor)
-         */
+        function getSeatDeckName(num) {
+            return num <= UPPER_DECK_SEATS ? 'Piso Superior' : 'Piso Inferior';
+        }
+
         function getSeatPosition(num) {
-            return num % 2 !== 0 ? 'Janela' : 'Corredor';
+            if (num <= UPPER_DECK_SEATS) {
+                return num % 2 !== 0 ? 'Janela' : 'Corredor';
+            }
+            // Piso inferior (43 a 48): 43, 45, 46, 48 Janela | 44, 47 Corredor
+            return [43, 45, 46, 48].includes(num) ? 'Janela' : 'Corredor';
+        }
+
+        function isBusPassengerLimitReached() {
+            return occupiedSeats.length >= MAX_PASSENGERS_LIMIT;
         }
 
         /**
@@ -884,13 +1295,13 @@
         }
 
         /**
-         * Atualiza os contadores de poltronas e vagas de quartos no topo
+         * Atualiza os contadores no topo e nas abas dos andares
          */
         function updateAvailableCounter() {
-            const freeSeats = TOTAL_SEATS - occupiedSeats.length;
+            const remainingBusSlots = Math.max(0, MAX_PASSENGERS_LIMIT - occupiedSeats.length);
             const seatCounterEl = document.getElementById('available-counter');
             if (seatCounterEl) {
-                seatCounterEl.textContent = `${freeSeats} ${freeSeats === 1 ? 'poltrona' : 'poltronas'}`;
+                seatCounterEl.textContent = `${remainingBusSlots} ${remainingBusSlots === 1 ? 'vaga no ônibus' : 'vagas no ônibus'}`;
             }
 
             const totalOccupiedBeds = Object.values(seatRecords).filter(r => r.roomId).length;
@@ -899,52 +1310,162 @@
             if (roomCounterEl) {
                 roomCounterEl.textContent = `${freeBeds} ${freeBeds === 1 ? 'vaga em quarto' : 'vagas em quartos'}`;
             }
+
+            // Atualiza contadores individuais por andar
+            const upperOccupied = occupiedSeats.filter(s => s <= UPPER_DECK_SEATS).length;
+            const lowerOccupied = occupiedSeats.filter(s => s > UPPER_DECK_SEATS).length;
+
+            const upperLabel = document.getElementById('upper-deck-count');
+            const lowerLabel = document.getElementById('lower-deck-count');
+            if (upperLabel) {
+                upperLabel.textContent = `${UPPER_DECK_SEATS - upperOccupied} livres de 42`;
+            }
+            if (lowerLabel) {
+                lowerLabel.textContent = `${LOWER_DECK_SEATS - lowerOccupied} livres de 6`;
+            }
+
+            // Banner de lotação máxima (40 passageiros)
+            const fullBanner = document.getElementById('bus-capacity-full-banner');
+            if (fullBanner) {
+                fullBanner.classList.toggle('hidden', !isBusPassengerLimitReached());
+            }
         }
 
         /**
-         * Renderiza todas as 46 poltronas do ônibus (2x2) e os 15 quartos
+         * Renderiza o mapa do andar selecionado (Superior: 01–42 | Inferior: 43–48)
          */
         function renderBusMap() {
             const grid = document.getElementById('bus-seats-grid');
-            if (grid) {
+            const frontArea = document.getElementById('deck-front-area');
+            const rearArea = document.getElementById('deck-rear-area');
+            const deckTitle = document.getElementById('deck-header-title');
+
+            if (grid && frontArea && rearArea) {
                 grid.innerHTML = '';
 
-                // 11 fileiras completas (01 a 44) + 1 fileira final com 2 poltronas (45, 46)
-                const totalRows = Math.ceil(TOTAL_SEATS / 4);
+                if (activeDeck === 'upper') {
+                    deckTitle.textContent = 'PISO SUPERIOR (01–42) • PANORÂMICO';
+                    frontArea.innerHTML = `
+                        <div class="bg-slate-800/90 rounded-xl p-2 flex items-center gap-2 border border-amber-500/25">
+                            <div class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 font-bold text-[10px]">
+                                DD
+                            </div>
+                            <div class="leading-tight">
+                                <span class="block text-[10px] font-bold text-amber-300">Para-brisa</span>
+                                <span class="block text-[9px] text-slate-400">Vista Panorâmica</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-800/70 rounded-xl p-2 flex items-center justify-end gap-2 border border-slate-700">
+                            <div class="text-right leading-tight">
+                                <span class="block text-[10px] font-bold text-slate-300">Escada</span>
+                                <span class="block text-[9px] text-slate-400">Acesso 2º Piso</span>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg bg-slate-700 text-amber-300 flex items-center justify-center shrink-0 text-xs">
+                                ⇅
+                            </div>
+                        </div>
+                    `;
 
-                for (let row = 0; row < totalRows; row++) {
-                    const base = row * 4;
-                    const leftWindow = base + 1;
-                    const leftAisle = base + 2;
-                    const rightWindow = base + 3;
-                    const rightAisle = base + 4;
+                    // 11 fileiras no Piso Superior (01 a 42)
+                    const totalRows = Math.ceil(UPPER_DECK_SEATS / 4);
+                    for (let row = 0; row < totalRows; row++) {
+                        const base = row * 4;
+                        const leftWindow = base + 1;
+                        const leftAisle = base + 2;
+                        const rightWindow = base + 3;
+                        const rightAisle = base + 4;
 
-                    const rowEl = document.createElement('div');
-                    rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
+                        const rowEl = document.createElement('div');
+                        rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
 
-                    rowEl.appendChild(createSeatButton(leftWindow));
-                    rowEl.appendChild(createSeatButton(leftAisle));
+                        rowEl.appendChild(createSeatButton(leftWindow));
+                        rowEl.appendChild(createSeatButton(leftAisle));
 
-                    // Corredor central
-                    const aisleEl = document.createElement('div');
-                    aisleEl.className = 'flex items-center justify-center text-[10px] font-mono text-slate-300 select-none';
-                    aisleEl.textContent = `${row + 1}`;
-                    rowEl.appendChild(aisleEl);
+                        const aisleEl = document.createElement('div');
+                        aisleEl.className = 'flex items-center justify-center text-[10px] font-mono text-slate-500 select-none';
+                        aisleEl.textContent = `${row + 1}`;
+                        rowEl.appendChild(aisleEl);
 
-                    rowEl.appendChild(rightAisle <= TOTAL_SEATS ? createSeatButton(rightAisle) : createEmptySpacer());
-                    rowEl.appendChild(rightWindow <= TOTAL_SEATS ? createSeatButton(rightWindow) : createEmptySpacer());
+                        rowEl.appendChild(rightAisle <= UPPER_DECK_SEATS ? createSeatButton(rightAisle) : createEmptySpacer());
+                        rowEl.appendChild(rightWindow <= UPPER_DECK_SEATS ? createSeatButton(rightWindow) : createEmptySpacer());
 
-                    grid.appendChild(rowEl);
+                        grid.appendChild(rowEl);
+                    }
+
+                    rearArea.innerHTML = `
+                        <div class="bg-slate-800/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-700 text-slate-300">
+                            <span class="text-[10px] font-semibold">☕ Frigobar / Café</span>
+                        </div>
+                        <div class="bg-slate-800/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-700 text-slate-300">
+                            <span class="text-[10px] font-semibold">📺 Telas LED</span>
+                        </div>
+                    `;
+                } else {
+                    // PISO INFERIOR (6 lugares: 43 a 48)
+                    deckTitle.textContent = 'PISO INFERIOR (43–48) • SALÃO TÉRREO';
+                    frontArea.innerHTML = `
+                        <div class="bg-slate-800/90 rounded-xl p-2 flex items-center gap-2 border border-amber-500/25">
+                            <div class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/>
+                                </svg>
+                            </div>
+                            <div class="leading-tight">
+                                <span class="block text-[10px] font-bold text-amber-300">Motorista</span>
+                                <span class="block text-[9px] text-slate-400">Cabine Inferior</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-800/70 rounded-xl p-2 flex items-center justify-end gap-2 border border-slate-700">
+                            <div class="text-right leading-tight">
+                                <span class="block text-[10px] font-bold text-slate-300">Porta</span>
+                                <span class="block text-[9px] text-slate-400">Embarque</span>
+                            </div>
+                            <div class="w-6 h-6 rounded-lg bg-slate-700 text-amber-300 flex items-center justify-center shrink-0 text-xs">
+                                🚪
+                            </div>
+                        </div>
+                    `;
+
+                    // 2 fileiras no Piso Inferior (43, 44, 45 e 46, 47, 48 - configuração executiva 2 + 1)
+                    const lowerRows = [
+                        [43, 44, null, 45],
+                        [46, 47, null, 48]
+                    ];
+
+                    lowerRows.forEach((rSeats, rIdx) => {
+                        const rowEl = document.createElement('div');
+                        rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
+
+                        rowEl.appendChild(createSeatButton(rSeats[0]));
+                        rowEl.appendChild(createSeatButton(rSeats[1]));
+
+                        const aisleEl = document.createElement('div');
+                        aisleEl.className = 'flex items-center justify-center text-[10px] font-mono text-slate-500 select-none';
+                        aisleEl.textContent = `T${rIdx + 1}`;
+                        rowEl.appendChild(aisleEl);
+
+                        rowEl.appendChild(createEmptySpacer());
+                        rowEl.appendChild(createSeatButton(rSeats[3]));
+
+                        grid.appendChild(rowEl);
+                    });
+
+                    rearArea.innerHTML = `
+                        <div class="bg-slate-800/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-700 text-slate-300">
+                            <span class="text-[10px] font-semibold">🚻 Sanitário (WC)</span>
+                        </div>
+                        <div class="bg-slate-800/80 rounded-xl p-2 flex items-center justify-center gap-1.5 border border-slate-700 text-slate-300">
+                            <span class="text-[10px] font-semibold">🧳 Bagageiro</span>
+                        </div>
+                    `;
                 }
             }
 
             renderRoomsGrid();
             updateAvailableCounter();
+            update3DSeatsColors();
         }
 
-        /**
-         * Cria o elemento visual de cada poltrona
-         */
         function createSeatButton(seatNumber) {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -952,24 +1473,26 @@
 
             const isOccupied = occupiedSeats.includes(seatNumber);
             const isSelected = selectedSeat === seatNumber;
+            const limitBlocked = !isOccupied && !isSelected && isBusPassengerLimitReached();
             const formatted = formatSeatNum(seatNumber);
             const position = getSeatPosition(seatNumber);
 
             let stateClass = 'seat-available';
-            if (isOccupied) {
+            if (isOccupied || limitBlocked) {
                 stateClass = 'seat-occupied';
             } else if (isSelected) {
                 stateClass = 'seat-selected';
             }
 
-            btn.className = `seat-btn ${stateClass} h-11 rounded-xl flex flex-col items-center justify-center font-mono text-xs sm:text-sm font-bold leading-none`;
+            btn.className = `seat-btn ${stateClass} h-11 rounded-xl flex flex-col items-center justify-center font-mono text-xs sm:text-sm font-extrabold leading-none`;
             btn.innerHTML = `<span>${formatted}</span>`;
             btn.title = isOccupied
                 ? `Poltrona ${formatted} (${position}) — Ocupada`
-                : `Poltrona ${formatted} (${position}) — Livre`;
-            btn.setAttribute('aria-label', btn.title);
+                : limitBlocked
+                    ? `Poltrona ${formatted} — Limite máximo de 40 passageiros atingido`
+                    : `Poltrona ${formatted} (${position}) — Livre`;
 
-            if (isOccupied) {
+            if (isOccupied || limitBlocked) {
                 btn.disabled = true;
             } else {
                 btn.addEventListener('click', () => handleSeatClick(seatNumber));
@@ -985,7 +1508,7 @@
         }
 
         /**
-         * Renderiza os 15 quartos (10 Triplos e 5 Duplos - 1 por linha no celular)
+         * Renderiza os 15 quartos (10 Triplos e 5 Duplos = 40 vagas)
          */
         function renderRoomsGrid() {
             const roomsGrid = document.getElementById('rooms-grid');
@@ -1005,12 +1528,11 @@
                 if (full) {
                     card.className = 'w-full text-left p-3.5 rounded-xl border-2 border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed flex flex-col justify-between gap-2';
                 } else if (isSelected) {
-                    card.className = 'w-full text-left p-3.5 rounded-xl border-2 border-slate-900 bg-slate-900 text-white shadow-md flex flex-col justify-between gap-2 cursor-pointer transition';
+                    card.className = 'w-full text-left p-3.5 rounded-xl border-2 border-amber-500 bg-slate-900 text-white shadow-md flex flex-col justify-between gap-2 cursor-pointer transition';
                 } else {
                     card.className = 'w-full text-left p-3.5 rounded-xl border-2 border-slate-200 hover:border-emerald-500 bg-white hover:bg-emerald-50/40 text-slate-800 flex flex-col justify-between gap-2 cursor-pointer transition';
                 }
 
-                // Indicador visual de camas ocupadas/livres
                 let bedsDots = '';
                 for (let b = 0; b < room.capacity; b++) {
                     const filled = b < occupants.length;
@@ -1053,12 +1575,13 @@
             });
         }
 
-        /**
-         * Trata o clique do usuário em um assento livre
-         */
         function handleSeatClick(seatNumber) {
             if (occupiedSeats.includes(seatNumber)) {
                 showToast(`A poltrona ${formatSeatNum(seatNumber)} já está ocupada.`, 'error');
+                return;
+            }
+            if (isBusPassengerLimitReached() && selectedSeat !== seatNumber) {
+                showToast('O ônibus já atingiu a lotação máxima de 40 passageiros.', 'error');
                 return;
             }
 
@@ -1067,9 +1590,6 @@
             updateSelectedBadge();
         }
 
-        /**
-         * Trata o clique do usuário em um quarto com vagas
-         */
         function handleRoomClick(roomId) {
             if (isRoomFull(roomId)) {
                 showToast('Este quarto já está com todas as vagas preenchidas.', 'error');
@@ -1081,9 +1601,6 @@
             updateSelectedRoomBadge();
         }
 
-        /**
-         * Atualiza o indicador visual do assento selecionado no formulário
-         */
         function updateSelectedBadge() {
             const badge = document.getElementById('selected-seat-badge');
             if (!badge) return;
@@ -1096,13 +1613,11 @@
 
             const formatted = formatSeatNum(selectedSeat);
             const pos = getSeatPosition(selectedSeat);
-            badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold shadow-sm';
-            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Poltrona ${formatted} (${pos})</span>`;
+            const deckShort = selectedSeat <= UPPER_DECK_SEATS ? 'Sup.' : 'Inf.';
+            badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-amber-300 border border-amber-500/40 text-xs font-bold shadow-sm';
+            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Poltrona ${formatted} (${pos} • ${deckShort})</span>`;
         }
 
-        /**
-         * Atualiza o indicador visual do quarto selecionado no formulário
-         */
         function updateSelectedRoomBadge() {
             const badge = document.getElementById('selected-room-badge');
             if (!badge) return;
@@ -1125,6 +1640,11 @@
             const form = document.getElementById('reservation-form');
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
+
+                if (isBusPassengerLimitReached()) {
+                    showToast('Lotação máxima de 40 passageiros já foi atingida.', 'error');
+                    return;
+                }
 
                 if (!selectedSeat) {
                     showToast('Por favor, selecione uma poltrona livre no mapa do ônibus antes de confirmar.', 'error');
@@ -1160,7 +1680,6 @@
                     return;
                 }
 
-                // Checagem instantânea na nuvem antes de gravar para evitar duplo agendamento no mesmo segundo
                 const seatToReserve = selectedSeat;
                 const roomToReserveId = selectedRoomId;
                 const originalBtnHTML = submitBtn.innerHTML;
@@ -1171,12 +1690,12 @@
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnHTML;
 
-                    if (occupiedSeats.includes(seatToReserve) || isRoomFull(roomToReserveId)) {
+                    if (isBusPassengerLimitReached() || occupiedSeats.includes(seatToReserve) || isRoomFull(roomToReserveId)) {
+                        renderBusMap();
                         return;
                     }
                 }
 
-                // Verifica se o CPF já possui alguma poltrona reservada
                 const existingReservation = Object.values(seatRecords).find(record => {
                     const recordCpf = String(record.doc || '').replace(/\D/g, '');
                     return recordCpf && recordCpf === normalizedCpf;
@@ -1207,17 +1726,18 @@
                     return;
                 }
 
-                // Gera dados únicos do bilhete
                 const now = new Date();
                 const formattedDate = now.toLocaleDateString('pt-BR');
                 const formattedTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 const randomCode = 'BUS-' + Math.floor(1000 + Math.random() * 9000);
                 const selectedRoom = getRoomById(selectedRoomId);
+                const deckName = getSeatDeckName(selectedSeat);
 
                 const ticketData = {
                     code: randomCode,
                     seat: formatSeatNum(selectedSeat),
                     seatRaw: selectedSeat,
+                    deck: deckName,
                     position: getSeatPosition(selectedSeat),
                     roomId: selectedRoom.id,
                     roomLabel: selectedRoom.label,
@@ -1231,12 +1751,10 @@
                     boardedAt: ''
                 };
 
-                // Ocupa a poltrona e salva registro detalhado
                 occupiedSeats.push(selectedSeat);
                 seatRecords[selectedSeat] = ticketData;
                 saveOccupiedSeats();
 
-                // Envia para nuvem (se Google Sheets estiver configurado)
                 const cloudRes = await pushRecordToCloud('RESERVE', ticketData);
                 if (cloudRes && cloudRes.status === 'SEAT_CONFLICT') {
                     showToast('Esta poltrona acabou de ser reservada por outro passageiro. Escolha outra.', 'error');
@@ -1255,27 +1773,23 @@
                     return;
                 }
 
-                // Limpa seleção atual e atualiza mapa
                 selectedSeat = null;
                 selectedRoomId = null;
                 updateSelectedBadge();
                 updateSelectedRoomBadge();
                 renderBusMap();
 
-                // Exibe comprovante
                 currentTicketData = ticketData;
                 renderVoucher(ticketData);
-                showToast(`Poltrona ${ticketData.seat} e ${ticketData.roomLabel} reservados!`, 'success');
+                showToast(`Poltrona ${ticketData.seat} (${deckName}) e ${ticketData.roomLabel} reservados!`, 'success');
             });
         }
 
-        /**
-         * Preenche o cartão visual do comprovante e gera o QR Code
-         */
         function renderVoucher(data) {
             document.getElementById('voucher-code').textContent = `#${data.code}`;
             document.getElementById('voucher-seat-number').textContent = data.seat;
             document.getElementById('voucher-seat-position').textContent = data.position;
+            document.getElementById('voucher-deck-label').textContent = data.deck || getSeatDeckName(Number(data.seatRaw || data.seat));
             document.getElementById('voucher-room-name').textContent = data.roomLabel || 'Sem quarto';
             document.getElementById('voucher-room-type').textContent = data.roomType || '';
             document.getElementById('voucher-name').textContent = data.name;
@@ -1287,7 +1801,6 @@
             const qrContainer = document.getElementById('qrcode-container');
             qrContainer.innerHTML = '';
 
-            // Monta link inteligente de check-in para validação direta pela câmera do celular
             const qrPayload = buildValidationURL(data);
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=4&data=${encodeURIComponent(qrPayload)}`;
 
@@ -1302,16 +1815,12 @@
             };
             qrContainer.appendChild(img);
 
-            // Alterna para a tela exclusiva de Checkout com o Cartão de Embarque
             document.getElementById('selection-screen-view').classList.add('hidden');
             const voucherSection = document.getElementById('voucher-section');
             voucherSection.classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        /**
-         * Prepara o formulário para uma nova reserva e retorna à tela de seleção
-         */
         function startNewReservation() {
             document.getElementById('reservation-form').reset();
             document.getElementById('voucher-section').classList.add('hidden');
@@ -1324,9 +1833,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        /**
-         * Máscaras automáticas para CPF e Telefone
-         */
         function setupInputMasks() {
             const docInput = document.getElementById('passenger-doc');
             const phoneInput = document.getElementById('passenger-phone');
@@ -1360,9 +1866,6 @@
             }
         }
 
-        /**
-         * Monta o link de check-in que será codificado no QR Code
-         */
         function buildValidationURL(data) {
             const currentUrl = window.location.href.split('?')[0];
             if (currentUrl.startsWith('http://') || currentUrl.startsWith('https://')) {
@@ -1377,9 +1880,6 @@
             return `BILHETE:${data.code}|POLTRONA:${data.seat}|QUARTO:${data.roomLabel || ''}|PASSAGEIRO:${data.name}`;
         }
 
-        /**
-         * Verifica se a página foi aberta através da leitura de um QR Code (?validar=...)
-         */
         function checkQRCodeValidationInURL() {
             const params = new URLSearchParams(window.location.search);
             const ticketCode = params.get('validar');
@@ -1461,9 +1961,6 @@
             window.history.replaceState({}, document.title, cleanUrl);
         }
 
-        /**
-         * Acesso secreto ao Painel do Coordenador (3 cliques no ícone do ônibus ou ?admin=1)
-         */
         function setupAdminTrigger() {
             const trigger = document.getElementById('admin-secret-trigger');
             let clickCount = 0;
@@ -1537,9 +2034,9 @@
             const records = Object.values(seatRecords).sort((a, b) => a.seatRaw - b.seatRaw);
             const boardedCount = records.filter(r => r.boarded).length;
 
-            document.getElementById('coord-total-reserved').textContent = records.length;
+            document.getElementById('coord-total-reserved').textContent = `${records.length} / ${MAX_PASSENGERS_LIMIT}`;
             document.getElementById('coord-total-boarded').textContent = boardedCount;
-            document.getElementById('coord-total-free').textContent = TOTAL_SEATS - records.length;
+            document.getElementById('coord-total-free').textContent = Math.max(0, MAX_PASSENGERS_LIMIT - records.length);
 
             if (records.length === 0) {
                 listEl.innerHTML = '<p class="text-center text-xs text-slate-400 py-8">Nenhuma reserva realizada até o momento.</p>';
@@ -1548,11 +2045,12 @@
 
             listEl.innerHTML = '';
             records.forEach(r => {
+                const deckShort = Number(r.seatRaw) <= UPPER_DECK_SEATS ? 'Sup' : 'Inf';
                 const item = document.createElement('div');
                 item.className = 'p-3 rounded-2xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2';
                 item.innerHTML = `
                     <div class="flex items-start gap-3">
-                        <span class="px-2.5 py-1.5 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs shrink-0">${r.seat}</span>
+                        <span class="px-2.5 py-1.5 rounded-xl bg-slate-900 text-amber-300 font-mono font-bold text-xs shrink-0">${r.seat} (${deckShort})</span>
                         <div>
                             <p class="text-xs sm:text-sm font-bold text-slate-900">${r.name}</p>
                             <p class="text-[11px] text-slate-500 font-mono">CPF: ${r.doc} • ${r.roomLabel || 'Sem quarto'} • #${r.code}</p>
@@ -1576,9 +2074,6 @@
             });
         }
 
-        /**
-         * Realiza check-in manual pelo painel do coordenador caso o passageiro não apresente o QR Code
-         */
         async function manualCheckinSeat(seatNum) {
             const record = seatRecords[seatNum];
             if (!record) return;
@@ -1636,12 +2131,13 @@
 
         function exportManifestCSV() {
             const records = Object.values(seatRecords).sort((a, b) => a.seatRaw - b.seatRaw);
-            const headers = ['Poltrona', 'Posicao', 'Quarto', 'TipoQuarto', 'Codigo', 'Nome', 'CPF', 'Telefone', 'Embarcado', 'HoraCheckin'];
+            const headers = ['Poltrona', 'Andar', 'Posicao', 'Quarto', 'TipoQuarto', 'Codigo', 'Nome', 'CPF', 'Telefone', 'Embarcado', 'HoraCheckin'];
             const lines = [headers.join(';')];
 
             records.forEach(r => {
                 lines.push([
                     r.seat,
+                    r.deck || getSeatDeckName(Number(r.seatRaw)),
                     r.position,
                     r.roomLabel || '',
                     r.roomType || '',
@@ -1658,14 +2154,11 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `lista-embarque-quartos-${new Date().toISOString().slice(0, 10)}.csv`;
+            link.download = `lista-embarque-gs-tour-${new Date().toISOString().slice(0, 10)}.csv`;
             link.click();
             URL.revokeObjectURL(url);
         }
 
-        /**
-         * Gera e baixa o Cartão de Embarque em alta resolução (PNG)
-         */
         function downloadVoucherPNG() {
             if (!currentTicketData) return;
 
@@ -1674,23 +2167,25 @@
             canvas.width = 720;
             canvas.height = 960;
 
-            // Fundo branco
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Cabeçalho escuro
-            ctx.fillStyle = '#0f172a';
+            // Cabeçalho GS Tour Preto & Dourado
+            ctx.fillStyle = '#090d16';
             ctx.fillRect(0, 0, canvas.width, 150);
 
-            ctx.fillStyle = '#34d399';
+            ctx.fillStyle = '#d4af37';
+            ctx.fillRect(0, 146, canvas.width, 4);
+
+            ctx.fillStyle = '#facc15';
             ctx.font = 'bold 18px Inter, sans-serif';
-            ctx.fillText('COMPROVANTE DE VIAGEM', 48, 56);
+            ctx.fillText('GS TOUR • DOUBLE DECKER', 48, 56);
 
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 34px Inter, sans-serif';
             ctx.fillText('Cartão de Embarque', 48, 104);
 
-            ctx.fillStyle = '#cbd5e1';
+            ctx.fillStyle = '#fde047';
             ctx.font = 'bold 22px monospace';
             ctx.textAlign = 'right';
             ctx.fillText(`#${currentTicketData.code}`, canvas.width - 48, 92);
@@ -1698,15 +2193,19 @@
 
             // Faixa de destaque Poltrona & Quarto
             ctx.fillStyle = '#f8fafc';
-            ctx.fillRect(0, 150, canvas.width, 165);
+            ctx.fillRect(0, 150, canvas.width, 175);
 
             ctx.fillStyle = '#64748b';
             ctx.font = 'bold 16px Inter, sans-serif';
             ctx.fillText('POLTRONA RESERVADA', 48, 195);
 
             ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 68px monospace';
-            ctx.fillText(`${currentTicketData.seat} (${currentTicketData.position})`, 48, 268);
+            ctx.font = 'bold 62px monospace';
+            ctx.fillText(`${currentTicketData.seat} (${currentTicketData.position})`, 48, 264);
+
+            ctx.fillStyle = '#b45309';
+            ctx.font = 'bold 18px Inter, sans-serif';
+            ctx.fillText(currentTicketData.deck || getSeatDeckName(Number(currentTicketData.seatRaw)), 48, 298);
 
             ctx.fillStyle = '#64748b';
             ctx.font = 'bold 16px Inter, sans-serif';
@@ -1722,13 +2221,12 @@
             ctx.fillText(currentTicketData.roomType || '', canvas.width - 48, 272);
             ctx.textAlign = 'left';
 
-            // Dados do passageiro
             const fields = [
-                { label: 'PASSAGEIRO(A)', value: currentTicketData.name, y: 380 },
-                { label: 'DOCUMENTO (CPF)', value: currentTicketData.doc, y: 470 },
-                { label: 'TELEFONE', value: currentTicketData.phone, y: 560 },
-                { label: 'LOCAL DE EMBARQUE', value: currentTicketData.boarding, y: 650 },
-                { label: 'DATA E HORA DA EMISSÃO', value: currentTicketData.datetime, y: 740 }
+                { label: 'PASSAGEIRO(A)', value: currentTicketData.name, y: 390 },
+                { label: 'DOCUMENTO (CPF)', value: currentTicketData.doc, y: 480 },
+                { label: 'TELEFONE', value: currentTicketData.phone, y: 570 },
+                { label: 'LOCAL DE EMBARQUE', value: currentTicketData.boarding, y: 660 },
+                { label: 'DATA E HORA DA EMISSÃO', value: currentTicketData.datetime, y: 750 }
             ];
 
             fields.forEach(f => {
@@ -1741,23 +2239,22 @@
                 ctx.fillText(String(f.value).slice(0, 44), 48, f.y + 34);
             });
 
-            // Rodapé
             ctx.strokeStyle = '#cbd5e1';
             ctx.setLineDash([10, 8]);
             ctx.beginPath();
-            ctx.moveTo(48, 815);
-            ctx.lineTo(canvas.width - 48, 815);
+            ctx.moveTo(48, 820);
+            ctx.lineTo(canvas.width - 48, 820);
             ctx.stroke();
             ctx.setLineDash([]);
 
             ctx.fillStyle = '#475569';
             ctx.font = '18px Inter, sans-serif';
-            ctx.fillText('Apresente este cartão ao coordenador no embarque.', 48, 875);
+            ctx.fillText('Apresente este cartão ao coordenador no embarque.', 48, 878);
 
             const qrImg = document.querySelector('#qrcode-container img');
             const triggerDownload = () => {
                 const link = document.createElement('a');
-                link.download = `cartao-embarque-${currentTicketData.seat}-${currentTicketData.code}.png`;
+                link.download = `cartao-embarque-gs-tour-${currentTicketData.seat}-${currentTicketData.code}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 showToast('Cartão de embarque salvo em PNG!', 'success');
@@ -1765,17 +2262,12 @@
 
             if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) {
                 try {
-                    ctx.drawImage(qrImg, canvas.width - 168, 830, 115, 115);
-                } catch (e) {
-                    // Ignora tainted canvas caso o servidor externo bloqueie CORS
-                }
+                    ctx.drawImage(qrImg, canvas.width - 168, 832, 115, 115);
+                } catch (e) {}
             }
             triggerDownload();
         }
 
-        /**
-         * Exibe notificações toast na tela
-         */
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             if (!container) return;
