@@ -377,7 +377,7 @@
                         <span class="px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm border border-amber-400/40 text-amber-300 font-extrabold text-[10px] tracking-widest">
                             GS TOUR 3D
                         </span>
-                        <span class="text-[10px] text-slate-300/80 hidden sm:inline">Frente à direita • Arraste para girar</span>
+                        <span class="text-[10px] text-slate-300/80 hidden sm:inline">Arraste para girar</span>
                     </div>
 
                     <button type="button" onclick="reset3DCamera()" title="Centralizar visão 3D"
@@ -740,29 +740,24 @@
         });
 
         /**
-         * Cria a carroceria aerodinâmica do Double Decker com frente inclinada/arredondada em +X
+         * Carroceria aerodinâmica do Double Decker:
+         * Frente inclinada fica em -X (à esquerda quando visto de lado com o nariz à esquerda)
          */
         function createAerodynamicBusBody(length, height, width, material) {
             const halfL = length / 2;
             const halfH = height / 2;
 
-            // Perfil lateral (plano XY): frente fica em +X, traseira em -X
-            // O para-brisa Double Decker tem leve inclinação aerodinâmica e cantos arredondados
             const shape = new THREE.Shape();
             shape.moveTo(-halfL + 0.14, -halfH);
-            shape.lineTo(halfL - 0.18, -halfH);
-            // Base dianteira arredondada
-            shape.quadraticCurveTo(halfL + 0.04, -halfH, halfL + 0.05, -halfH + 0.22);
-            // Frente inclinada levemente para frente na parte superior (estilo ônibus DD moderno)
-            shape.lineTo(halfL + 0.16, halfH - 0.26);
-            // Teto dianteiro arredondado
-            shape.quadraticCurveTo(halfL + 0.16, halfH, halfL - 0.08, halfH);
-            // Teto superior
-            shape.lineTo(-halfL + 0.16, halfH);
-            // Traseira arredondada
-            shape.quadraticCurveTo(-halfL - 0.02, halfH, -halfL - 0.02, halfH - 0.18);
-            shape.lineTo(-halfL + 0.02, -halfH + 0.16);
-            shape.quadraticCurveTo(-halfL + 0.02, -halfH, -halfL + 0.14, -halfH);
+            shape.lineTo(halfL - 0.14, -halfH);
+            shape.quadraticCurveTo(halfL, -halfH, halfL, -halfH + 0.18);
+            shape.lineTo(halfL, halfH - 0.18);
+            shape.quadraticCurveTo(halfL, halfH, halfL - 0.16, halfH);
+            shape.lineTo(-halfL + 0.10, halfH);
+            // Frente superior avançada e inclinada em -X
+            shape.quadraticCurveTo(-halfL - 0.14, halfH, -halfL - 0.14, halfH - 0.24);
+            shape.lineTo(-halfL - 0.03, -halfH + 0.22);
+            shape.quadraticCurveTo(-halfL - 0.02, -halfH, -halfL + 0.14, -halfH);
 
             const extrudeSettings = {
                 steps: 1,
@@ -774,15 +769,14 @@
             };
 
             const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-            // Centraliza ao longo do eixo Z
             geo.translate(0, 0, -width / 2);
             return new THREE.Mesh(geo, material);
         }
 
         /**
-         * Poltrona 3D orientada corretamente para a FRENTE (+X):
-         * - Encosto fica atrás (-X)
-         * - Descanso de pernas / pés fica na frente (+X)
+         * Poltrona 3D:
+         * - Encosto inclinado para trás (+X) mantendo o estilo que você aprovou
+         * - Aba de perna / descanso de pés estendida para a FRENTE (-X) em todas as poltronas
          */
         function create3DReclinerSeat(mode, initialColorHex) {
             const seatGroup = new THREE.Group();
@@ -793,45 +787,45 @@
             });
 
             if (mode === 'semileito') {
-                // Assento central
-                const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.055, 0.18), mat);
+                // Assento base
+                const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.055, 0.18), mat);
                 cushion.position.set(0.01, 0.05, 0);
                 seatGroup.add(cushion);
 
-                // Descanso de pernas / pés apontando para a FRENTE (+X)
-                const legRest = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.04, 0.17), mat);
-                legRest.position.set(0.125, 0.035, 0);
-                legRest.rotation.z = -0.25; // desce suavemente para os pés na frente (+X)
+                // Descanso de perna / aba frontal apontando para a FRENTE (-X)
+                const legRest = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.04, 0.175), mat);
+                legRest.position.set(-0.095, 0.032, 0);
+                legRest.rotation.z = 0.24;
                 seatGroup.add(legRest);
 
-                // Encosto reclinado para trás (-X) em ~28° (semi-leito)
+                // Encosto reclinado para trás (+X)
                 const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.21, 0.18), mat);
-                backrest.position.set(-0.085, 0.145, 0);
-                backrest.rotation.z = -0.46;
+                backrest.position.set(0.085, 0.145, 0);
+                backrest.rotation.z = 0.45;
                 seatGroup.add(backrest);
 
-                // Apoio de cabeça no topo do encosto (-X)
+                // Apoio de cabeça no topo do encosto (+X)
                 const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.055, 0.12), mat);
-                headrest.position.set(-0.13, 0.245, 0);
-                headrest.rotation.z = -0.46;
+                headrest.position.set(0.13, 0.245, 0);
+                headrest.rotation.z = 0.45;
                 seatGroup.add(headrest);
             } else {
-                // LEITO 180° (Cama): cabeça/encosto atrás (-X), pés/apoio frontal na frente (+X)
-                const bedBase = new THREE.Mesh(new THREE.BoxGeometry(0.40, 0.055, 0.24), mat);
+                // LEITO 180° (Cama): pés/pernas na frente (-X), encosto atrás (+X)
+                const bedBase = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.055, 0.24), mat);
                 bedBase.position.set(0, 0.035, 0);
                 seatGroup.add(bedBase);
 
-                // Encosto de cabeça reclinado quase na horizontal atrás (-X)
-                const reclineBack = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.045, 0.24), mat);
-                reclineBack.position.set(-0.24, 0.055, 0);
-                reclineBack.rotation.z = -0.20;
-                seatGroup.add(reclineBack);
-
-                // Apoio de pés/panturrilha estendido para a frente (+X)
-                const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 0.24), mat);
-                footRest.position.set(0.24, 0.045, 0);
-                footRest.rotation.z = -0.15;
+                // Apoio de perna/pé na frente (-X)
+                const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.04, 0.24), mat);
+                footRest.position.set(-0.225, 0.045, 0);
+                footRest.rotation.z = 0.14;
                 seatGroup.add(footRest);
+
+                // Encosto de cabeça atrás (+X)
+                const reclineBack = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.045, 0.24), mat);
+                reclineBack.position.set(0.23, 0.055, 0);
+                reclineBack.rotation.z = 0.18;
+                seatGroup.add(reclineBack);
             }
 
             return { group: seatGroup, material: mat };
@@ -846,8 +840,8 @@
 
             threeScene = new THREE.Scene();
             threeCamera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
-            threeCamera.position.set(0.2, 1.45, 7.9);
-            threeCamera.lookAt(0.1, 0.22, 0);
+            threeCamera.position.set(0.1, 1.45, 7.9);
+            threeCamera.lookAt(0, 0.22, 0);
 
             threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             threeRenderer.setSize(width, height);
@@ -857,11 +851,11 @@
 
             threeScene.add(new THREE.AmbientLight(0xffffff, 0.78));
             const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.25);
-            dirLight.position.set(6, 8, 6);
+            dirLight.position.set(-5, 8, 6);
             threeScene.add(dirLight);
 
             const rimLight = new THREE.DirectionalLight(0xd4af37, 0.9);
-            rimLight.position.set(-6, 4, -5);
+            rimLight.position.set(6, 4, -5);
             threeScene.add(rimLight);
 
             busGroup = new THREE.Group();
@@ -889,41 +883,38 @@
                 depthWrite: false
             });
 
-            // 1. Chassi inferior aerodinâmico preto (frente inclinada em +X)
+            // 1. Chassi inferior preto
             const lowerChassis = createAerodynamicBusBody(busLength, 0.70, busWidth, blackBodyMat);
             lowerChassis.position.y = -0.28;
             busGroup.add(lowerChassis);
 
-            // 2. Salão superior panorâmico translúcido com frente inclinada
+            // 2. Salão superior translúcido
             const upperCabin = createAerodynamicBusBody(busLength, 0.94, busWidth, glassBodyMat);
             upperCabin.position.y = 0.56;
             busGroup.add(upperCabin);
 
-            // 3. Faixas e contorno dourados GS Tour (inclusive coluna frontal inclinada)
+            // 3. Faixas douradas e coluna frontal inclinada em -X
             const midGoldStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.08, 0.04, busWidth + 0.06), goldMat);
-            midGoldStripe.position.set(0.03, 0.09, 0);
+            midGoldStripe.position.set(-0.02, 0.09, 0);
             busGroup.add(midGoldStripe);
 
             const topGoldStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.28, 0.045, busWidth + 0.06), goldMat);
-            topGoldStripe.position.set(0.02, 1.02, 0);
+            topGoldStripe.position.set(-0.02, 1.02, 0);
             busGroup.add(topGoldStripe);
 
-            // Coluna frontal dourada inclinada caracterizando a frente do ônibus
             const frontPillar = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.66, busWidth + 0.06), goldMat);
-            frontPillar.position.set(busLength / 2 + 0.11, 0.20, 0);
-            frontPillar.rotation.z = -0.14;
+            frontPillar.position.set(-busLength / 2 - 0.10, 0.20, 0);
+            frontPillar.rotation.z = 0.14;
             busGroup.add(frontPillar);
 
-            // Faróis dianteiros na frente (+X)
             const hlGeo = new THREE.BoxGeometry(0.05, 0.08, 0.20);
             const hlMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
             [-0.42, 0.42].forEach(zPos => {
                 const hl = new THREE.Mesh(hlGeo, hlMat);
-                hl.position.set(busLength / 2 + 0.06, -0.45, zPos);
+                hl.position.set(-busLength / 2 - 0.04, -0.45, zPos);
                 busGroup.add(hl);
             });
 
-            // Piso divisório entre andar superior e inferior
             const floorDiv = new THREE.Mesh(new THREE.BoxGeometry(busLength - 0.12, 0.04, busWidth - 0.06), blackBodyMat);
             floorDiv.position.y = 0.11;
             busGroup.add(floorDiv);
@@ -936,12 +927,12 @@
             sctx.strokeStyle = '#d4af37';
             sctx.lineWidth = 5;
             sctx.beginPath();
-            sctx.moveTo(20, 35);
-            sctx.quadraticCurveTo(260, 15, 490, 95);
+            sctx.moveTo(20, 95);
+            sctx.quadraticCurveTo(260, 15, 490, 35);
             sctx.stroke();
 
             sctx.save();
-            sctx.translate(78, 72);
+            sctx.translate(430, 72);
             sctx.strokeStyle = '#d4af37';
             sctx.lineWidth = 3;
             sctx.beginPath();
@@ -951,9 +942,9 @@
 
             sctx.fillStyle = '#d4af37';
             sctx.font = 'bold 34px Inter, sans-serif';
-            sctx.fillText('GS', 330, 62);
+            sctx.fillText('GS', 70, 62);
             sctx.font = 'bold 12px Inter, sans-serif';
-            sctx.fillText('— TOUR —', 325, 80);
+            sctx.fillText('— TOUR —', 65, 80);
 
             const decalTex = new THREE.CanvasTexture(sideCanvas);
             const decalMat = new THREE.MeshBasicMaterial({ map: decalTex, transparent: true });
@@ -969,7 +960,7 @@
             busGroup.add(leftDecal);
 
             // 4 Eixos (8 rodas)
-            const wheelXPositions = [-2.02, -1.46, 1.36, 1.94];
+            const wheelXPositions = [-1.94, -1.36, 1.46, 2.02];
             const tireGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.14, 20);
             tireGeo.rotateX(Math.PI / 2);
             const tireMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
@@ -990,13 +981,13 @@
                 });
             });
 
-            // ANDAR SUPERIOR (01 a 42): Semi-leito virado para frente (+X)
+            // ANDAR SUPERIOR (01 a 42): Semi-leito com folga na primeira fileira (-2.18) para não encostar na frente
             const zSlots = [-0.42, -0.18, 0.18, 0.42];
             for (let s = 1; s <= UPPER_DECK_SEATS; s++) {
                 const idx = s - 1;
                 const row = Math.floor(idx / 4);
                 const col = idx % 4;
-                const xPos = 2.15 - row * 0.43;
+                const xPos = -2.18 + row * 0.44;
                 const zPos = zSlots[col];
 
                 const seatObj = create3DReclinerSeat('semileito', 0x10b981);
@@ -1005,12 +996,12 @@
                 seatMaterials3D[s] = seatObj.material;
             }
 
-            // ANDAR INFERIOR (43 a 48): Leito 180° com pés apontando para frente (+X)
+            // ANDAR INFERIOR (43 a 48): Leito 180°
             for (let s = 43; s <= TOTAL_PHYSICAL_SEATS; s++) {
                 const idx = s - 43;
                 const row = Math.floor(idx / 3);
                 const col = idx % 3;
-                const xPos = 0.22 - row * 0.55;
+                const xPos = -0.35 + row * 0.56;
                 const zPos = [-0.36, 0.0, 0.36][col];
 
                 const seatObj = create3DReclinerSeat('leito180', 0x10b981);
