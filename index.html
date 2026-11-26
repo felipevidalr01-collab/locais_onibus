@@ -767,9 +767,9 @@
         }
 
         /**
-         * Perfil fiel ao desenho em azul:
-         * - Encosto inclinado para cima/trás (+X) com apoio de cabeça no topo
-         * - Base/perna estendida para o lado oposto (esquerda / -X, no sentido do desenho)[cite: 5]
+         * Geometria conforme esboço aprovado:
+         * - Encosto reclinado à esquerda (-X) com apoio de cabeça no topo
+         * - Base do assento e apoio dos pés/pernas encaixados na base inferior do encosto, voltados para o lado oposto (+X)
          */
         function create3DReclinerSeat(mode, initialColorHex) {
             const seatGroup = new THREE.Group();
@@ -780,43 +780,43 @@
             });
 
             if (mode === 'semileito') {
-                // Assento horizontal
-                const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.055, 0.18), mat);
-                cushion.position.set(0.015, 0.048, 0);
-                seatGroup.add(cushion);
-
-                // Perna / aba frontal avançando para o lado do desenho (-X)
-                const legRest = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.038, 0.175), mat);
-                legRest.position.set(-0.095, 0.03, 0);
-                legRest.rotation.z = 0.22;
-                seatGroup.add(legRest);
-
-                // Encosto inclinado para cima/trás (+X)
+                // Encosto reclinado para a esquerda (-X)
                 const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.21, 0.18), mat);
-                backrest.position.set(0.082, 0.145, 0);
-                backrest.rotation.z = 0.44;
+                backrest.position.set(-0.065, 0.145, 0);
+                backrest.rotation.z = -0.34;
                 seatGroup.add(backrest);
 
                 // Apoio de cabeça no topo do encosto
                 const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.052, 0.12), mat);
-                headrest.position.set(0.126, 0.242, 0);
-                headrest.rotation.z = 0.44;
+                headrest.position.set(-0.102, 0.242, 0);
+                headrest.rotation.z = -0.34;
                 seatGroup.add(headrest);
+
+                // Base do assento encaixada logo na base do encosto, estendendo-se para o lado oposto (+X)
+                const seatBase = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.048, 0.18), mat);
+                seatBase.position.set(0.022, 0.045, 0);
+                seatGroup.add(seatBase);
+
+                // Apoio dos pés/pernas na base inferior, recolhido/inclinado para o lado oposto (+X)
+                const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.072, 0.17), mat);
+                footRest.position.set(0.072, 0.036, 0);
+                footRest.rotation.z = -0.18;
+                seatGroup.add(footRest);
             } else {
-                // LEITO 180° seguindo o mesmo sentido do desenho
-                const bedBase = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.055, 0.24), mat);
-                bedBase.position.set(0, 0.035, 0);
+                // LEITO 180° mantendo a mesma relação entre encosto e base/apoio de pés
+                const bedBase = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.052, 0.24), mat);
+                bedBase.position.set(0.01, 0.036, 0);
                 seatGroup.add(bedBase);
 
-                const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.04, 0.24), mat);
-                footRest.position.set(-0.225, 0.045, 0);
-                footRest.rotation.z = 0.14;
-                seatGroup.add(footRest);
-
-                const reclineBack = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.045, 0.24), mat);
-                reclineBack.position.set(0.23, 0.055, 0);
-                reclineBack.rotation.z = 0.18;
+                const reclineBack = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.046, 0.24), mat);
+                reclineBack.position.set(-0.18, 0.052, 0);
+                reclineBack.rotation.z = -0.16;
                 seatGroup.add(reclineBack);
+
+                const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.068, 0.235), mat);
+                footRest.position.set(0.185, 0.034, 0);
+                footRest.rotation.z = -0.16;
+                seatGroup.add(footRest);
             }
 
             return { group: seatGroup, material: mat };
