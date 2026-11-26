@@ -684,9 +684,10 @@
         let isSyncing = false;
 
         let threeScene, threeCamera, threeRenderer, busGroup, seatMaterials3D = {};
-        let targetRotY = -0.55, targetRotX = 0.18;
-        let currentRotY = -0.55, currentRotX = 0.18;
-        let isDragging3D = false, prevMouseX = 0, prevMouseY = 0, autoRotate3D = true;
+        // Vista frontal-lateral alinhada para a frente (-X) ficar à esquerda e a traseira (+X) à direita
+        let targetRotY = -0.35, targetRotX = 0.20;
+        let currentRotY = -0.35, currentRotX = 0.20;
+        let isDragging3D = false, prevMouseX = 0, prevMouseY = 0, autoRotate3D = false;
 
         window.addEventListener('DOMContentLoaded', async () => {
             loadOccupiedSeats();
@@ -767,8 +768,9 @@
         }
 
         /**
-         * Inclinação do encosto em 145° (reclineRad = 55°)
-         * + Travesseiro fofo posicionado na parte da frente/cima do encosto
+         * Frente do ônibus está em -X e traseira em +X:
+         * Passageiro olha para a frente (-X), então o encosto reclina para trás (+X) em 145°
+         * e o assento + apoio de pernas ficam voltados para a frente (-X).
          */
         function create3DReclinerSeat(mode, initialColorHex) {
             const seatGroup = new THREE.Group();
@@ -778,7 +780,6 @@
                 metalness: 0.15
             });
 
-            // Material macio branco-gelo para o travesseiro
             const pillowMat = new THREE.MeshStandardMaterial({
                 color: 0xf8fafc,
                 roughness: 0.55,
@@ -786,49 +787,47 @@
             });
 
             if (mode === 'semileito') {
-                const reclineRad = THREE.MathUtils.degToRad(55); // 90° + 55° = 145°
-
-                // Encosto reclinado em 145° para a esquerda (-X)
+                // Encosto inclinado 145° para trás (+X)
                 const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.052, 0.22, 0.18), mat);
-                backrest.position.set(-0.115, 0.115, 0);
-                backrest.rotation.z = reclineRad;
+                backrest.position.set(0.115, 0.115, 0);
+                backrest.rotation.z = -THREE.MathUtils.degToRad(55);
                 seatGroup.add(backrest);
 
-                // Travesseiro apoiado na parte da frente/cima do encosto (alinhado ao mesmo ângulo de 145°)
+                // Travesseiro na face frontal superior do encosto (voltado para frente/cima)
                 const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.068, 0.13), pillowMat);
-                pillow.position.set(-0.155, 0.175, 0);
-                pillow.rotation.z = reclineRad;
+                pillow.position.set(0.155, 0.175, 0);
+                pillow.rotation.z = -THREE.MathUtils.degToRad(55);
                 seatGroup.add(pillow);
 
-                // Base do assento colada na articulação inferior do encosto, avançando para o lado oposto (+X)
+                // Base do assento voltada para a frente (-X)
                 const seatBase = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.048, 0.18), mat);
-                seatBase.position.set(0.025, 0.045, 0);
+                seatBase.position.set(-0.025, 0.045, 0);
                 seatGroup.add(seatBase);
 
-                // Apoio dos pés/pernas colado na extremidade oposta (+X)
+                // Apoio dos pés na extremidade frontal (-X)
                 const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.072, 0.17), mat);
-                footRest.position.set(0.075, 0.036, 0);
-                footRest.rotation.z = -0.22;
+                footRest.position.set(-0.075, 0.036, 0);
+                footRest.rotation.z = 0.22;
                 seatGroup.add(footRest);
             } else {
-                // LEITO 180° (Piso Inferior) com travesseiro na cabeceira
+                // LEITO 180° (Piso Inferior)
                 const bedBase = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.052, 0.24), mat);
-                bedBase.position.set(0.01, 0.036, 0);
+                bedBase.position.set(-0.01, 0.036, 0);
                 seatGroup.add(bedBase);
 
                 const reclineBack = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.046, 0.24), mat);
-                reclineBack.position.set(-0.17, 0.052, 0);
-                reclineBack.rotation.z = 0.14;
+                reclineBack.position.set(0.17, 0.052, 0);
+                reclineBack.rotation.z = -0.14;
                 seatGroup.add(reclineBack);
 
                 const bedPillow = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.032, 0.16), pillowMat);
-                bedPillow.position.set(-0.175, 0.082, 0);
-                bedPillow.rotation.z = 0.14;
+                bedPillow.position.set(0.175, 0.082, 0);
+                bedPillow.rotation.z = -0.14;
                 seatGroup.add(bedPillow);
 
                 const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.068, 0.235), mat);
-                footRest.position.set(0.172, 0.034, 0);
-                footRest.rotation.z = -0.18;
+                footRest.position.set(-0.172, 0.034, 0);
+                footRest.rotation.z = 0.18;
                 seatGroup.add(footRest);
             }
 
@@ -980,6 +979,7 @@
                 });
             });
 
+            // Piso Superior (01..42): row 0 = frente (-2.14), row 10 = traseira (+2.26)
             const zSlots = [-0.42, -0.18, 0.18, 0.42];
             for (let s = 1; s <= UPPER_DECK_SEATS; s++) {
                 const idx = s - 1;
@@ -994,6 +994,7 @@
                 seatMaterials3D[s] = seatObj.material;
             }
 
+            // Piso Inferior (43..48): row 0 = frente (-0.35), row 1 = traseira (+0.21)
             for (let s = 43; s <= TOTAL_PHYSICAL_SEATS; s++) {
                 const idx = s - 43;
                 const row = Math.floor(idx / 3);
@@ -1077,7 +1078,7 @@
         }
 
         function reset3DCamera() {
-            targetRotY = activeDeck === 'lower' ? -0.78 : -0.55;
+            targetRotY = activeDeck === 'lower' ? -0.45 : -0.35;
             targetRotX = activeDeck === 'lower' ? 0.08 : 0.22;
             autoRotate3D = false;
         }
