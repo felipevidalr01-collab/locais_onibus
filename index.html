@@ -43,7 +43,6 @@
             box-shadow: 0 26px 40px -14px rgba(9, 13, 22, 0.45);
         }
 
-        /* Poltrona Semi-Leito (Andar Superior: ~30° de reclinação) */
         .seat-btn-semileito {
             position: relative;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -76,7 +75,6 @@
             opacity: 0.35;
         }
 
-        /* Poltrona Leito 180° (Andar Inferior: deitada / cama estendida) */
         .seat-btn-leito180 {
             position: relative;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -648,9 +646,9 @@
     <canvas id="export-canvas" class="hidden"></canvas>
 
     <script>
-        const UPPER_DECK_SEATS = 42; // Semi-Leito (~30°)
-        const LOWER_DECK_SEATS = 6;  // Leito 180° (Cama)
-        const TOTAL_PHYSICAL_SEATS = UPPER_DECK_SEATS + LOWER_DECK_SEATS; // 48
+        const UPPER_DECK_SEATS = 42;
+        const LOWER_DECK_SEATS = 6;
+        const TOTAL_PHYSICAL_SEATS = UPPER_DECK_SEATS + LOWER_DECK_SEATS;
         const MAX_PASSENGERS_LIMIT = 40;
 
         const STORAGE_KEY = 'bus_3d_seat_reservations_v1';
@@ -739,10 +737,6 @@
             });
         });
 
-        /**
-         * Carroceria aerodinâmica do Double Decker:
-         * Frente inclinada fica em -X (à esquerda quando visto de lado com o nariz à esquerda)
-         */
         function createAerodynamicBusBody(length, height, width, material) {
             const halfL = length / 2;
             const halfH = height / 2;
@@ -754,7 +748,6 @@
             shape.lineTo(halfL, halfH - 0.18);
             shape.quadraticCurveTo(halfL, halfH, halfL - 0.16, halfH);
             shape.lineTo(-halfL + 0.10, halfH);
-            // Frente superior avançada e inclinada em -X
             shape.quadraticCurveTo(-halfL - 0.14, halfH, -halfL - 0.14, halfH - 0.24);
             shape.lineTo(-halfL - 0.03, -halfH + 0.22);
             shape.quadraticCurveTo(-halfL - 0.02, -halfH, -halfL + 0.14, -halfH);
@@ -774,9 +767,9 @@
         }
 
         /**
-         * Poltrona 3D:
-         * - Encosto inclinado para trás (+X) mantendo o estilo que você aprovou
-         * - Aba de perna / descanso de pés estendida para a FRENTE (-X) em todas as poltronas
+         * Perfil fiel ao desenho em azul:
+         * - Encosto inclinado para cima/trás (+X) com apoio de cabeça no topo
+         * - Base/perna estendida para o lado oposto (esquerda / -X, no sentido do desenho)[cite: 5]
          */
         function create3DReclinerSeat(mode, initialColorHex) {
             const seatGroup = new THREE.Group();
@@ -787,41 +780,39 @@
             });
 
             if (mode === 'semileito') {
-                // Assento base
-                const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.055, 0.18), mat);
-                cushion.position.set(0.01, 0.05, 0);
+                // Assento horizontal
+                const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.055, 0.18), mat);
+                cushion.position.set(0.015, 0.048, 0);
                 seatGroup.add(cushion);
 
-                // Descanso de perna / aba frontal apontando para a FRENTE (-X)
-                const legRest = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.04, 0.175), mat);
-                legRest.position.set(-0.095, 0.032, 0);
-                legRest.rotation.z = 0.24;
+                // Perna / aba frontal avançando para o lado do desenho (-X)
+                const legRest = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.038, 0.175), mat);
+                legRest.position.set(-0.095, 0.03, 0);
+                legRest.rotation.z = 0.22;
                 seatGroup.add(legRest);
 
-                // Encosto reclinado para trás (+X)
+                // Encosto inclinado para cima/trás (+X)
                 const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.21, 0.18), mat);
-                backrest.position.set(0.085, 0.145, 0);
-                backrest.rotation.z = 0.45;
+                backrest.position.set(0.082, 0.145, 0);
+                backrest.rotation.z = 0.44;
                 seatGroup.add(backrest);
 
-                // Apoio de cabeça no topo do encosto (+X)
-                const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.055, 0.12), mat);
-                headrest.position.set(0.13, 0.245, 0);
-                headrest.rotation.z = 0.45;
+                // Apoio de cabeça no topo do encosto
+                const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.052, 0.12), mat);
+                headrest.position.set(0.126, 0.242, 0);
+                headrest.rotation.z = 0.44;
                 seatGroup.add(headrest);
             } else {
-                // LEITO 180° (Cama): pés/pernas na frente (-X), encosto atrás (+X)
+                // LEITO 180° seguindo o mesmo sentido do desenho
                 const bedBase = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.055, 0.24), mat);
                 bedBase.position.set(0, 0.035, 0);
                 seatGroup.add(bedBase);
 
-                // Apoio de perna/pé na frente (-X)
                 const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.04, 0.24), mat);
                 footRest.position.set(-0.225, 0.045, 0);
                 footRest.rotation.z = 0.14;
                 seatGroup.add(footRest);
 
-                // Encosto de cabeça atrás (+X)
                 const reclineBack = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.045, 0.24), mat);
                 reclineBack.position.set(0.23, 0.055, 0);
                 reclineBack.rotation.z = 0.18;
@@ -883,17 +874,14 @@
                 depthWrite: false
             });
 
-            // 1. Chassi inferior preto
             const lowerChassis = createAerodynamicBusBody(busLength, 0.70, busWidth, blackBodyMat);
             lowerChassis.position.y = -0.28;
             busGroup.add(lowerChassis);
 
-            // 2. Salão superior translúcido
             const upperCabin = createAerodynamicBusBody(busLength, 0.94, busWidth, glassBodyMat);
             upperCabin.position.y = 0.56;
             busGroup.add(upperCabin);
 
-            // 3. Faixas douradas e coluna frontal inclinada em -X
             const midGoldStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.08, 0.04, busWidth + 0.06), goldMat);
             midGoldStripe.position.set(-0.02, 0.09, 0);
             busGroup.add(midGoldStripe);
@@ -919,7 +907,6 @@
             floorDiv.position.y = 0.11;
             busGroup.add(floorDiv);
 
-            // Textura lateral GS Tour + Bússola
             const sideCanvas = document.createElement('canvas');
             sideCanvas.width = 512;
             sideCanvas.height = 128;
@@ -959,7 +946,6 @@
             leftDecal.position.set(0, -0.28, -busWidth / 2 - 0.032);
             busGroup.add(leftDecal);
 
-            // 4 Eixos (8 rodas)
             const wheelXPositions = [-1.94, -1.36, 1.46, 2.02];
             const tireGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.14, 20);
             tireGeo.rotateX(Math.PI / 2);
@@ -981,7 +967,6 @@
                 });
             });
 
-            // ANDAR SUPERIOR (01 a 42): Semi-leito com folga na primeira fileira (-2.18) para não encostar na frente
             const zSlots = [-0.42, -0.18, 0.18, 0.42];
             for (let s = 1; s <= UPPER_DECK_SEATS; s++) {
                 const idx = s - 1;
@@ -996,7 +981,6 @@
                 seatMaterials3D[s] = seatObj.material;
             }
 
-            // ANDAR INFERIOR (43 a 48): Leito 180°
             for (let s = 43; s <= TOTAL_PHYSICAL_SEATS; s++) {
                 const idx = s - 43;
                 const row = Math.floor(idx / 3);
