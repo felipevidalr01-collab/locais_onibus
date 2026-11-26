@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GS Tour Double Decker — Escolha de Poltronas 3D e Quartos</title>
-    <!-- Tailwind CSS -->
+    <title>GS Tour Double Decker — Semi-Leito (Sup.) & Leito 180° (Inf.)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Three.js para o modelo 3D interativo do ônibus GS Tour -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Google Fonts: Inter & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -20,14 +17,6 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        gold: {
-                            300: '#fde047',
-                            400: '#facc15',
-                            500: '#d4af37',
-                            600: '#b48a1e',
-                        }
                     }
                 }
             }
@@ -40,7 +29,6 @@
             color: #0f172a;
         }
 
-        /* Palco 3D CSS para o interior do ônibus */
         .bus-3d-stage {
             perspective: 1050px;
         }
@@ -55,30 +43,28 @@
             box-shadow: 0 26px 40px -14px rgba(9, 13, 22, 0.45);
         }
 
-        /* Poltrona Volumétrica 3D (Encosto + Apoio de cabeça + Base) */
-        .seat-btn {
+        /* Poltrona Semi-Leito (Andar Superior: ~30° de reclinação) */
+        .seat-btn-semileito {
             position: relative;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.16), 0 6px 10px rgba(0, 0, 0, 0.08);
+            transform: skewY(-5deg);
         }
 
-        /* Apoio de cabeça superior da poltrona */
-        .seat-btn::before {
+        .seat-btn-semileito::before {
             content: '';
             position: absolute;
             top: 3px;
-            left: 24%;
-            right: 24%;
+            left: 22%;
+            right: 22%;
             height: 4px;
             border-radius: 999px;
             background-color: currentColor;
-            opacity: 0.4;
+            opacity: 0.42;
         }
 
-        /* Assento / Almofada inferior da poltrona */
-        .seat-btn::after {
+        .seat-btn-semileito::after {
             content: '';
             position: absolute;
             bottom: 3px;
@@ -90,30 +76,68 @@
             opacity: 0.35;
         }
 
+        /* Poltrona Leito 180° (Andar Inferior: deitada / cama estendida) */
+        .seat-btn-leito180 {
+            position: relative;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            background-image: repeating-linear-gradient(
+                90deg,
+                rgba(255,255,255,0.08) 0px,
+                rgba(255,255,255,0.08) 6px,
+                transparent 6px,
+                transparent 12px
+            );
+        }
+
+        .seat-btn-leito180::before {
+            content: '180°';
+            position: absolute;
+            top: 2px;
+            right: 5px;
+            font-size: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            opacity: 0.65;
+        }
+
+        .seat-btn-leito180::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 8%;
+            right: 8%;
+            height: 4px;
+            border-radius: 999px;
+            background-color: currentColor;
+            opacity: 0.4;
+        }
+
         .seat-available {
-            background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
+            background-color: #ffffff;
             border: 2px solid #10b981;
             color: #065f46;
             box-shadow: 0 3px 0 #059669, 0 5px 10px rgba(16, 185, 129, 0.14);
         }
 
         .seat-available:hover {
-            background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
-            transform: translateY(-3px) scale(1.04);
+            background-color: #ecfdf5;
+            transform: translateY(-3px) scale(1.03);
             box-shadow: 0 6px 0 #059669, 0 10px 16px rgba(16, 185, 129, 0.24);
         }
 
         .seat-selected {
-            background: linear-gradient(180deg, #1e293b 0%, #090d16 100%);
+            background-color: #090d16;
             border: 2px solid #d4af37;
             color: #fde047;
-            transform: translateY(-3px) scale(1.07);
+            transform: translateY(-3px) scale(1.06);
             box-shadow: 0 5px 0 #927012, 0 10px 20px rgba(212, 175, 55, 0.35);
             z-index: 10;
         }
 
         .seat-occupied {
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            background-color: #1e293b;
             border: 2px solid #334155;
             color: #64748b;
             box-shadow: 0 2px 0 #020617;
@@ -121,7 +145,6 @@
             opacity: 0.68;
         }
 
-        /* Efeito de recorte lateral (picote) do bilhete */
         .ticket-notch-left, .ticket-notch-right {
             position: absolute;
             width: 24px;
@@ -132,23 +155,12 @@
             transform: translateY(-50%);
             z-index: 20;
         }
-        .ticket-notch-left {
-            left: -12px;
-            box-shadow: inset -2px 0 3px rgba(0,0,0,0.06);
-        }
-        .ticket-notch-right {
-            right: -12px;
-            box-shadow: inset 2px 0 3px rgba(0,0,0,0.06);
-        }
+        .ticket-notch-left { left: -12px; box-shadow: inset -2px 0 3px rgba(0,0,0,0.06); }
+        .ticket-notch-right { right: -12px; box-shadow: inset 2px 0 3px rgba(0,0,0,0.06); }
 
-        /* Otimização para Impressão / PDF */
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            #printable-voucher-area, #printable-voucher-area * {
-                visibility: visible;
-            }
+            body * { visibility: hidden; }
+            #printable-voucher-area, #printable-voucher-area * { visibility: visible; }
             #printable-voucher-area {
                 position: fixed;
                 left: 50%;
@@ -159,20 +171,16 @@
                 box-shadow: none !important;
                 border: 2px solid #cbd5e1 !important;
             }
-            .no-print {
-                display: none !important;
-            }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased">
 
-    <!-- Cabeçalho Superior Identidade GS Tour (Preto & Dourado) -->
     <header class="bg-[#090d16] text-white shadow-lg border-b border-amber-500/30 no-print">
         <div class="max-w-6xl mx-auto px-4 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div class="flex items-center gap-3">
                 <div id="admin-secret-trigger" title="Controle de Embarque (3 cliques)" class="bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 text-slate-950 p-2 sm:p-2.5 rounded-xl shadow-md shadow-amber-500/20 cursor-pointer select-none shrink-0">
-                    <!-- Ícone de Ônibus Double Decker SVG -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>
                     </svg>
@@ -180,10 +188,10 @@
                 <div class="min-w-0">
                     <div class="flex items-center gap-2">
                         <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-amber-400/15 text-amber-300 border border-amber-400/30">GS TOUR • DD</span>
-                        <span class="text-[10px] text-slate-400 hidden sm:inline">Double Decker 4 Eixos</span>
+                        <span class="text-[10px] text-slate-400 hidden sm:inline">Sup. Semi-Leito • Inf. Leito 180°</span>
                     </div>
                     <h1 class="text-base sm:text-xl font-bold tracking-tight leading-tight mt-0.5">Reserva de Poltronas 3D e Quartos</h1>
-                    <p class="text-[11px] sm:text-xs text-slate-400">42 Superior + 6 Inferior (Limite Máx. 40 Passageiros) • 15 Quartos</p>
+                    <p class="text-[11px] sm:text-xs text-slate-400">42 Semi-Leito (Sup.) + 6 Leito 180° (Inf.) • Máx. 40 Passageiros</p>
                 </div>
             </div>
 
@@ -204,10 +212,9 @@
         </div>
     </header>
 
-    <!-- Notificação Toast Flutuante -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
 
-    <!-- MODAL DE VALIDAÇÃO DE EMBARQUE (Exibido ao escanear o QR Code) -->
+    <!-- MODAL DE VALIDAÇÃO DE EMBARQUE -->
     <div id="qr-validation-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200">
             <div id="val-header" class="bg-slate-900 text-white px-6 py-5 text-center">
@@ -332,9 +339,7 @@
                 </div>
             </div>
 
-            <div id="coordinator-list" class="flex-1 overflow-y-auto p-4 space-y-2">
-                <!-- Lista de passageiros renderizada via JS -->
-            </div>
+            <div id="coordinator-list" class="flex-1 overflow-y-auto p-4 space-y-2"></div>
 
             <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
                 <button type="button" onclick="exportManifestCSV()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer">
@@ -349,10 +354,9 @@
 
     <!-- Conteúdo Principal -->
     <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
-        <!-- TELA DE SELEÇÃO (Visor 3D GS Tour + Mapa Double Decker + Quartos + Formulário) -->
         <div id="selection-screen-view" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-            <!-- COLUNA ESQUERDA: Visor 3D do Ônibus GS Tour + Mapa Double Decker (42 Sup + 6 Inf) -->
+            <!-- COLUNA ESQUERDA: Visor 3D + Mapa Double Decker -->
             <section class="lg:col-span-6 xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 no-print">
                 <div class="flex items-center justify-between gap-2 mb-3">
                     <div>
@@ -361,18 +365,14 @@
                     </div>
                     <button type="button" id="toggle-3d-tilt-btn" onclick="toggleCabin3DTilt()"
                         class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 text-[11px] font-bold transition cursor-pointer shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
-                        </svg>
                         <span id="tilt-btn-label">Cabine 3D: ON</span>
                     </button>
                 </div>
 
-                <!-- PALCO 3D INTERATIVO THREE.JS (Modelo GS Tour Double Decker Preto & Dourado) -->
+                <!-- PALCO 3D THREE.JS -->
                 <div class="relative rounded-2xl overflow-hidden border border-slate-800 bg-gradient-to-b from-[#090d16] via-[#111827] to-[#1e293b] mb-4 shadow-inner">
-                    <div id="gs-tour-3d-canvas" class="w-full h-[185px] sm:h-[205px] cursor-grab active:cursor-grabbing"></div>
+                    <div id="gs-tour-3d-canvas" class="w-full h-[190px] sm:h-[210px] cursor-grab active:cursor-grabbing"></div>
 
-                    <!-- Etiqueta superior esquerda GS Tour -->
                     <div class="absolute top-2.5 left-3 pointer-events-none flex items-center gap-2">
                         <span class="px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm border border-amber-400/40 text-amber-300 font-extrabold text-[10px] tracking-widest">
                             GS TOUR 3D
@@ -380,37 +380,35 @@
                         <span class="text-[10px] text-slate-300/80 hidden sm:inline">Arraste para girar</span>
                     </div>
 
-                    <!-- Botão para resetar ângulo / pausar rotação -->
                     <button type="button" onclick="reset3DCamera()" title="Centralizar visão 3D"
                         class="absolute top-2.5 right-2.5 px-2 py-1 rounded-lg bg-black/60 hover:bg-black/80 text-slate-200 border border-white/15 text-[10px] font-semibold backdrop-blur-sm transition cursor-pointer">
                         Centralizar
                     </button>
 
-                    <!-- Legenda inferior do modelo 3D -->
                     <div class="absolute bottom-2 inset-x-3 flex items-center justify-between text-[10px] text-slate-300 pointer-events-none">
-                        <span>48 poltronas físicas • Limite 40 passageiros</span>
-                        <span id="canvas-3d-status" class="text-amber-300 font-mono font-bold">Visão Externa / Raio-X</span>
+                        <span>Sup: Semi-Leito • Inf: Leito 180°</span>
+                        <span id="canvas-3d-status" class="text-amber-300 font-mono font-bold">Máx. 40 Lugares</span>
                     </div>
                 </div>
 
-                <!-- Seletor de Andar (Double Decker: Piso Superior 42 vs Piso Inferior 6) -->
+                <!-- Seletor de Andar -->
                 <div class="grid grid-cols-2 gap-2 p-1.5 bg-slate-900 rounded-xl mb-4 border border-slate-800">
                     <button type="button" id="tab-upper-deck" onclick="switchDeck('upper')"
                         class="py-2 px-3 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-extrabold text-xs transition cursor-pointer flex flex-col items-center leading-tight shadow">
                         <span>Piso Superior (01–42)</span>
-                        <span id="upper-deck-count" class="text-[10px] font-semibold opacity-85 mt-0.5">42 lugares • Panorâmico</span>
+                        <span id="upper-deck-count" class="text-[10px] font-bold opacity-85 mt-0.5">Semi-Leito • 42 lugares</span>
                     </button>
                     <button type="button" id="tab-lower-deck" onclick="switchDeck('lower')"
                         class="py-2 px-3 rounded-lg bg-transparent hover:bg-slate-800 text-slate-300 font-bold text-xs transition cursor-pointer flex flex-col items-center leading-tight">
                         <span>Piso Inferior (43–48)</span>
-                        <span id="lower-deck-count" class="text-[10px] font-normal text-slate-400 mt-0.5">6 lugares • Térreo</span>
+                        <span id="lower-deck-count" class="text-[10px] font-semibold text-amber-300/90 mt-0.5">Leito 180° • 6 lugares</span>
                     </button>
                 </div>
 
                 <!-- Legenda -->
                 <div class="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 mb-4 text-xs font-medium">
                     <div class="flex items-center justify-center gap-1.5">
-                        <span class="w-4 h-4 rounded bg-white border-2 border-emerald-500 inline-block shadow-xs"></span>
+                        <span class="w-4 h-4 rounded bg-white border-2 border-emerald-500 inline-block"></span>
                         <span class="text-slate-700">Livre</span>
                     </div>
                     <div class="flex items-center justify-center gap-1.5">
@@ -423,30 +421,23 @@
                     </div>
                 </div>
 
-                <!-- Aviso caso o limite de 40 passageiros já tenha sido atingido -->
                 <div id="bus-capacity-full-banner" class="hidden mb-4 p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold text-center">
                     Lotação máxima de 40 passageiros atingida! As poltronas restantes permanecem bloqueadas.
                 </div>
 
-                <!-- Carroceria do Ônibus GS Tour (Palco 3D CSS) -->
+                <!-- Carroceria do Ônibus GS Tour -->
                 <div class="bus-3d-stage">
                     <div id="bus-cabin-wrapper" class="bus-cabin-3d is-3d-tilted max-w-[338px] mx-auto bg-gradient-to-b from-[#0f172a] via-[#111827] to-[#090d16] rounded-t-[46px] rounded-b-3xl border-[3px] border-amber-500/70 p-3.5 text-white relative">
-                        
-                        <!-- Para-brisa / Frente GS Tour -->
                         <div class="text-center mb-2.5 pb-1.5 border-b border-amber-500/25">
-                            <span class="text-[10px] uppercase tracking-[0.22em] font-extrabold text-amber-400 block" id="deck-header-title">
-                                PISO SUPERIOR • PANORÂMICO
+                            <span class="text-[10px] uppercase tracking-[0.18em] font-extrabold text-amber-400 block" id="deck-header-title">
+                                PISO SUPERIOR (01–42) • SEMI-LEITO
                             </span>
-                            <span class="text-[9px] text-slate-400">GS Tour Double Decker • Poltronas Reclináveis</span>
+                            <span class="text-[9px] text-slate-400" id="deck-header-subtitle">Encosto reclinado ~30° • Salão Panorâmico</span>
                         </div>
 
-                        <!-- Cabine / Escada conforme o andar selecionado -->
-                        <div id="deck-front-area" class="grid grid-cols-2 gap-2.5 pb-3 mb-3 border-b border-dashed border-slate-700">
-                            <!-- Renderizado dinamicamente conforme o andar -->
-                        </div>
+                        <div id="deck-front-area" class="grid grid-cols-2 gap-2.5 pb-3 mb-3 border-b border-dashed border-slate-700"></div>
 
-                        <!-- Cabeçalho Janela / Corredor -->
-                        <div class="grid grid-cols-5 text-[10px] font-semibold text-amber-300/80 text-center mb-1.5 px-1">
+                        <div id="column-headers-row" class="grid grid-cols-5 text-[10px] font-semibold text-amber-300/80 text-center mb-1.5 px-1">
                             <span>Janela</span>
                             <span>Corredor</span>
                             <span></span>
@@ -454,23 +445,15 @@
                             <span>Janela</span>
                         </div>
 
-                        <!-- Grade de Poltronas (Gerada via JS para o andar ativo) -->
-                        <div id="bus-seats-grid" class="flex flex-col gap-2.5">
-                            <!-- As fileiras serão inseridas aqui -->
-                        </div>
+                        <div id="bus-seats-grid" class="flex flex-col gap-2.5"></div>
 
-                        <!-- Fundos do Andar -->
-                        <div id="deck-rear-area" class="grid grid-cols-2 gap-2.5 pt-3 mt-3 border-t border-dashed border-slate-700">
-                            <!-- Renderizado dinamicamente conforme o andar -->
-                        </div>
+                        <div id="deck-rear-area" class="grid grid-cols-2 gap-2.5 pt-3 mt-3 border-t border-dashed border-slate-700"></div>
                     </div>
                 </div>
             </section>
 
-            <!-- COLUNA DIREITA: Escolha de Quarto, Formulário e Comprovante Gerado -->
+            <!-- COLUNA DIREITA: Quartos + Formulário -->
             <div class="lg:col-span-6 xl:col-span-7 flex flex-col gap-6">
-
-                <!-- PASSO 2: Escolha de Quarto (10 Triplos + 5 Duplos = 40 vagas) -->
                 <section id="room-selection-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 no-print">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
                         <div>
@@ -482,13 +465,9 @@
                             <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200">11–15 Duplo</span>
                         </div>
                     </div>
-
-                    <div id="rooms-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
-                        <!-- Cards dos 15 quartos gerados via JS -->
-                    </div>
+                    <div id="rooms-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-1"></div>
                 </section>
 
-                <!-- Cartão do Formulário de Dados do Passageiro -->
                 <section id="booking-form-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 no-print">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
                         <div>
@@ -496,7 +475,6 @@
                             <p class="text-xs text-slate-500">Preencha seus dados para emitir o cartão de embarque</p>
                         </div>
 
-                        <!-- Badges dinâmicos do assento e quarto selecionados -->
                         <div class="flex flex-wrap items-center gap-2">
                             <div id="selected-seat-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold">
                                 <span>Poltrona: —</span>
@@ -545,11 +523,10 @@
                         </div>
                     </form>
                 </section>
-
             </div>
         </div>
 
-        <!-- TELA EXCLUSIVA DE CHECKOUT / CARTÃO DE EMBARQUE (Oculta até confirmar) -->
+        <!-- TELA DE CHECKOUT / CARTÃO DE EMBARQUE -->
         <section id="voucher-section" class="hidden max-w-lg mx-auto animate-fade-in">
             <div class="flex items-center justify-between gap-3 mb-4 no-print">
                 <button type="button" onclick="startNewReservation()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm transition cursor-pointer">
@@ -576,7 +553,6 @@
                 </div>
             </div>
 
-            <!-- Cartão Visual do Bilhete / Comprovante (Identidade GS Tour Preto & Dourado) -->
             <div id="printable-voucher-area" class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden max-w-md mx-auto">
                 <div class="bg-[#090d16] text-white px-6 py-5 flex items-center justify-between border-b-2 border-amber-500">
                     <div>
@@ -589,7 +565,6 @@
                     </div>
                 </div>
 
-                <!-- Destaque Principal da Poltrona, Andar e Quarto -->
                 <div class="px-6 py-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
                     <div>
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Poltrona Reservada</span>
@@ -597,7 +572,7 @@
                             <span id="voucher-seat-number" class="text-4xl font-black text-slate-900 font-mono">00</span>
                             <span id="voucher-seat-position" class="text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Janela</span>
                         </div>
-                        <span id="voucher-deck-label" class="text-[11px] font-bold text-amber-700 mt-1 block">Piso Superior</span>
+                        <span id="voucher-deck-label" class="text-[11px] font-bold text-amber-700 mt-1 block">Piso Superior • Semi-Leito</span>
                     </div>
                     <div class="text-right">
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Quarto / Hospedagem</span>
@@ -606,7 +581,6 @@
                     </div>
                 </div>
 
-                <!-- Dados do Passageiro -->
                 <div class="px-6 py-5 space-y-3.5 text-sm">
                     <div>
                         <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Passageiro(a)</span>
@@ -635,14 +609,12 @@
                     </div>
                 </div>
 
-                <!-- Linha Picotada -->
                 <div class="relative flex items-center justify-center my-1">
                     <div class="ticket-notch-left"></div>
                     <div class="w-full border-t-2 border-dashed border-slate-200 mx-4"></div>
                     <div class="ticket-notch-right"></div>
                 </div>
 
-                <!-- Rodapé com QR Code -->
                 <div class="px-6 py-5 bg-white flex items-center justify-between gap-4">
                     <div class="space-y-1">
                         <span class="text-xs font-bold text-slate-800 block">Validação de Embarque</span>
@@ -654,26 +626,17 @@
                 </div>
             </div>
 
-            <!-- Botões de Download, Impressão e Nova Reserva -->
             <div class="max-w-md mx-auto mt-5 space-y-3 no-print">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button type="button" onclick="downloadVoucherPNG()"
                         class="py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
-                        </svg>
                         Baixar Cartão (PNG)
                     </button>
-
                     <button type="button" onclick="window.print()"
                         class="py-3.5 px-4 rounded-xl bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-800 font-bold text-sm border border-slate-300 shadow-sm flex items-center justify-center gap-2 transition cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>
-                        </svg>
                         Imprimir / Salvar PDF
                     </button>
                 </div>
-
                 <button type="button" onclick="startNewReservation()"
                     class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer">
                     Fazer Outra Reserva
@@ -682,29 +645,18 @@
         </section>
     </main>
 
-    <!-- Canvas oculto utilizado para renderizar o comprovante em alta resolução (PNG) -->
     <canvas id="export-canvas" class="hidden"></canvas>
 
     <script>
-        /**
-         * CONFIGURAÇÃO DO ÔNIBUS GS TOUR DOUBLE DECKER
-         * - Piso Superior: 42 poltronas (01 a 42)
-         * - Piso Inferior: 6 poltronas (43 a 48)
-         * - Total de assentos físicos: 48
-         * - Limite máximo de passageiros ocupados (somando os 2 andares): 40
-         */
-        const UPPER_DECK_SEATS = 42;
-        const LOWER_DECK_SEATS = 6;
+        const UPPER_DECK_SEATS = 42; // Semi-Leito (~30°)
+        const LOWER_DECK_SEATS = 6;  // Leito 180° (Cama)
         const TOTAL_PHYSICAL_SEATS = UPPER_DECK_SEATS + LOWER_DECK_SEATS; // 48
-        const MAX_PASSENGERS_LIMIT = 40; // Máximo permitido somando ambos os andares
+        const MAX_PASSENGERS_LIMIT = 40;
 
         const STORAGE_KEY = 'bus_3d_seat_reservations_v1';
         const RECORDS_STORAGE_KEY = 'bus_3d_seat_records_v1';
         const DEFAULT_BOARDING_POINT = 'Embarque Único — Saída Principal';
 
-        /**
-         * CONFIGURAÇÃO DOS QUARTOS (10 TRIPLOS + 5 DUPLOS = 15 QUARTOS / 40 VAGAS)
-         */
         const ROOMS_CONFIG = [
             ...Array.from({ length: 10 }, (_, i) => ({
                 id: i + 1,
@@ -724,25 +676,21 @@
         const ADMIN_PASSWORD = '2307';
         const GOOGLE_SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwWE_wGxR7UGrnPHO7sGJa-huIU8GURD7-4Gd7GWYKUAWI69kh9JUcR0k4aC5z_paKv/exec';
 
-        // Estado da aplicação
         let occupiedSeats = [];
         let seatRecords = {};
         let selectedSeat = null;
         let selectedRoomId = null;
-        let activeDeck = 'upper'; // 'upper' (01-42) ou 'lower' (43-48)
+        let activeDeck = 'upper';
         let isCabin3DTilted = true;
         let currentTicketData = null;
         let isSyncing = false;
 
-        // Referências do motor 3D Three.js
-        let threeScene, threeCamera, threeRenderer, busGroup, seatMeshes3D = {};
-        let targetRotY = -0.58, targetRotX = 0.16;
-        let currentRotY = -0.58, currentRotX = 0.16;
+        // Estruturas do Three.js (guarda materiais de cada poltrona para atualizar cor sem perder inclinação)
+        let threeScene, threeCamera, threeRenderer, busGroup, seatMaterials3D = {};
+        let targetRotY = -0.58, targetRotX = 0.18;
+        let currentRotY = -0.58, currentRotX = 0.18;
         let isDragging3D = false, prevMouseX = 0, prevMouseY = 0, autoRotate3D = true;
 
-        /**
-         * Inicialização ao carregar a página
-         */
         window.addEventListener('DOMContentLoaded', async () => {
             loadOccupiedSeats();
             initBus3DViewer();
@@ -793,19 +741,68 @@
         });
 
         /**
-         * VISOR 3D INTERATIVO DO ÔNIBUS GS TOUR DOUBLE DECKER (THREE.JS)
+         * Cria um grupo 3D de poltrona com inclinação real:
+         * - mode = 'semileito': assento + encosto inclinado ~30° + apoio de cabeça
+         * - mode = 'leito180': cama/poltrona deitada ~180° (base longa + encosto quase horizontal + apoio de pernas)
          */
+        function create3DReclinerSeat(mode, initialColorHex) {
+            const seatGroup = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({
+                color: initialColorHex,
+                roughness: 0.35,
+                metalness: 0.15
+            });
+
+            if (mode === 'semileito') {
+                // Base / assento
+                const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.06, 0.18), mat);
+                cushion.position.set(0, 0.04, 0);
+                seatGroup.add(cushion);
+
+                // Encosto inclinado (~28° para trás, direção -X)
+                const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.21, 0.18), mat);
+                backrest.position.set(-0.08, 0.14, 0);
+                backrest.rotation.z = -0.48; // ~27.5° de inclinação semi-leito
+                seatGroup.add(backrest);
+
+                // Apoio de cabeça
+                const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.12), mat);
+                headrest.position.set(-0.125, 0.24, 0);
+                headrest.rotation.z = -0.48;
+                seatGroup.add(headrest);
+            } else {
+                // LEITO 180°: estrutura alongada na horizontal formando cama
+                const bedBase = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.06, 0.24), mat);
+                bedBase.position.set(0, 0.03, 0);
+                seatGroup.add(bedBase);
+
+                // Encosto deitado quase 180° (apenas leve elevação de ~12° para o travesseiro/cabeça)
+                const reclineBack = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.05, 0.24), mat);
+                reclineBack.position.set(-0.24, 0.05, 0);
+                reclineBack.rotation.z = -0.22; // ~12.5° acima da horizontal (quase 180° aberta)
+                seatGroup.add(reclineBack);
+
+                // Descanso de pernas estendido na frente (+X)
+                const legRest = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.045, 0.24), mat);
+                legRest.position.set(0.24, 0.045, 0);
+                legRest.rotation.z = 0.18;
+                seatGroup.add(legRest);
+            }
+
+            return { group: seatGroup, material: mat };
+        }
+
         function initBus3DViewer() {
             const container = document.getElementById('gs-tour-3d-canvas');
             if (!container || typeof THREE === 'undefined') return;
 
             const width = container.clientWidth || 360;
-            const height = container.clientHeight || 195;
+            const height = container.clientHeight || 200;
 
             threeScene = new THREE.Scene();
             threeCamera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
-            threeCamera.position.set(0, 1.35, 7.6);
-            threeCamera.lookAt(0, 0.25, 0);
+            threeCamera.position.set(0, 1.4, 7.8);
+            threeCamera.lookAt(0, 0.22, 0);
 
             threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             threeRenderer.setSize(width, height);
@@ -813,10 +810,7 @@
             container.innerHTML = '';
             container.appendChild(threeRenderer.domElement);
 
-            // Iluminação de estúdio para destacar o preto brilhante e os detalhes dourados
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
-            threeScene.add(ambientLight);
-
+            threeScene.add(new THREE.AmbientLight(0xffffff, 0.78));
             const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.2);
             dirLight.position.set(5, 8, 6);
             threeScene.add(dirLight);
@@ -828,87 +822,61 @@
             busGroup = new THREE.Group();
             threeScene.add(busGroup);
 
-            // Dimensões proporcionais do Double Decker (Comprimento X=5.6, Altura Y=1.75, Largura Z=1.25)
             const busLength = 5.6;
-            const busHeight = 1.72;
-            const busWidth = 1.26;
+            const busWidth = 1.28;
 
-            // 1. Chassi inferior preto sólido
-            const lowerBodyGeo = new THREE.BoxGeometry(busLength, 0.72, busWidth);
             const blackBodyMat = new THREE.MeshStandardMaterial({
                 color: 0x0b0f19,
                 roughness: 0.28,
                 metalness: 0.55
             });
-            const lowerBody = new THREE.Mesh(lowerBodyGeo, blackBodyMat);
-            lowerBody.position.y = -0.28;
-            busGroup.add(lowerBody);
-
-            // 2. Carroceria superior semitransparente (efeito Raio-X para enxergar as poltronas 3D dentro)
-            const upperBodyGeo = new THREE.BoxGeometry(busLength, 0.96, busWidth);
-            const glassBodyMat = new THREE.MeshPhysicalMaterial({
-                color: 0x0f172a,
-                roughness: 0.15,
-                metalness: 0.2,
-                transparent: true,
-                opacity: 0.34,
-                depthWrite: false
-            });
-            const upperBody = new THREE.Mesh(upperBodyGeo, glassBodyMat);
-            upperBody.position.y = 0.56;
-            busGroup.add(upperBody);
-
-            // 3. Teto preto com moldura dourada GS Tour
-            const roofGeo = new THREE.BoxGeometry(busLength + 0.04, 0.08, busWidth + 0.04);
             const goldMat = new THREE.MeshStandardMaterial({
                 color: 0xd4af37,
                 roughness: 0.3,
                 metalness: 0.85
             });
-            const roofMesh = new THREE.Mesh(roofGeo, blackBodyMat);
+            const glassBodyMat = new THREE.MeshPhysicalMaterial({
+                color: 0x0f172a,
+                roughness: 0.15,
+                metalness: 0.2,
+                transparent: true,
+                opacity: 0.30,
+                depthWrite: false
+            });
+
+            // Chassi inferior
+            const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(busLength, 0.72, busWidth), blackBodyMat);
+            lowerBody.position.y = -0.28;
+            busGroup.add(lowerBody);
+
+            // Carroceria superior translúcida
+            const upperBody = new THREE.Mesh(new THREE.BoxGeometry(busLength, 0.96, busWidth), glassBodyMat);
+            upperBody.position.y = 0.56;
+            busGroup.add(upperBody);
+
+            // Teto e frisos dourados GS Tour
+            const roofMesh = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.04, 0.08, busWidth + 0.04), blackBodyMat);
             roofMesh.position.y = 1.06;
             busGroup.add(roofMesh);
 
-            // Frisos dourados laterais e contorno frontal (estilo GS Tour da foto)
-            const stripeGeo = new THREE.BoxGeometry(busLength + 0.03, 0.045, busWidth + 0.03);
-            const midGoldStripe = new THREE.Mesh(stripeGeo, goldMat);
+            const midGoldStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.03, 0.045, busWidth + 0.03), goldMat);
             midGoldStripe.position.y = 0.10;
             busGroup.add(midGoldStripe);
 
-            const topGoldStripe = new THREE.Mesh(stripeGeo, goldMat);
+            const topGoldStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.03, 0.045, busWidth + 0.03), goldMat);
             topGoldStripe.position.y = 1.01;
             busGroup.add(topGoldStripe);
 
-            // 4. Para-brisa panorâmico duplo na frente (+X)
-            const frontGlassGeo = new THREE.BoxGeometry(0.06, 1.48, busWidth - 0.14);
-            const windshieldMat = new THREE.MeshStandardMaterial({
-                color: 0x1e293b,
-                roughness: 0.1,
-                metalness: 0.9,
-                transparent: true,
-                opacity: 0.65
-            });
-            const frontGlass = new THREE.Mesh(frontGlassGeo, windshieldMat);
-            frontGlass.position.set(busLength / 2 + 0.01, 0.24, 0);
-            busGroup.add(frontGlass);
+            // Piso divisório entre andar superior e inferior
+            const floorDiv = new THREE.Mesh(new THREE.BoxGeometry(busLength - 0.1, 0.04, busWidth - 0.08), blackBodyMat);
+            floorDiv.position.y = 0.12;
+            busGroup.add(floorDiv);
 
-            // Faróis dianteiros LED
-            const headlightGeo = new THREE.BoxGeometry(0.06, 0.09, 0.22);
-            const headlightMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
-            [-0.42, 0.42].forEach(zPos => {
-                const hl = new THREE.Mesh(headlightGeo, headlightMat);
-                hl.position.set(busLength / 2 + 0.02, -0.46, zPos);
-                busGroup.add(hl);
-            });
-
-            // 5. Textura lateral com logo "GS TOUR" e a Bússola Dourada da foto real
+            // Textura lateral GS Tour + Bússola
             const sideCanvas = document.createElement('canvas');
             sideCanvas.width = 512;
             sideCanvas.height = 128;
             const sctx = sideCanvas.getContext('2d');
-            sctx.clearRect(0, 0, 512, 128);
-
-            // Faixa curva dourada e prateada
             sctx.strokeStyle = '#d4af37';
             sctx.lineWidth = 5;
             sctx.beginPath();
@@ -916,34 +884,15 @@
             sctx.quadraticCurveTo(260, 15, 490, 95);
             sctx.stroke();
 
-            sctx.strokeStyle = '#94a3b8';
-            sctx.lineWidth = 4;
-            sctx.beginPath();
-            sctx.moveTo(75, 45);
-            sctx.lineTo(290, 112);
-            sctx.stroke();
-
-            // Bússola / Rosa dos Ventos na traseira esquerda
             sctx.save();
             sctx.translate(78, 72);
             sctx.strokeStyle = '#d4af37';
             sctx.lineWidth = 3;
             sctx.beginPath();
-            sctx.arc(0, 0, 28, 0, Math.PI * 2);
+            sctx.arc(0, 0, 26, 0, Math.PI * 2);
             sctx.stroke();
-            sctx.fillStyle = '#d4af37';
-            for (let a = 0; a < 4; a++) {
-                sctx.rotate(Math.PI / 2);
-                sctx.beginPath();
-                sctx.moveTo(0, -26);
-                sctx.lineTo(5, 0);
-                sctx.lineTo(-5, 0);
-                sctx.closePath();
-                sctx.fill();
-            }
             sctx.restore();
 
-            // Texto GS TOUR
             sctx.fillStyle = '#d4af37';
             sctx.font = 'bold 34px Inter, sans-serif';
             sctx.fillText('GS', 330, 62);
@@ -963,7 +912,7 @@
             leftDecal.position.set(0, -0.28, -busWidth / 2 - 0.005);
             busGroup.add(leftDecal);
 
-            // 6. Os 4 Eixos (8 rodas com calotas cromadas iguais à foto)
+            // 4 Eixos (8 rodas)
             const wheelXPositions = [-2.05, -1.48, 1.38, 1.98];
             const tireGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.14, 20);
             tireGeo.rotateX(Math.PI / 2);
@@ -985,47 +934,35 @@
                 });
             });
 
-            // Piso divisório entre andar superior e inferior
-            const floorDivGeo = new THREE.BoxGeometry(busLength - 0.1, 0.04, busWidth - 0.08);
-            const floorDiv = new THREE.Mesh(floorDivGeo, blackBodyMat);
-            floorDiv.position.y = 0.12;
-            busGroup.add(floorDiv);
-
-            // 7. Mini-poltronas 3D internas (01 a 42 no superior, 43 a 48 no inferior)
-            const seatGeo = new THREE.BoxGeometry(0.24, 0.26, 0.20);
-            const zSlots = [-0.42, -0.18, 0.18, 0.42]; // Janela Esq, Corredor Esq, Corredor Dir, Janela Dir
-
-            // Piso Superior (11 fileiras -> 01 a 42)
+            // ANDAR SUPERIOR (01 a 42): Poltronas Semi-Leito inclinadas
+            const zSlots = [-0.43, -0.19, 0.19, 0.43];
             for (let s = 1; s <= UPPER_DECK_SEATS; s++) {
                 const idx = s - 1;
-                const row = Math.floor(idx / 4); // 0..10
+                const row = Math.floor(idx / 4);
                 const col = idx % 4;
                 const xPos = 2.15 - row * 0.43;
                 const zPos = zSlots[col];
 
-                const mat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.4 });
-                const mesh = new THREE.Mesh(seatGeo, mat);
-                mesh.position.set(xPos, 0.32, zPos);
-                busGroup.add(mesh);
-                seatMeshes3D[s] = mesh;
+                const seatObj = create3DReclinerSeat('semileito', 0x10b981);
+                seatObj.group.position.set(xPos, 0.15, zPos);
+                busGroup.add(seatObj.group);
+                seatMaterials3D[s] = seatObj.material;
             }
 
-            // Piso Inferior (2 fileiras -> 43 a 48)
+            // ANDAR INFERIOR (43 a 48): Poltronas Leito 180° deitadas (cama)
             for (let s = 43; s <= TOTAL_PHYSICAL_SEATS; s++) {
-                const idx = s - 43; // 0..5
+                const idx = s - 43;
                 const row = Math.floor(idx / 3);
                 const col = idx % 3;
-                const xPos = -0.35 - row * 0.55;
-                const zPos = [-0.36, 0.0, 0.36][col];
+                const xPos = 0.25 - row * 0.52;
+                const zPos = [-0.38, 0.0, 0.38][col];
 
-                const mat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.4 });
-                const mesh = new THREE.Mesh(seatGeo, mat);
-                mesh.position.set(xPos, -0.32, zPos);
-                busGroup.add(mesh);
-                seatMeshes3D[s] = mesh;
+                const seatObj = create3DReclinerSeat('leito180', 0x10b981);
+                seatObj.group.position.set(xPos, -0.45, zPos);
+                busGroup.add(seatObj.group);
+                seatMaterials3D[s] = seatObj.material;
             }
 
-            // Controles de arraste (Mouse e Touch no celular)
             const domEl = threeRenderer.domElement;
             domEl.addEventListener('pointerdown', (e) => {
                 isDragging3D = true;
@@ -1040,7 +977,6 @@
                 const dy = e.clientY - prevMouseY;
                 prevMouseX = e.clientX;
                 prevMouseY = e.clientY;
-
                 targetRotY += dx * 0.012;
                 targetRotX = Math.max(-0.25, Math.min(0.65, targetRotX + dy * 0.008));
             });
@@ -1067,7 +1003,6 @@
                 }
                 currentRotY += (targetRotY - currentRotY) * 0.1;
                 currentRotX += (targetRotX - currentRotX) * 0.1;
-
                 if (busGroup) {
                     busGroup.rotation.y = currentRotY;
                     busGroup.rotation.x = currentRotX;
@@ -1078,25 +1013,21 @@
         }
 
         function update3DSeatsColors() {
-            if (!seatMeshes3D) return;
+            if (!seatMaterials3D) return;
             const limitReached = occupiedSeats.length >= MAX_PASSENGERS_LIMIT;
 
             for (let s = 1; s <= TOTAL_PHYSICAL_SEATS; s++) {
-                const mesh = seatMeshes3D[s];
-                if (!mesh) continue;
+                const mat = seatMaterials3D[s];
+                if (!mat) continue;
 
                 if (occupiedSeats.includes(s)) {
-                    mesh.material.color.setHex(0x475569); // Ocupada
-                    mesh.scale.set(1, 0.85, 1);
+                    mat.color.setHex(0x475569);
                 } else if (selectedSeat === s) {
-                    mesh.material.color.setHex(0xfacc15); // Selecionada (Dourado vibrante)
-                    mesh.scale.set(1.25, 1.35, 1.25);
+                    mat.color.setHex(0xfacc15);
                 } else if (limitReached) {
-                    mesh.material.color.setHex(0x334155); // Bloqueada pelo limite de 40
-                    mesh.scale.set(1, 0.85, 1);
+                    mat.color.setHex(0x334155);
                 } else {
-                    mesh.material.color.setHex(0x10b981); // Livre (Verde)
-                    mesh.scale.set(1, 1, 1);
+                    mat.color.setHex(0x10b981);
                 }
             }
         }
@@ -1111,12 +1042,8 @@
             isCabin3DTilted = !isCabin3DTilted;
             const wrapper = document.getElementById('bus-cabin-wrapper');
             const label = document.getElementById('tilt-btn-label');
-            if (wrapper) {
-                wrapper.classList.toggle('is-3d-tilted', isCabin3DTilted);
-            }
-            if (label) {
-                label.textContent = isCabin3DTilted ? 'Cabine 3D: ON' : 'Cabine 3D: OFF';
-            }
+            if (wrapper) wrapper.classList.toggle('is-3d-tilted', isCabin3DTilted);
+            if (label) label.textContent = isCabin3DTilted ? 'Cabine 3D: ON' : 'Cabine 3D: OFF';
         }
 
         function switchDeck(deck) {
@@ -1137,9 +1064,6 @@
             renderBusMap();
         }
 
-        /**
-         * Carrega e salva no localStorage
-         */
         function loadOccupiedSeats() {
             try {
                 const saved = localStorage.getItem(STORAGE_KEY);
@@ -1156,14 +1080,9 @@
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(occupiedSeats));
                 localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify(seatRecords));
-            } catch (e) {
-                console.warn('Não foi possível salvar no localStorage:', e);
-            }
+            } catch (e) {}
         }
 
-        /**
-         * Sincronização em nuvem (Google Sheets)
-         */
         async function syncFromCloudIfConfigured() {
             if (!GOOGLE_SHEETS_WEBHOOK_URL) return;
             isSyncing = true;
@@ -1208,14 +1127,12 @@
                         updateSelectedBadge();
                         showToast(`A poltrona ${formatSeatNum(prevSelected)} não está mais disponível.`, 'error');
                     }
-
                     if (prevRoomId && isRoomFull(prevRoomId)) {
                         const lostRoom = getRoomById(prevRoomId);
                         selectedRoomId = null;
                         updateSelectedRoomBadge();
                         showToast(`O ${lostRoom ? lostRoom.label : 'quarto escolhido'} acabou de lotar.`, 'error');
                     }
-
                     if (changed) {
                         renderBusMap();
                         if (!document.getElementById('coordinator-modal').classList.contains('hidden')) {
@@ -1223,9 +1140,7 @@
                         }
                     }
                 }
-            } catch (err) {
-                console.warn('Sincronização em nuvem indisponível no momento.');
-            } finally {
+            } catch (err) {} finally {
                 isSyncing = false;
             }
         }
@@ -1248,28 +1163,22 @@
                         return { ok: true, status: 'OK' };
                     }
                 }
-            } catch (err) {
-                console.warn('Falha ao enviar registro para nuvem:', err);
-            }
+            } catch (err) {}
             return { ok: false, status: 'NETWORK_ERROR' };
         }
 
-        /**
-         * Auxiliares de Poltrona e Andar
-         */
         function formatSeatNum(num) {
             return String(num).padStart(2, '0');
         }
 
         function getSeatDeckName(num) {
-            return num <= UPPER_DECK_SEATS ? 'Piso Superior' : 'Piso Inferior';
+            return num <= UPPER_DECK_SEATS ? 'Piso Superior (Semi-Leito)' : 'Piso Inferior (Leito 180°)';
         }
 
         function getSeatPosition(num) {
             if (num <= UPPER_DECK_SEATS) {
                 return num % 2 !== 0 ? 'Janela' : 'Corredor';
             }
-            // Piso inferior (43 a 48): 43, 45, 46, 48 Janela | 44, 47 Corredor
             return [43, 45, 46, 48].includes(num) ? 'Janela' : 'Corredor';
         }
 
@@ -1277,9 +1186,6 @@
             return occupiedSeats.length >= MAX_PASSENGERS_LIMIT;
         }
 
-        /**
-         * Auxiliares dos Quartos
-         */
         function getRoomById(roomId) {
             return ROOMS_CONFIG.find(r => r.id === Number(roomId)) || null;
         }
@@ -1294,9 +1200,6 @@
             return getRoomOccupants(roomId).length >= room.capacity;
         }
 
-        /**
-         * Atualiza os contadores no topo e nas abas dos andares
-         */
         function updateAvailableCounter() {
             const remainingBusSlots = Math.max(0, MAX_PASSENGERS_LIMIT - occupiedSeats.length);
             const seatCounterEl = document.getElementById('available-counter');
@@ -1311,48 +1214,37 @@
                 roomCounterEl.textContent = `${freeBeds} ${freeBeds === 1 ? 'vaga em quarto' : 'vagas em quartos'}`;
             }
 
-            // Atualiza contadores individuais por andar
             const upperOccupied = occupiedSeats.filter(s => s <= UPPER_DECK_SEATS).length;
             const lowerOccupied = occupiedSeats.filter(s => s > UPPER_DECK_SEATS).length;
 
             const upperLabel = document.getElementById('upper-deck-count');
             const lowerLabel = document.getElementById('lower-deck-count');
-            if (upperLabel) {
-                upperLabel.textContent = `${UPPER_DECK_SEATS - upperOccupied} livres de 42`;
-            }
-            if (lowerLabel) {
-                lowerLabel.textContent = `${LOWER_DECK_SEATS - lowerOccupied} livres de 6`;
-            }
+            if (upperLabel) upperLabel.textContent = `Semi-Leito • ${UPPER_DECK_SEATS - upperOccupied}/42 livres`;
+            if (lowerLabel) lowerLabel.textContent = `Leito 180° • ${LOWER_DECK_SEATS - lowerOccupied}/6 livres`;
 
-            // Banner de lotação máxima (40 passageiros)
             const fullBanner = document.getElementById('bus-capacity-full-banner');
-            if (fullBanner) {
-                fullBanner.classList.toggle('hidden', !isBusPassengerLimitReached());
-            }
+            if (fullBanner) fullBanner.classList.toggle('hidden', !isBusPassengerLimitReached());
         }
 
-        /**
-         * Renderiza o mapa do andar selecionado (Superior: 01–42 | Inferior: 43–48)
-         */
         function renderBusMap() {
             const grid = document.getElementById('bus-seats-grid');
             const frontArea = document.getElementById('deck-front-area');
             const rearArea = document.getElementById('deck-rear-area');
             const deckTitle = document.getElementById('deck-header-title');
+            const deckSub = document.getElementById('deck-header-subtitle');
 
             if (grid && frontArea && rearArea) {
                 grid.innerHTML = '';
 
                 if (activeDeck === 'upper') {
-                    deckTitle.textContent = 'PISO SUPERIOR (01–42) • PANORÂMICO';
+                    deckTitle.textContent = 'PISO SUPERIOR (01–42) • SEMI-LEITO';
+                    deckSub.textContent = 'Poltronas inclinadas ~30° • Visão Panorâmica';
                     frontArea.innerHTML = `
                         <div class="bg-slate-800/90 rounded-xl p-2 flex items-center gap-2 border border-amber-500/25">
-                            <div class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 font-bold text-[10px]">
-                                DD
-                            </div>
+                            <div class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 font-bold text-[10px]">DD</div>
                             <div class="leading-tight">
                                 <span class="block text-[10px] font-bold text-amber-300">Para-brisa</span>
-                                <span class="block text-[9px] text-slate-400">Vista Panorâmica</span>
+                                <span class="block text-[9px] text-slate-400">Semi-Leito ~30°</span>
                             </div>
                         </div>
                         <div class="bg-slate-800/70 rounded-xl p-2 flex items-center justify-end gap-2 border border-slate-700">
@@ -1360,13 +1252,10 @@
                                 <span class="block text-[10px] font-bold text-slate-300">Escada</span>
                                 <span class="block text-[9px] text-slate-400">Acesso 2º Piso</span>
                             </div>
-                            <div class="w-6 h-6 rounded-lg bg-slate-700 text-amber-300 flex items-center justify-center shrink-0 text-xs">
-                                ⇅
-                            </div>
+                            <div class="w-6 h-6 rounded-lg bg-slate-700 text-amber-300 flex items-center justify-center shrink-0 text-xs">⇅</div>
                         </div>
                     `;
 
-                    // 11 fileiras no Piso Superior (01 a 42)
                     const totalRows = Math.ceil(UPPER_DECK_SEATS / 4);
                     for (let row = 0; row < totalRows; row++) {
                         const base = row * 4;
@@ -1378,16 +1267,16 @@
                         const rowEl = document.createElement('div');
                         rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
 
-                        rowEl.appendChild(createSeatButton(leftWindow));
-                        rowEl.appendChild(createSeatButton(leftAisle));
+                        rowEl.appendChild(createSeatButton(leftWindow, 'semileito'));
+                        rowEl.appendChild(createSeatButton(leftAisle, 'semileito'));
 
                         const aisleEl = document.createElement('div');
                         aisleEl.className = 'flex items-center justify-center text-[10px] font-mono text-slate-500 select-none';
                         aisleEl.textContent = `${row + 1}`;
                         rowEl.appendChild(aisleEl);
 
-                        rowEl.appendChild(rightAisle <= UPPER_DECK_SEATS ? createSeatButton(rightAisle) : createEmptySpacer());
-                        rowEl.appendChild(rightWindow <= UPPER_DECK_SEATS ? createSeatButton(rightWindow) : createEmptySpacer());
+                        rowEl.appendChild(rightAisle <= UPPER_DECK_SEATS ? createSeatButton(rightAisle, 'semileito') : createEmptySpacer());
+                        rowEl.appendChild(rightWindow <= UPPER_DECK_SEATS ? createSeatButton(rightWindow, 'semileito') : createEmptySpacer());
 
                         grid.appendChild(rowEl);
                     }
@@ -1401,18 +1290,14 @@
                         </div>
                     `;
                 } else {
-                    // PISO INFERIOR (6 lugares: 43 a 48)
-                    deckTitle.textContent = 'PISO INFERIOR (43–48) • SALÃO TÉRREO';
+                    deckTitle.textContent = 'PISO INFERIOR (43–48) • LEITO 180°';
+                    deckSub.textContent = 'Poltronas-cama deitadas 180° • Conforto Máximo';
                     frontArea.innerHTML = `
                         <div class="bg-slate-800/90 rounded-xl p-2 flex items-center gap-2 border border-amber-500/25">
-                            <div class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                                    <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/>
-                                </svg>
-                            </div>
+                            <div class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 font-bold text-[10px]">180°</div>
                             <div class="leading-tight">
-                                <span class="block text-[10px] font-bold text-amber-300">Motorista</span>
-                                <span class="block text-[9px] text-slate-400">Cabine Inferior</span>
+                                <span class="block text-[10px] font-bold text-amber-300">Salão Leito</span>
+                                <span class="block text-[9px] text-slate-400">Cama Deitada 180°</span>
                             </div>
                         </div>
                         <div class="bg-slate-800/70 rounded-xl p-2 flex items-center justify-end gap-2 border border-slate-700">
@@ -1420,13 +1305,11 @@
                                 <span class="block text-[10px] font-bold text-slate-300">Porta</span>
                                 <span class="block text-[9px] text-slate-400">Embarque</span>
                             </div>
-                            <div class="w-6 h-6 rounded-lg bg-slate-700 text-amber-300 flex items-center justify-center shrink-0 text-xs">
-                                🚪
-                            </div>
+                            <div class="w-6 h-6 rounded-lg bg-slate-700 text-amber-300 flex items-center justify-center shrink-0 text-xs">🚪</div>
                         </div>
                     `;
 
-                    // 2 fileiras no Piso Inferior (43, 44, 45 e 46, 47, 48 - configuração executiva 2 + 1)
+                    // 6 poltronas Leito 180° (43–48) com altura maior simulando cama estendida
                     const lowerRows = [
                         [43, 44, null, 45],
                         [46, 47, null, 48]
@@ -1436,16 +1319,16 @@
                         const rowEl = document.createElement('div');
                         rowEl.className = 'grid grid-cols-5 gap-1.5 items-center';
 
-                        rowEl.appendChild(createSeatButton(rSeats[0]));
-                        rowEl.appendChild(createSeatButton(rSeats[1]));
+                        rowEl.appendChild(createSeatButton(rSeats[0], 'leito180'));
+                        rowEl.appendChild(createSeatButton(rSeats[1], 'leito180'));
 
                         const aisleEl = document.createElement('div');
-                        aisleEl.className = 'flex items-center justify-center text-[10px] font-mono text-slate-500 select-none';
-                        aisleEl.textContent = `T${rIdx + 1}`;
+                        aisleEl.className = 'flex items-center justify-center text-[10px] font-mono text-amber-400/70 select-none';
+                        aisleEl.textContent = `L${rIdx + 1}`;
                         rowEl.appendChild(aisleEl);
 
-                        rowEl.appendChild(createEmptySpacer());
-                        rowEl.appendChild(createSeatButton(rSeats[3]));
+                        rowEl.appendChild(createEmptySpacer('h-14'));
+                        rowEl.appendChild(createSeatButton(rSeats[3], 'leito180'));
 
                         grid.appendChild(rowEl);
                     });
@@ -1466,7 +1349,7 @@
             update3DSeatsColors();
         }
 
-        function createSeatButton(seatNumber) {
+        function createSeatButton(seatNumber, mode) {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.dataset.seat = seatNumber;
@@ -1476,21 +1359,21 @@
             const limitBlocked = !isOccupied && !isSelected && isBusPassengerLimitReached();
             const formatted = formatSeatNum(seatNumber);
             const position = getSeatPosition(seatNumber);
+            const reclinaLabel = mode === 'leito180' ? 'Leito 180°' : 'Semi-Leito';
 
             let stateClass = 'seat-available';
-            if (isOccupied || limitBlocked) {
-                stateClass = 'seat-occupied';
-            } else if (isSelected) {
-                stateClass = 'seat-selected';
-            }
+            if (isOccupied || limitBlocked) stateClass = 'seat-occupied';
+            else if (isSelected) stateClass = 'seat-selected';
 
-            btn.className = `seat-btn ${stateClass} h-11 rounded-xl flex flex-col items-center justify-center font-mono text-xs sm:text-sm font-extrabold leading-none`;
+            const modeClass = mode === 'leito180' ? 'seat-btn-leito180 h-14' : 'seat-btn-semileito h-11';
+
+            btn.className = `${modeClass} ${stateClass} rounded-xl flex flex-col items-center justify-center font-mono text-xs sm:text-sm font-extrabold leading-none`;
             btn.innerHTML = `<span>${formatted}</span>`;
             btn.title = isOccupied
-                ? `Poltrona ${formatted} (${position}) — Ocupada`
+                ? `Poltrona ${formatted} (${reclinaLabel} • ${position}) — Ocupada`
                 : limitBlocked
                     ? `Poltrona ${formatted} — Limite máximo de 40 passageiros atingido`
-                    : `Poltrona ${formatted} (${position}) — Livre`;
+                    : `Poltrona ${formatted} (${reclinaLabel} • ${position}) — Livre`;
 
             if (isOccupied || limitBlocked) {
                 btn.disabled = true;
@@ -1501,15 +1384,12 @@
             return btn;
         }
 
-        function createEmptySpacer() {
+        function createEmptySpacer(heightClass = 'h-11') {
             const div = document.createElement('div');
-            div.className = 'h-11';
+            div.className = heightClass;
             return div;
         }
 
-        /**
-         * Renderiza os 15 quartos (10 Triplos e 5 Duplos = 40 vagas)
-         */
         function renderRoomsGrid() {
             const roomsGrid = document.getElementById('rooms-grid');
             if (!roomsGrid) return;
@@ -1536,11 +1416,7 @@
                 let bedsDots = '';
                 for (let b = 0; b < room.capacity; b++) {
                     const filled = b < occupants.length;
-                    if (isSelected) {
-                        bedsDots += `<span class="w-2.5 h-2.5 rounded-full ${filled ? 'bg-amber-400' : 'bg-emerald-400'}"></span>`;
-                    } else {
-                        bedsDots += `<span class="w-2.5 h-2.5 rounded-full ${filled ? 'bg-slate-400' : 'bg-emerald-500'}"></span>`;
-                    }
+                    bedsDots += `<span class="w-2.5 h-2.5 rounded-full ${filled ? (isSelected ? 'bg-amber-400' : 'bg-slate-400') : (isSelected ? 'bg-emerald-400' : 'bg-emerald-500')}"></span>`;
                 }
 
                 const badgeClass = room.type === 'Triplo'
@@ -1562,15 +1438,10 @@
                             ${full ? 'Lotado' : `${freeSpots} ${freeSpots === 1 ? 'vaga' : 'vagas'}`}
                         </span>
                     </div>
-                    <p class="text-xs truncate w-full ${isSelected ? 'text-slate-300' : 'text-slate-500'}" title="${namesList}">
-                        ${namesList}
-                    </p>
+                    <p class="text-xs truncate w-full ${isSelected ? 'text-slate-300' : 'text-slate-500'}" title="${namesList}">${namesList}</p>
                 `;
 
-                if (!full) {
-                    card.addEventListener('click', () => handleRoomClick(room.id));
-                }
-
+                if (!full) card.addEventListener('click', () => handleRoomClick(room.id));
                 roomsGrid.appendChild(card);
             });
         }
@@ -1584,7 +1455,6 @@
                 showToast('O ônibus já atingiu a lotação máxima de 40 passageiros.', 'error');
                 return;
             }
-
             selectedSeat = selectedSeat === seatNumber ? null : seatNumber;
             renderBusMap();
             updateSelectedBadge();
@@ -1595,7 +1465,6 @@
                 showToast('Este quarto já está com todas as vagas preenchidas.', 'error');
                 return;
             }
-
             selectedRoomId = selectedRoomId === roomId ? null : roomId;
             renderRoomsGrid();
             updateSelectedRoomBadge();
@@ -1604,38 +1473,31 @@
         function updateSelectedBadge() {
             const badge = document.getElementById('selected-seat-badge');
             if (!badge) return;
-
             if (!selectedSeat) {
                 badge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold';
                 badge.innerHTML = '<span>Poltrona: —</span>';
                 return;
             }
-
             const formatted = formatSeatNum(selectedSeat);
             const pos = getSeatPosition(selectedSeat);
-            const deckShort = selectedSeat <= UPPER_DECK_SEATS ? 'Sup.' : 'Inf.';
+            const tipo = selectedSeat <= UPPER_DECK_SEATS ? 'Semi-Leito' : 'Leito 180°';
             badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-amber-300 border border-amber-500/40 text-xs font-bold shadow-sm';
-            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Poltrona ${formatted} (${pos} • ${deckShort})</span>`;
+            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Poltrona ${formatted} (${tipo} • ${pos})</span>`;
         }
 
         function updateSelectedRoomBadge() {
             const badge = document.getElementById('selected-room-badge');
             if (!badge) return;
-
             if (!selectedRoomId) {
                 badge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold';
                 badge.innerHTML = '<span>Quarto: —</span>';
                 return;
             }
-
             const room = getRoomById(selectedRoomId);
             badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-950 text-white text-xs font-bold shadow-sm';
             badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>${room.label} (${room.type})</span>`;
         }
 
-        /**
-         * Processa a confirmação da reserva e gera o comprovante
-         */
         function setupFormListener() {
             const form = document.getElementById('reservation-form');
             form.addEventListener('submit', async (e) => {
@@ -1645,12 +1507,10 @@
                     showToast('Lotação máxima de 40 passageiros já foi atingida.', 'error');
                     return;
                 }
-
                 if (!selectedSeat) {
                     showToast('Por favor, selecione uma poltrona livre no mapa do ônibus antes de confirmar.', 'error');
                     return;
                 }
-
                 if (!selectedRoomId) {
                     showToast('Por favor, selecione um quarto disponível no Passo 2 antes de confirmar.', 'error');
                     document.getElementById('room-selection-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1816,8 +1676,7 @@
             qrContainer.appendChild(img);
 
             document.getElementById('selection-screen-view').classList.add('hidden');
-            const voucherSection = document.getElementById('voucher-section');
-            voucherSection.classList.remove('hidden');
+            document.getElementById('voucher-section').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -1840,13 +1699,9 @@
             if (docInput) {
                 docInput.addEventListener('input', (e) => {
                     let v = e.target.value.replace(/\D/g, '').slice(0, 11);
-                    if (v.length > 9) {
-                        v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
-                    } else if (v.length > 6) {
-                        v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
-                    } else if (v.length > 3) {
-                        v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
-                    }
+                    if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+                    else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+                    else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
                     e.target.value = v;
                 });
             }
@@ -1854,13 +1709,9 @@
             if (phoneInput) {
                 phoneInput.addEventListener('input', (e) => {
                     let v = e.target.value.replace(/\D/g, '').slice(0, 11);
-                    if (v.length > 10) {
-                        v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                    } else if (v.length > 6) {
-                        v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-                    } else if (v.length > 2) {
-                        v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
-                    }
+                    if (v.length > 10) v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                    else if (v.length > 6) v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+                    else if (v.length > 2) v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
                     e.target.value = v;
                 });
             }
@@ -1979,9 +1830,7 @@
             }
 
             const params = new URLSearchParams(window.location.search);
-            if (params.get('admin') === '1') {
-                requestCoordinatorAccess();
-            }
+            if (params.get('admin') === '1') requestCoordinatorAccess();
 
             const passForm = document.getElementById('admin-password-form');
             if (passForm) {
@@ -2016,18 +1865,9 @@
             setTimeout(() => input.focus(), 80);
         }
 
-        function closePasswordModal() {
-            document.getElementById('admin-password-modal').classList.add('hidden');
-        }
-
-        function openCoordinatorPanel() {
-            renderCoordinatorList();
-            document.getElementById('coordinator-modal').classList.remove('hidden');
-        }
-
-        function closeCoordinatorPanel() {
-            document.getElementById('coordinator-modal').classList.add('hidden');
-        }
+        function closePasswordModal() { document.getElementById('admin-password-modal').classList.add('hidden'); }
+        function openCoordinatorPanel() { renderCoordinatorList(); document.getElementById('coordinator-modal').classList.remove('hidden'); }
+        function closeCoordinatorPanel() { document.getElementById('coordinator-modal').classList.add('hidden'); }
 
         function renderCoordinatorList() {
             const listEl = document.getElementById('coordinator-list');
@@ -2045,7 +1885,7 @@
 
             listEl.innerHTML = '';
             records.forEach(r => {
-                const deckShort = Number(r.seatRaw) <= UPPER_DECK_SEATS ? 'Sup' : 'Inf';
+                const deckShort = Number(r.seatRaw) <= UPPER_DECK_SEATS ? 'Sup • Semi-Leito' : 'Inf • Leito 180°';
                 const item = document.createElement('div');
                 item.className = 'p-3 rounded-2xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2';
                 item.innerHTML = `
@@ -2077,7 +1917,6 @@
         async function manualCheckinSeat(seatNum) {
             const record = seatRecords[seatNum];
             if (!record) return;
-
             const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             isSyncing = true;
             try {
@@ -2101,9 +1940,7 @@
                 saveOccupiedSeats();
                 renderBusMap();
                 renderCoordinatorList();
-                if (record) {
-                    await pushRecordToCloud('RELEASE', record);
-                }
+                if (record) await pushRecordToCloud('RELEASE', record);
                 showToast(`Poltrona ${formatSeatNum(seatNum)} e vaga do quarto liberadas.`, 'info');
             } finally {
                 isSyncing = false;
@@ -2133,7 +1970,6 @@
             const records = Object.values(seatRecords).sort((a, b) => a.seatRaw - b.seatRaw);
             const headers = ['Poltrona', 'Andar', 'Posicao', 'Quarto', 'TipoQuarto', 'Codigo', 'Nome', 'CPF', 'Telefone', 'Embarcado', 'HoraCheckin'];
             const lines = [headers.join(';')];
-
             records.forEach(r => {
                 lines.push([
                     r.seat,
@@ -2149,7 +1985,6 @@
                     r.boardedAt || ''
                 ].join(';'));
             });
-
             const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -2161,7 +1996,6 @@
 
         function downloadVoucherPNG() {
             if (!currentTicketData) return;
-
             const canvas = document.getElementById('export-canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = 720;
@@ -2170,10 +2004,8 @@
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Cabeçalho GS Tour Preto & Dourado
             ctx.fillStyle = '#090d16';
             ctx.fillRect(0, 0, canvas.width, 150);
-
             ctx.fillStyle = '#d4af37';
             ctx.fillRect(0, 146, canvas.width, 4);
 
@@ -2191,7 +2023,6 @@
             ctx.fillText(`#${currentTicketData.code}`, canvas.width - 48, 92);
             ctx.textAlign = 'left';
 
-            // Faixa de destaque Poltrona & Quarto
             ctx.fillStyle = '#f8fafc';
             ctx.fillRect(0, 150, canvas.width, 175);
 
@@ -2233,23 +2064,10 @@
                 ctx.fillStyle = '#94a3b8';
                 ctx.font = 'bold 15px Inter, sans-serif';
                 ctx.fillText(f.label, 48, f.y);
-
                 ctx.fillStyle = '#0f172a';
                 ctx.font = 'bold 24px Inter, sans-serif';
                 ctx.fillText(String(f.value).slice(0, 44), 48, f.y + 34);
             });
-
-            ctx.strokeStyle = '#cbd5e1';
-            ctx.setLineDash([10, 8]);
-            ctx.beginPath();
-            ctx.moveTo(48, 820);
-            ctx.lineTo(canvas.width - 48, 820);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            ctx.fillStyle = '#475569';
-            ctx.font = '18px Inter, sans-serif';
-            ctx.fillText('Apresente este cartão ao coordenador no embarque.', 48, 878);
 
             const qrImg = document.querySelector('#qrcode-container img');
             const triggerDownload = () => {
@@ -2261,9 +2079,7 @@
             };
 
             if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) {
-                try {
-                    ctx.drawImage(qrImg, canvas.width - 168, 832, 115, 115);
-                } catch (e) {}
+                try { ctx.drawImage(qrImg, canvas.width - 168, 832, 115, 115); } catch (e) {}
             }
             triggerDownload();
         }
@@ -2271,17 +2087,14 @@
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             if (!container) return;
-
             const toast = document.createElement('div');
             const bgColors = {
                 success: 'bg-emerald-900 text-white border-emerald-700',
                 error: 'bg-red-900 text-white border-red-700',
                 info: 'bg-slate-900 text-white border-slate-700'
             };
-
             toast.className = `${bgColors[type] || bgColors.info} pointer-events-auto border px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-medium flex items-center justify-between gap-3 transition-all`;
             toast.innerHTML = `<span>${message}</span>`;
-
             container.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
