@@ -371,13 +371,13 @@
 
                 <!-- PALCO 3D THREE.JS -->
                 <div class="relative rounded-2xl overflow-hidden border border-slate-800 bg-gradient-to-b from-[#090d16] via-[#111827] to-[#1e293b] mb-4 shadow-inner">
-                    <div id="gs-tour-3d-canvas" class="w-full h-[190px] sm:h-[210px] cursor-grab active:cursor-grabbing"></div>
+                    <div id="gs-tour-3d-canvas" class="w-full h-[195px] sm:h-[215px] cursor-grab active:cursor-grabbing"></div>
 
                     <div class="absolute top-2.5 left-3 pointer-events-none flex items-center gap-2">
                         <span class="px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm border border-amber-400/40 text-amber-300 font-extrabold text-[10px] tracking-widest">
                             GS TOUR 3D
                         </span>
-                        <span class="text-[10px] text-slate-300/80 hidden sm:inline">Arraste para girar</span>
+                        <span class="text-[10px] text-slate-300/80 hidden sm:inline">Frente à direita • Arraste para girar</span>
                     </div>
 
                     <button type="button" onclick="reset3DCamera()" title="Centralizar visão 3D"
@@ -396,12 +396,12 @@
                     <button type="button" id="tab-upper-deck" onclick="switchDeck('upper')"
                         class="py-2 px-3 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-extrabold text-xs transition cursor-pointer flex flex-col items-center leading-tight shadow">
                         <span>Piso Superior (01–42)</span>
-                        <span id="upper-deck-count" class="text-[10px] font-bold opacity-85 mt-0.5">Semi-Leito • 42 lugares</span>
+                        <span id="upper-deck-count" class="text-[10px] font-bold opacity-85 mt-0.5">Semi-Leito • 42/42 livres</span>
                     </button>
                     <button type="button" id="tab-lower-deck" onclick="switchDeck('lower')"
                         class="py-2 px-3 rounded-lg bg-transparent hover:bg-slate-800 text-slate-300 font-bold text-xs transition cursor-pointer flex flex-col items-center leading-tight">
                         <span>Piso Inferior (43–48)</span>
-                        <span id="lower-deck-count" class="text-[10px] font-semibold text-amber-300/90 mt-0.5">Leito 180° • 6 lugares</span>
+                        <span id="lower-deck-count" class="text-[10px] font-semibold text-amber-300/90 mt-0.5">Leito 180° • 6/6 livres</span>
                     </button>
                 </div>
 
@@ -432,7 +432,7 @@
                             <span class="text-[10px] uppercase tracking-[0.18em] font-extrabold text-amber-400 block" id="deck-header-title">
                                 PISO SUPERIOR (01–42) • SEMI-LEITO
                             </span>
-                            <span class="text-[9px] text-slate-400" id="deck-header-subtitle">Encosto reclinado ~30° • Salão Panorâmico</span>
+                            <span class="text-[9px] text-slate-400" id="deck-header-subtitle">Encosto reclinado ~30° • Visão Panorâmica</span>
                         </div>
 
                         <div id="deck-front-area" class="grid grid-cols-2 gap-2.5 pb-3 mb-3 border-b border-dashed border-slate-700"></div>
@@ -685,10 +685,9 @@
         let currentTicketData = null;
         let isSyncing = false;
 
-        // Estruturas do Three.js (guarda materiais de cada poltrona para atualizar cor sem perder inclinação)
         let threeScene, threeCamera, threeRenderer, busGroup, seatMaterials3D = {};
-        let targetRotY = -0.58, targetRotX = 0.18;
-        let currentRotY = -0.58, currentRotX = 0.18;
+        let targetRotY = -0.55, targetRotX = 0.18;
+        let currentRotY = -0.55, currentRotX = 0.18;
         let isDragging3D = false, prevMouseX = 0, prevMouseY = 0, autoRotate3D = true;
 
         window.addEventListener('DOMContentLoaded', async () => {
@@ -741,9 +740,49 @@
         });
 
         /**
-         * Cria um grupo 3D de poltrona com inclinação real:
-         * - mode = 'semileito': assento + encosto inclinado ~30° + apoio de cabeça
-         * - mode = 'leito180': cama/poltrona deitada ~180° (base longa + encosto quase horizontal + apoio de pernas)
+         * Cria a carroceria aerodinâmica do Double Decker com frente inclinada/arredondada em +X
+         */
+        function createAerodynamicBusBody(length, height, width, material) {
+            const halfL = length / 2;
+            const halfH = height / 2;
+
+            // Perfil lateral (plano XY): frente fica em +X, traseira em -X
+            // O para-brisa Double Decker tem leve inclinação aerodinâmica e cantos arredondados
+            const shape = new THREE.Shape();
+            shape.moveTo(-halfL + 0.14, -halfH);
+            shape.lineTo(halfL - 0.18, -halfH);
+            // Base dianteira arredondada
+            shape.quadraticCurveTo(halfL + 0.04, -halfH, halfL + 0.05, -halfH + 0.22);
+            // Frente inclinada levemente para frente na parte superior (estilo ônibus DD moderno)
+            shape.lineTo(halfL + 0.16, halfH - 0.26);
+            // Teto dianteiro arredondado
+            shape.quadraticCurveTo(halfL + 0.16, halfH, halfL - 0.08, halfH);
+            // Teto superior
+            shape.lineTo(-halfL + 0.16, halfH);
+            // Traseira arredondada
+            shape.quadraticCurveTo(-halfL - 0.02, halfH, -halfL - 0.02, halfH - 0.18);
+            shape.lineTo(-halfL + 0.02, -halfH + 0.16);
+            shape.quadraticCurveTo(-halfL + 0.02, -halfH, -halfL + 0.14, -halfH);
+
+            const extrudeSettings = {
+                steps: 1,
+                depth: width,
+                bevelEnabled: true,
+                bevelThickness: 0.03,
+                bevelSize: 0.025,
+                bevelSegments: 3
+            };
+
+            const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            // Centraliza ao longo do eixo Z
+            geo.translate(0, 0, -width / 2);
+            return new THREE.Mesh(geo, material);
+        }
+
+        /**
+         * Poltrona 3D orientada corretamente para a FRENTE (+X):
+         * - Encosto fica atrás (-X)
+         * - Descanso de pernas / pés fica na frente (+X)
          */
         function create3DReclinerSeat(mode, initialColorHex) {
             const seatGroup = new THREE.Group();
@@ -754,39 +793,45 @@
             });
 
             if (mode === 'semileito') {
-                // Base / assento
-                const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.06, 0.18), mat);
-                cushion.position.set(0, 0.04, 0);
+                // Assento central
+                const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.055, 0.18), mat);
+                cushion.position.set(0.01, 0.05, 0);
                 seatGroup.add(cushion);
 
-                // Encosto inclinado (~28° para trás, direção -X)
-                const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.21, 0.18), mat);
-                backrest.position.set(-0.08, 0.14, 0);
-                backrest.rotation.z = -0.48; // ~27.5° de inclinação semi-leito
+                // Descanso de pernas / pés apontando para a FRENTE (+X)
+                const legRest = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.04, 0.17), mat);
+                legRest.position.set(0.125, 0.035, 0);
+                legRest.rotation.z = -0.25; // desce suavemente para os pés na frente (+X)
+                seatGroup.add(legRest);
+
+                // Encosto reclinado para trás (-X) em ~28° (semi-leito)
+                const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.21, 0.18), mat);
+                backrest.position.set(-0.085, 0.145, 0);
+                backrest.rotation.z = -0.46;
                 seatGroup.add(backrest);
 
-                // Apoio de cabeça
-                const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.12), mat);
-                headrest.position.set(-0.125, 0.24, 0);
-                headrest.rotation.z = -0.48;
+                // Apoio de cabeça no topo do encosto (-X)
+                const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.055, 0.12), mat);
+                headrest.position.set(-0.13, 0.245, 0);
+                headrest.rotation.z = -0.46;
                 seatGroup.add(headrest);
             } else {
-                // LEITO 180°: estrutura alongada na horizontal formando cama
-                const bedBase = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.06, 0.24), mat);
-                bedBase.position.set(0, 0.03, 0);
+                // LEITO 180° (Cama): cabeça/encosto atrás (-X), pés/apoio frontal na frente (+X)
+                const bedBase = new THREE.Mesh(new THREE.BoxGeometry(0.40, 0.055, 0.24), mat);
+                bedBase.position.set(0, 0.035, 0);
                 seatGroup.add(bedBase);
 
-                // Encosto deitado quase 180° (apenas leve elevação de ~12° para o travesseiro/cabeça)
-                const reclineBack = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.05, 0.24), mat);
-                reclineBack.position.set(-0.24, 0.05, 0);
-                reclineBack.rotation.z = -0.22; // ~12.5° acima da horizontal (quase 180° aberta)
+                // Encosto de cabeça reclinado quase na horizontal atrás (-X)
+                const reclineBack = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.045, 0.24), mat);
+                reclineBack.position.set(-0.24, 0.055, 0);
+                reclineBack.rotation.z = -0.20;
                 seatGroup.add(reclineBack);
 
-                // Descanso de pernas estendido na frente (+X)
-                const legRest = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.045, 0.24), mat);
-                legRest.position.set(0.24, 0.045, 0);
-                legRest.rotation.z = 0.18;
-                seatGroup.add(legRest);
+                // Apoio de pés/panturrilha estendido para a frente (+X)
+                const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 0.24), mat);
+                footRest.position.set(0.24, 0.045, 0);
+                footRest.rotation.z = -0.15;
+                seatGroup.add(footRest);
             }
 
             return { group: seatGroup, material: mat };
@@ -797,12 +842,12 @@
             if (!container || typeof THREE === 'undefined') return;
 
             const width = container.clientWidth || 360;
-            const height = container.clientHeight || 200;
+            const height = container.clientHeight || 205;
 
             threeScene = new THREE.Scene();
             threeCamera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
-            threeCamera.position.set(0, 1.4, 7.8);
-            threeCamera.lookAt(0, 0.22, 0);
+            threeCamera.position.set(0.2, 1.45, 7.9);
+            threeCamera.lookAt(0.1, 0.22, 0);
 
             threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             threeRenderer.setSize(width, height);
@@ -811,19 +856,19 @@
             container.appendChild(threeRenderer.domElement);
 
             threeScene.add(new THREE.AmbientLight(0xffffff, 0.78));
-            const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.2);
-            dirLight.position.set(5, 8, 6);
+            const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.25);
+            dirLight.position.set(6, 8, 6);
             threeScene.add(dirLight);
 
-            const rimLight = new THREE.DirectionalLight(0xd4af37, 0.85);
+            const rimLight = new THREE.DirectionalLight(0xd4af37, 0.9);
             rimLight.position.set(-6, 4, -5);
             threeScene.add(rimLight);
 
             busGroup = new THREE.Group();
             threeScene.add(busGroup);
 
-            const busLength = 5.6;
-            const busWidth = 1.28;
+            const busLength = 5.5;
+            const busWidth = 1.26;
 
             const blackBodyMat = new THREE.MeshStandardMaterial({
                 color: 0x0b0f19,
@@ -837,39 +882,50 @@
             });
             const glassBodyMat = new THREE.MeshPhysicalMaterial({
                 color: 0x0f172a,
-                roughness: 0.15,
+                roughness: 0.14,
                 metalness: 0.2,
                 transparent: true,
-                opacity: 0.30,
+                opacity: 0.28,
                 depthWrite: false
             });
 
-            // Chassi inferior
-            const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(busLength, 0.72, busWidth), blackBodyMat);
-            lowerBody.position.y = -0.28;
-            busGroup.add(lowerBody);
+            // 1. Chassi inferior aerodinâmico preto (frente inclinada em +X)
+            const lowerChassis = createAerodynamicBusBody(busLength, 0.70, busWidth, blackBodyMat);
+            lowerChassis.position.y = -0.28;
+            busGroup.add(lowerChassis);
 
-            // Carroceria superior translúcida
-            const upperBody = new THREE.Mesh(new THREE.BoxGeometry(busLength, 0.96, busWidth), glassBodyMat);
-            upperBody.position.y = 0.56;
-            busGroup.add(upperBody);
+            // 2. Salão superior panorâmico translúcido com frente inclinada
+            const upperCabin = createAerodynamicBusBody(busLength, 0.94, busWidth, glassBodyMat);
+            upperCabin.position.y = 0.56;
+            busGroup.add(upperCabin);
 
-            // Teto e frisos dourados GS Tour
-            const roofMesh = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.04, 0.08, busWidth + 0.04), blackBodyMat);
-            roofMesh.position.y = 1.06;
-            busGroup.add(roofMesh);
-
-            const midGoldStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.03, 0.045, busWidth + 0.03), goldMat);
-            midGoldStripe.position.y = 0.10;
+            // 3. Faixas e contorno dourados GS Tour (inclusive coluna frontal inclinada)
+            const midGoldStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.08, 0.04, busWidth + 0.06), goldMat);
+            midGoldStripe.position.set(0.03, 0.09, 0);
             busGroup.add(midGoldStripe);
 
-            const topGoldStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.03, 0.045, busWidth + 0.03), goldMat);
-            topGoldStripe.position.y = 1.01;
+            const topGoldStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.28, 0.045, busWidth + 0.06), goldMat);
+            topGoldStripe.position.set(0.02, 1.02, 0);
             busGroup.add(topGoldStripe);
 
+            // Coluna frontal dourada inclinada caracterizando a frente do ônibus
+            const frontPillar = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.66, busWidth + 0.06), goldMat);
+            frontPillar.position.set(busLength / 2 + 0.11, 0.20, 0);
+            frontPillar.rotation.z = -0.14;
+            busGroup.add(frontPillar);
+
+            // Faróis dianteiros na frente (+X)
+            const hlGeo = new THREE.BoxGeometry(0.05, 0.08, 0.20);
+            const hlMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+            [-0.42, 0.42].forEach(zPos => {
+                const hl = new THREE.Mesh(hlGeo, hlMat);
+                hl.position.set(busLength / 2 + 0.06, -0.45, zPos);
+                busGroup.add(hl);
+            });
+
             // Piso divisório entre andar superior e inferior
-            const floorDiv = new THREE.Mesh(new THREE.BoxGeometry(busLength - 0.1, 0.04, busWidth - 0.08), blackBodyMat);
-            floorDiv.position.y = 0.12;
+            const floorDiv = new THREE.Mesh(new THREE.BoxGeometry(busLength - 0.12, 0.04, busWidth - 0.06), blackBodyMat);
+            floorDiv.position.y = 0.11;
             busGroup.add(floorDiv);
 
             // Textura lateral GS Tour + Bússola
@@ -901,19 +957,19 @@
 
             const decalTex = new THREE.CanvasTexture(sideCanvas);
             const decalMat = new THREE.MeshBasicMaterial({ map: decalTex, transparent: true });
-            const decalGeo = new THREE.PlaneGeometry(busLength - 0.2, 0.7);
+            const decalGeo = new THREE.PlaneGeometry(busLength - 0.25, 0.68);
 
             const rightDecal = new THREE.Mesh(decalGeo, decalMat);
-            rightDecal.position.set(0, -0.28, busWidth / 2 + 0.005);
+            rightDecal.position.set(0, -0.28, busWidth / 2 + 0.032);
             busGroup.add(rightDecal);
 
             const leftDecal = new THREE.Mesh(decalGeo, decalMat);
             leftDecal.rotation.y = Math.PI;
-            leftDecal.position.set(0, -0.28, -busWidth / 2 - 0.005);
+            leftDecal.position.set(0, -0.28, -busWidth / 2 - 0.032);
             busGroup.add(leftDecal);
 
             // 4 Eixos (8 rodas)
-            const wheelXPositions = [-2.05, -1.48, 1.38, 1.98];
+            const wheelXPositions = [-2.02, -1.46, 1.36, 1.94];
             const tireGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.14, 20);
             tireGeo.rotateX(Math.PI / 2);
             const tireMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
@@ -923,19 +979,19 @@
             const rimMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.2 });
 
             wheelXPositions.forEach(xPos => {
-                [-busWidth / 2, busWidth / 2].forEach(zPos => {
+                [-busWidth / 2 - 0.01, busWidth / 2 + 0.01].forEach(zPos => {
                     const tire = new THREE.Mesh(tireGeo, tireMat);
-                    tire.position.set(xPos, -0.64, zPos);
+                    tire.position.set(xPos, -0.63, zPos);
                     busGroup.add(tire);
 
                     const rim = new THREE.Mesh(rimGeo, rimMat);
-                    rim.position.set(xPos, -0.64, zPos);
+                    rim.position.set(xPos, -0.63, zPos);
                     busGroup.add(rim);
                 });
             });
 
-            // ANDAR SUPERIOR (01 a 42): Poltronas Semi-Leito inclinadas
-            const zSlots = [-0.43, -0.19, 0.19, 0.43];
+            // ANDAR SUPERIOR (01 a 42): Semi-leito virado para frente (+X)
+            const zSlots = [-0.42, -0.18, 0.18, 0.42];
             for (let s = 1; s <= UPPER_DECK_SEATS; s++) {
                 const idx = s - 1;
                 const row = Math.floor(idx / 4);
@@ -944,18 +1000,18 @@
                 const zPos = zSlots[col];
 
                 const seatObj = create3DReclinerSeat('semileito', 0x10b981);
-                seatObj.group.position.set(xPos, 0.15, zPos);
+                seatObj.group.position.set(xPos, 0.14, zPos);
                 busGroup.add(seatObj.group);
                 seatMaterials3D[s] = seatObj.material;
             }
 
-            // ANDAR INFERIOR (43 a 48): Poltronas Leito 180° deitadas (cama)
+            // ANDAR INFERIOR (43 a 48): Leito 180° com pés apontando para frente (+X)
             for (let s = 43; s <= TOTAL_PHYSICAL_SEATS; s++) {
                 const idx = s - 43;
                 const row = Math.floor(idx / 3);
                 const col = idx % 3;
-                const xPos = 0.25 - row * 0.52;
-                const zPos = [-0.38, 0.0, 0.38][col];
+                const xPos = 0.22 - row * 0.55;
+                const zPos = [-0.36, 0.0, 0.36][col];
 
                 const seatObj = create3DReclinerSeat('leito180', 0x10b981);
                 seatObj.group.position.set(xPos, -0.45, zPos);
@@ -1033,7 +1089,7 @@
         }
 
         function reset3DCamera() {
-            targetRotY = activeDeck === 'lower' ? -0.85 : -0.58;
+            targetRotY = activeDeck === 'lower' ? -0.78 : -0.55;
             targetRotX = activeDeck === 'lower' ? 0.08 : 0.22;
             autoRotate3D = false;
         }
@@ -1309,7 +1365,6 @@
                         </div>
                     `;
 
-                    // 6 poltronas Leito 180° (43–48) com altura maior simulando cama estendida
                     const lowerRows = [
                         [43, 44, null, 45],
                         [46, 47, null, 48]
