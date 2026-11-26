@@ -396,7 +396,7 @@
                             <span>Piso Superior (01–42)</span>
                             <span id="upper-deck-count" class="text-[10px] font-bold opacity-85 mt-0.5">Semi-Leito 145° • 42/42 livres</span>
                         </button>
-                        <button type="button" id="tab-lower-deck" onclick="switchDeck('lower')"
+                        <button type="button" id="tab-lower-deck" onclick="openLowerDeckFromBottom()"
                             class="py-2 px-3 rounded-lg bg-transparent hover:bg-slate-800 text-slate-300 font-bold text-xs transition cursor-pointer flex flex-col items-center leading-tight">
                             <span>Piso Inferior (43–48)</span>
                             <span id="lower-deck-count" class="text-[10px] font-semibold text-amber-300/90 mt-0.5">Leito 180° • 6/6 livres</span>
@@ -528,14 +528,14 @@
                         <h2 class="text-base sm:text-lg font-bold text-slate-900 mt-1">Piso Inferior 3D — 6 Bancos Deitados em 180° (43–48)</h2>
                         <p class="text-xs text-slate-500">Visualização 3D e mapa direto das 6 poltronas-cama reclinadas em 180°</p>
                     </div>
-                    <a href="#bus-cabin-wrapper" onclick="switchDeck('upper')"
-                        class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 text-xs font-bold transition shrink-0">
+                    <button type="button" onclick="scrollBackToUpperDeck()"
+                        class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 text-xs font-bold transition shrink-0 cursor-pointer">
                         <span>↑ Voltar ao Piso Superior</span>
-                    </a>
+                    </button>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    <!-- Palco 3D dedicado ao Piso Inferior / Bancos 180° -->
+                    <!-- Palco 3D dedicado aos 6 bancos 180° -->
                     <div class="lg:col-span-7">
                         <div class="relative rounded-2xl overflow-hidden border border-slate-800 bg-gradient-to-b from-[#090d16] via-[#111827] to-[#1e293b] shadow-inner">
                             <div id="lower-deck-3d-canvas" class="w-full h-[240px] sm:h-[280px] cursor-grab active:cursor-grabbing"></div>
@@ -768,7 +768,7 @@
         let currentTicketData = null;
         let isSyncing = false;
 
-        let threeScene, threeCamera, threeRenderer, busGroup, seatMaterials3D = {};
+        let threeScene, threeCamera, threeRenderer, busGroup, upperCabinMesh, seatMaterials3D = {};
         let targetRotY = -0.35, targetRotX = 0.20;
         let currentRotY = -0.35, currentRotX = 0.20;
         let isDragging3D = false, prevMouseX = 0, prevMouseY = 0, autoRotate3D = false;
@@ -963,7 +963,7 @@
                 roughness: 0.14,
                 metalness: 0.2,
                 transparent: true,
-                opacity: 0.28,
+                opacity: 0.22,
                 depthWrite: false
             });
 
@@ -971,9 +971,9 @@
             lowerChassis.position.y = -0.28;
             busGroup.add(lowerChassis);
 
-            const upperCabin = createAerodynamicBusBody(busLength, 0.94, busWidth, glassBodyMat);
-            upperCabin.position.y = 0.56;
-            busGroup.add(upperCabin);
+            upperCabinMesh = createAerodynamicBusBody(busLength, 0.94, busWidth, glassBodyMat);
+            upperCabinMesh.position.y = 0.56;
+            busGroup.add(upperCabinMesh);
 
             const midGoldStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.08, 0.04, busWidth + 0.06), goldMat);
             midGoldStripe.position.set(-0.02, 0.09, 0);
@@ -1074,15 +1074,17 @@
                 seatMaterials3D[s] = seatObj.material;
             }
 
+            // 6 poltronas-cama 180° no piso inferior (posições visíveis na lateral do chassi inferior)
             for (let s = 43; s <= TOTAL_PHYSICAL_SEATS; s++) {
                 const idx = s - 43;
                 const row = Math.floor(idx / 3);
                 const col = idx % 3;
-                const xPos = -0.35 + row * 0.56;
-                const zPos = [-0.36, 0.0, 0.36][col];
+                const xPos = -0.35 + row * 0.62;
+                const zPos = [-0.44, 0.0, 0.44][col];
 
-                const seatObj = create3DReclinerSeat('leito180', 0x10b981);
-                seatObj.group.position.set(xPos, -0.45, zPos);
+                const seatObj = create3DReclinerSeat('leito180', 0x34d399);
+                seatObj.group.scale.set(1.25, 1.15, 1.15);
+                seatObj.group.position.set(xPos, -0.38, zPos);
                 busGroup.add(seatObj.group);
                 seatMaterials3D[s] = seatObj.material;
             }
@@ -1190,7 +1192,6 @@
             backBorder.position.set(0, 0.02, -0.71);
             lowerCabinGroup.add(backBorder);
 
-            // 6 poltronas-cama deitadas em 180° (poltronas 43 a 48)
             for (let s = 43; s <= TOTAL_PHYSICAL_SEATS; s++) {
                 const idx = s - 43;
                 const row = Math.floor(idx / 3);
@@ -1314,13 +1315,31 @@
                 upperTab.className = 'py-2 px-3 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-extrabold text-xs transition cursor-pointer flex flex-col items-center leading-tight shadow';
                 lowerTab.className = 'py-2 px-3 rounded-lg bg-transparent hover:bg-slate-800 text-slate-300 font-bold text-xs transition cursor-pointer flex flex-col items-center leading-tight';
                 targetRotX = 0.24;
+                if (upperCabinMesh && upperCabinMesh.material) upperCabinMesh.material.opacity = 0.22;
             } else {
                 lowerTab.className = 'py-2 px-3 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-extrabold text-xs transition cursor-pointer flex flex-col items-center leading-tight shadow';
                 upperTab.className = 'py-2 px-3 rounded-lg bg-transparent hover:bg-slate-800 text-slate-300 font-bold text-xs transition cursor-pointer flex flex-col items-center leading-tight';
-                targetRotX = 0.06;
+                targetRotX = 0.08;
+                if (upperCabinMesh && upperCabinMesh.material) upperCabinMesh.material.opacity = 0.08;
             }
             autoRotate3D = false;
             renderBusMap();
+        }
+
+        function openLowerDeckFromBottom() {
+            switchDeck('lower');
+            const lowerSection = document.getElementById('lower-deck-3d-section');
+            if (lowerSection) {
+                lowerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function scrollBackToUpperDeck() {
+            switchDeck('upper');
+            const wrapper = document.getElementById('bus-cabin-wrapper');
+            if (wrapper) {
+                wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
 
         function loadOccupiedSeats() {
@@ -1633,7 +1652,7 @@
                                     <span class="text-[10px] font-semibold">🧳 Bagageiro</span>
                                 </div>
                             </div>
-                            <button type="button" onclick="switchDeck('upper')"
+                            <button type="button" onclick="scrollBackToUpperDeck()"
                                 class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-[11px] flex items-center justify-center gap-1.5 transition cursor-pointer">
                                 <span>↑ Voltar ao Piso Superior (01–42 Semi-Leito 145°)</span>
                             </button>
@@ -1646,14 +1665,6 @@
             renderRoomsGrid();
             updateAvailableCounter();
             update3DSeatsColors();
-        }
-
-        function openLowerDeckFromBottom() {
-            switchDeck('lower');
-            const lowerSection = document.getElementById('lower-deck-3d-section');
-            if (lowerSection) {
-                lowerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
         }
 
         function createSeatButton(seatNumber, mode) {
