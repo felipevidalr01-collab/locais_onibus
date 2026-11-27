@@ -727,23 +727,28 @@
                 metalness: 0.05
             });
 
-            const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.052, 0.22, 0.18), mat);
-            backrest.position.set(0.115, 0.115, 0);
-            backrest.rotation.z = -THREE.MathUtils.degToRad(52);
+            // Origem (0,0,0) da cadeira fica na base inferior apoiada no piso
+            const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.20, 0.15), mat);
+            backrest.position.set(0.105, 0.135, 0);
+            backrest.rotation.z = -THREE.MathUtils.degToRad(50);
             seatGroup.add(backrest);
 
-            const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.068, 0.13), pillowMat);
-            pillow.position.set(0.155, 0.175, 0);
-            pillow.rotation.z = -THREE.MathUtils.degToRad(52);
+            const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.062, 0.11), pillowMat);
+            pillow.position.set(0.142, 0.19, 0);
+            pillow.rotation.z = -THREE.MathUtils.degToRad(50);
             seatGroup.add(pillow);
 
-            const seatBase = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.048, 0.18), mat);
-            seatBase.position.set(-0.025, 0.045, 0);
+            const seatBase = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.044, 0.15), mat);
+            seatBase.position.set(-0.02, 0.062, 0);
             seatGroup.add(seatBase);
 
-            const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.072, 0.17), mat);
-            footRest.position.set(-0.075, 0.036, 0);
-            footRest.rotation.z = 0.22;
+            const pedestal = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.045, 0.11), mat);
+            pedestal.position.set(-0.015, 0.0225, 0);
+            seatGroup.add(pedestal);
+
+            const footRest = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.055, 0.14), mat);
+            footRest.position.set(-0.068, 0.035, 0);
+            footRest.rotation.z = 0.2;
             seatGroup.add(footRest);
 
             return { group: seatGroup, material: mat };
@@ -757,7 +762,6 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Faixa rosa inferior e superior características do ônibus São João
             ctx.fillStyle = '#ec4899';
             ctx.fillRect(0, 224, canvas.width, 16);
             ctx.fillRect(0, 18, canvas.width, 12);
@@ -873,6 +877,11 @@
                 roughness: 0.36,
                 metalness: 0.35
             });
+            const floorMat = new THREE.MeshStandardMaterial({
+                color: 0x1f2937,
+                roughness: 0.55,
+                metalness: 0.15
+            });
             const pinkMat = new THREE.MeshStandardMaterial({
                 color: 0xec4899,
                 roughness: 0.28,
@@ -892,13 +901,18 @@
                 depthWrite: false
             });
 
-            // Piso e saia inferior cinza com faixa rosa
-            const floorMesh = new THREE.Mesh(new THREE.BoxGeometry(busLength, 0.28, busWidth), charcoalMat);
-            floorMesh.position.set(0, -0.34, 0);
+            // Piso interno da cabine com topo em y = -0.10 (altura 0.26 -> centro -0.23)
+            const floorMesh = new THREE.Mesh(new THREE.BoxGeometry(busLength - 0.16, 0.26, busWidth - 0.10), floorMat);
+            floorMesh.position.set(0, -0.23, 0);
             busGroup.add(floorMesh);
 
-            const lowerPinkSkirt = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.02, 0.045, busWidth + 0.03), pinkMat);
-            lowerPinkSkirt.position.set(0, -0.46, 0);
+            // Saia inferior cinza e faixa rosa
+            const lowerSkirtMesh = new THREE.Mesh(new THREE.BoxGeometry(busLength, 0.14, busWidth), charcoalMat);
+            lowerSkirtMesh.position.set(0, -0.35, 0);
+            busGroup.add(lowerSkirtMesh);
+
+            const lowerPinkSkirt = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.02, 0.04, busWidth + 0.03), pinkMat);
+            lowerPinkSkirt.position.set(0, -0.43, 0);
             busGroup.add(lowerPinkSkirt);
 
             // Carroceria superior fechada por padrão (abre ao clicar em um assento)
@@ -923,13 +937,13 @@
             roofMesh.position.set(0.02, 0.59, 0);
             busGroup.add(roofMesh);
 
-            // Faixa rosa logo abaixo do para-brisa / janelas
-            const beltPinkStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.04, 0.04, busWidth + 0.04), pinkMat);
-            beltPinkStripe.position.set(0, -0.18, 0);
+            // Faixa rosa logo abaixo das janelas (alinhada ao topo do piso)
+            const beltPinkStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.04, 0.035, busWidth + 0.04), pinkMat);
+            beltPinkStripe.position.set(0, -0.10, 0);
             busGroup.add(beltPinkStripe);
 
-            const silverAccent = new THREE.Mesh(new THREE.BoxGeometry(busLength - 0.2, 0.03, busWidth + 0.05), silverMat);
-            silverAccent.position.set(0.05, -0.12, 0);
+            const silverAccent = new THREE.Mesh(new THREE.BoxGeometry(busLength - 0.2, 0.025, busWidth + 0.05), silverMat);
+            silverAccent.position.set(0.05, -0.05, 0);
             busGroup.add(silverAccent);
 
             // Grade cromada e faróis dianteiros (-X é a frente)
@@ -1004,26 +1018,26 @@
             wheelXPositions.forEach(xPos => {
                 [-busWidth / 2 - 0.01, busWidth / 2 + 0.01].forEach(zPos => {
                     const tire = new THREE.Mesh(tireGeo, tireMat);
-                    tire.position.set(xPos, -0.48, zPos);
+                    tire.position.set(xPos, -0.45, zPos);
                     busGroup.add(tire);
 
                     const rim = new THREE.Mesh(rimGeo, rimMat);
-                    rim.position.set(xPos, -0.48, zPos);
+                    rim.position.set(xPos, -0.45, zPos);
                     busGroup.add(rim);
                 });
             });
 
-            // 46 poltronas no andar superior (ocultas enquanto o ônibus está fechado; aparecem ao clicar num assento)
-            const zSlots = [-0.42, -0.18, 0.18, 0.42];
+            // 46 poltronas apoiadas exatamente sobre o piso (y = -0.10) e dentro da largura útil
+            const zSlots = [-0.38, -0.15, 0.15, 0.38];
             for (let s = 1; s <= TOTAL_PHYSICAL_SEATS; s++) {
                 const idx = s - 1;
                 const row = Math.floor(idx / 4);
                 const col = idx % 4;
-                const xPos = -2.28 + row * 0.42;
+                const xPos = -2.24 + row * 0.41;
                 const zPos = zSlots[col];
 
                 const seatObj = create3DSeat(0x10b981);
-                seatObj.group.position.set(xPos, -0.18, zPos);
+                seatObj.group.position.set(xPos, -0.10, zPos);
                 seatObj.group.visible = false;
                 busGroup.add(seatObj.group);
                 seats3D[s] = seatObj;
@@ -1133,7 +1147,7 @@
                     seatObj.group.scale.set(1, 1, 1);
                 } else if (selectedSeat === s) {
                     seatObj.material.color.setHex(0xec4899);
-                    seatObj.group.scale.set(1.22, 1.22, 1.22);
+                    seatObj.group.scale.set(1.12, 1.12, 1.12);
                 } else {
                     seatObj.material.color.setHex(0x10b981);
                     seatObj.group.scale.set(1, 1, 1);
