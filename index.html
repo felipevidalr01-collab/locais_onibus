@@ -727,7 +727,6 @@
                 metalness: 0.05
             });
 
-            // Origem (0,0,0) da cadeira fica na base inferior apoiada no piso
             const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.20, 0.15), mat);
             backrest.position.set(0.105, 0.135, 0);
             backrest.rotation.z = -THREE.MathUtils.degToRad(50);
@@ -901,12 +900,10 @@
                 depthWrite: false
             });
 
-            // Piso interno da cabine com topo em y = -0.10 (altura 0.26 -> centro -0.23)
             const floorMesh = new THREE.Mesh(new THREE.BoxGeometry(busLength - 0.16, 0.26, busWidth - 0.10), floorMat);
             floorMesh.position.set(0, -0.23, 0);
             busGroup.add(floorMesh);
 
-            // Saia inferior cinza e faixa rosa
             const lowerSkirtMesh = new THREE.Mesh(new THREE.BoxGeometry(busLength, 0.14, busWidth), charcoalMat);
             lowerSkirtMesh.position.set(0, -0.35, 0);
             busGroup.add(lowerSkirtMesh);
@@ -915,12 +912,10 @@
             lowerPinkSkirt.position.set(0, -0.43, 0);
             busGroup.add(lowerPinkSkirt);
 
-            // Carroceria superior fechada por padrão (abre ao clicar em um assento)
             const cabinBody = createAerodynamicBusBody(busLength, 0.78, busWidth, upperCabinMat);
             cabinBody.position.set(0, 0.19, 0);
             busGroup.add(cabinBody);
 
-            // Painel lateral deslizante que levanta ao abrir um assento para revelar os bancos
             const paneMat = new THREE.MeshStandardMaterial({
                 color: 0x1f2937,
                 roughness: 0.35,
@@ -932,12 +927,10 @@
             rightWindowPane.position.set(0.05, 0.22, busWidth / 2 + 0.015);
             busGroup.add(rightWindowPane);
 
-            // Teto cinza chumbo
             const roofMesh = new THREE.Mesh(new THREE.BoxGeometry(busLength - 0.12, 0.06, busWidth - 0.06), charcoalMat);
             roofMesh.position.set(0.02, 0.59, 0);
             busGroup.add(roofMesh);
 
-            // Faixa rosa logo abaixo das janelas (alinhada ao topo do piso)
             const beltPinkStripe = new THREE.Mesh(new THREE.BoxGeometry(busLength + 0.04, 0.035, busWidth + 0.04), pinkMat);
             beltPinkStripe.position.set(0, -0.10, 0);
             busGroup.add(beltPinkStripe);
@@ -946,7 +939,6 @@
             silverAccent.position.set(0.05, -0.05, 0);
             busGroup.add(silverAccent);
 
-            // Grade cromada e faróis dianteiros (-X é a frente)
             const grilleMesh = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.07, 0.72), silverMat);
             grilleMesh.position.set(-busLength / 2 - 0.02, -0.28, 0);
             busGroup.add(grilleMesh);
@@ -959,7 +951,6 @@
                 busGroup.add(hl);
             });
 
-            // Retrovisores rosa-choque característicos das fotos
             const mirrorArmGeo = new THREE.BoxGeometry(0.14, 0.045, 0.24);
             const mirrorPodGeo = new THREE.BoxGeometry(0.12, 0.19, 0.08);
             [-busWidth / 2 - 0.12, busWidth / 2 + 0.12].forEach(zMirror => {
@@ -972,7 +963,6 @@
                 busGroup.add(pod);
             });
 
-            // Laterais com emblema SJ e "SÃO JOÃO"
             const sideDecalGeo = new THREE.PlaneGeometry(4.4, 1.05);
             const rightDecalMat = new THREE.MeshBasicMaterial({
                 map: createSideLiveryTexture(false),
@@ -993,7 +983,6 @@
             leftDecal.position.set(0.05, -0.04, -busWidth / 2 - 0.035);
             busGroup.add(leftDecal);
 
-            // Traseira (+X é a traseira) com emblema SJ e textos
             const rearDecalGeo = new THREE.PlaneGeometry(1.18, 1.12);
             const rearDecalMat = new THREE.MeshBasicMaterial({
                 map: createRearLiveryTexture(),
@@ -1005,7 +994,6 @@
             rearDecal.position.set(busLength / 2 + 0.035, 0.02, 0);
             busGroup.add(rearDecal);
 
-            // 2 Eixos (4 rodas)
             const wheelXPositions = [-1.85, 1.75];
             const tireGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.14, 20);
             tireGeo.rotateX(Math.PI / 2);
@@ -1027,8 +1015,9 @@
                 });
             });
 
-            // 46 poltronas apoiadas exatamente sobre o piso (y = -0.10) e dentro da largura útil
-            const zSlots = [-0.38, -0.15, 0.15, 0.38];
+            // col 0: Janela esquerda (-0.38) | col 1: Corredor esquerdo (-0.15)
+            // col 2: Janela direita (+0.38, mais próxima da câmera +Z) | col 3: Corredor direito (+0.15)
+            const zSlots = [-0.38, -0.15, 0.38, 0.15];
             for (let s = 1; s <= TOTAL_PHYSICAL_SEATS; s++) {
                 const idx = s - 1;
                 const row = Math.floor(idx / 4);
